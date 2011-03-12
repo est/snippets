@@ -19,7 +19,9 @@ code.ref { white-space: pre; }
 L1: <input id="parameter_l1" value="100" />distance between Pattern and Barrier<br />
 L2: <input id="parameter_l2" value="100" />distance between Barrier and Camera/Eye<br />
 L3: <input id="parameter_l3" value="20" />length of each Barrier<br />
+L4: <input id="parameter_l4" value="40" />distance between two eyes<br />
 R1: <input id="parameter_r1" value="1" />barrier block-pass ratio<br />
+CO: <input id="parameter_CO" value="1" />Composition Operation: source-over, source-in, source-atop, lighter, xor, destination-over, destination-in, destination-out, destination-atop, darker, copy<br />
 
 
 <h3>debug</h3>
@@ -51,6 +53,8 @@ function draw(e)
   var l2=parseFloat(document.getElementById('parameter_l2').value);
   //l3 - length of each Barrier
   var l3=parseFloat(document.getElementById('parameter_l3').value);
+  //l4 - distance between two eyes
+  var l4=parseFloat(document.getElementById('parameter_l4').value);
   //r1 - barrier block-pass ratio
   var r1=parseFloat(document.getElementById('parameter_r1').value);
   //hbb - length of barrier block , accelerating javascript calculation
@@ -67,8 +71,9 @@ function draw(e)
   bx=0;
   by=top_offset+l1;
   
-  //get mouse position and draw sight area
-  cx=e.offsetX;
+  //get mouse position
+  cxl=e.offsetX-l4/2; //left eye
+  cxr=e.offsetX+l4/2; //right eye
   cy=e.offsetY;
   
   ctx.fillStyle='#000';
@@ -81,19 +86,35 @@ function draw(e)
     
     
     //it took me at least half an hour (until 2011-03-12 20:53) to get this equation. My math is degrading fast :(
-    px1 = cx-(cy-by+l1)*(cx-bx-lbb)/(cy-by);
-    px2 = cx-(cy-by+l1)*(cx-bx-l3)/(cy-by);
+    px1l = cxl-(cy-by+l1)*(cxl-bx-lbb)/(cy-by); //left eye
+    px2l = cxl-(cy-by+l1)*(cxl-bx-l3)/(cy-by);
+    px1r = cxr-(cy-by+l1)*(cxr-bx-lbb)/(cy-by); //right eye
+    px2r = cxr-(cy-by+l1)*(cxr-bx-l3)/(cy-by);
     py = top_offset;
     
-    //draw sight view area
+    ctx.setCompositeOperation(document.getElementById('parameter_CO').value);
+    
+    //draw left eye sight view area
     ctx.beginPath();
-    ctx.moveTo(px1, py);
-    ctx.lineTo(cx, cy);
-    ctx.lineTo(px2, py);
+    ctx.moveTo(px1l, py);
+    ctx.lineTo(cxl, cy);
+    ctx.lineTo(px2l, py);
     ctx.strokeStyle='#222';
     ctx.stroke();
     ctx.fillStyle='#0e0';
     ctx.fill();
+    
+    //draw right eye sight view area
+    ctx.beginPath();
+    ctx.moveTo(px1r, py);
+    ctx.lineTo(cxr, cy);
+    ctx.lineTo(px2r, py);
+    ctx.strokeStyle='#222';
+    ctx.stroke();
+    ctx.fillStyle='#00e';
+    ctx.fill();
+    
+    ctx.setCompositeOperation('source-over');
     
     bx+=l3;
   }
