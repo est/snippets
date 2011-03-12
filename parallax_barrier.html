@@ -1,0 +1,162 @@
+﻿<!doctype html>
+<html>
+<head>
+<title>Parallax Barrier playground sandbox</title>
+<style>
+<!--
+canvas#canvas {border: 1px solid gray;overflow:left }
+code.ref { white-space: pre; }
+#cmd, #cmd_log { font-family: monospace; width: 650px; }
+-->
+</style>
+</head>
+<body onload-"javascript:draw()">
+
+<canvas id="canvas" width="650" height="450">
+  <div style="width: 650px; height:650px; text-align: center;">Your browser sucks and does not support <code>canvas</code></div>
+</canvas>
+
+Control and description
+
+<hr />
+
+<input id="cmd" type="text" onKeypress="fire_cmd(event, this)" value="alert(0);" />
+<br />
+<textarea id="cmd_log" rows="10"></textarea>
+
+<script language="javascript" type="text/javascript">
+<!--
+var canvas = document.getElementById('canvas')
+if(canvas.getContext){ var ctx=canvas.getContext('2d'); }
+ctx.fillStyle='#fff';
+ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+ctx.save()
+canvas.onmousemove=function(e)
+{
+  ctx.beginPath();
+  ctx.moveTo(0,0);
+  ctx.lineTo(e.offsetX, e.offsetY);
+  ctx.stroke();
+}
+canvas.onclick=function(e)
+{
+  ctx.restore();
+}
+
+  //(px, py) Coordinate of Pattern; (bx, by) coordinate of Barrier; (cx, cy) coordinate of Camera/Eye
+  //h1 - distance between Pattern and Barrier; h2 - distance between Barrier and Camera/Eye;
+  //h3 - length of each Barrier
+  
+  //it took me at least half an hour (until 2011-03-12 20:53) to get this equation. My math is degrading fast :(
+  px=cx+(cy-py)*(cx-bx)/h1
+  py=by-h1
+
+function append_log(txt)
+{
+  var cmd_log=document.getElementById('cmd_log')
+  if (cmd_log.innerText)
+  {
+    cmd_log.innerText+=txt;
+  }
+  else
+  {
+    cmd_log.textContent+=txt;
+  }
+}
+
+
+document.body.onload=function()
+{
+  ctx.lineTo(20,20)
+}
+
+function show_x_y(e, c)
+{
+  alert(c);
+}
+
+function fire_cmd(e, c)
+{
+  if(e.keyCode==13)
+  {
+    try
+    {
+      append_log('Return: '+eval(c.value)+'\n')
+    }
+    catch(e)
+    {
+      append_log('Error: '+e+'\n');
+    }
+  }
+  else if(e.keyCode==46)
+  {
+    
+  }
+}
+-->
+</script>
+
+<h3>Canvas Ref</h3>
+<a href="http://simon.html5.org/dump/html5-canvas-cheat-sheet.html">cheatsheet</a>, <a href="http://webcache.googleusercontent.com/search?q=cache:CWyoU8oHl3gJ:www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html+the-canvas-element.html&cd=2&hl=en&ct=clnk&source=74.125.127.118">HTML5 def</a> <a href="https://developer.mozilla.org/en/Canvas_tutorial">Tutorial</a>
+<code class="ref">
+document.getElementById('canvas').getContext('2d')
+	fillStyle 赋值为字串 "orange"、"#FFA500"、"rgb(255,165,0)"、"rgba(255,165,0,1)"
+	strokeStyle
+	globalAlpha 赋值为 0.0 (全透明) 到 1.0 (不透明)
+	
+	lineWidth 默认1
+	lineCap 为 'butt'（无头，默认）、'round'（圆头）、'square'（方头） 之一
+	lineJoin 为 'round'（园转角）、'bevel'（棱转角）、'miter'（直转角，默认） 之一
+	miterLimit 当lineJoin='miter'<a href="https://developer.mozilla.org/en/Canvas_tutorial/Applying_styles_and_colors">时</a>
+		
+	fillRect(x,y,width,height)
+	strokeRect(x,y,width,height)
+	clearRect(x,y,width,height)
+	rect(x, y, width, height)
+	
+	beginPath()
+	closePath()
+	stroke()
+	fill()
+	
+		moveTo(x, y)
+		lineTo(x, y)
+	
+		arc(x, y, radius, startAngle, endAngle, anticlockwise)
+		quadraticCurveTo(cp1x, cp1y, x, y)
+		bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y)
+	
+	drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+	createPattern(image,type) type取值为'repeat''、'repeat-x'、'repeat-y'或'no-repeat'
+	
+	createLinearGradient(x1,y1,x2,y2)
+	createRadialGradient(x1,y1,r1,x2,y2,r2)
+	addColorStop(position, color)
+	
+	shadowOffsetX
+	shadowOffsetY
+	shadowBlur 默认0
+	shadowColor
+	
+	save()
+	restore()
+	
+	translate(x, y)
+	rotate(angle) 顺时针
+	scale(x, y)
+	transform(m11, m12, m21, m22, dx, dy) 矩阵
+	
+	globalCompositeOperation 12个<a href="https://developer.mozilla.org/en/Canvas_tutorial/Compositing">属性</a>
+	
+	clip()
+	
+	<a href="https://developer.mozilla.org/en/Canvas_tutorial/Basic_animations">动画</a>
+</code>
+
+<h3>ToDo</h3>
+<ul>
+  <li>barrier control: bar/space ratio, single barrier width</li>
+</ul>
+<div class="footer">A creation of t.est.im, all rights reserved 2011</div>
+</body>
+</html>
