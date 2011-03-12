@@ -11,23 +11,27 @@ code.ref { white-space: pre; }
 </head>
 <body>
 
-<canvas id="canvas" width="650" height="450">
+<canvas id="canvas" width="650" height="900">
   <div style="width: 650px; height:650px; text-align: center;">Your browser sucks and does not support <code>canvas</code></div>
 </canvas>
 
 <h3>Control and description</h3>
 L1: <input id="parameter_l1" value="100" />distance between Pattern and Barrier<br />
-L2: <input id="parameter_l2" value="100" />distance between Barrier and Camera/Eye<br />
+<!--L2: <input id="parameter_l2" value="100" />distance between Barrier and Camera/Eye<br />-->
 L3: <input id="parameter_l3" value="20" />length of each Barrier<br />
 L4: <input id="parameter_l4" value="40" />distance between two eyes<br />
 R1: <input id="parameter_r1" value="1" />barrier block-pass ratio<br />
-CO: <input id="parameter_CO" value="1" />Composition Operation: source-over, source-in, source-atop, lighter, xor, destination-over, destination-in, destination-out, destination-atop, darker, copy<br />
+CO: <input id="parameter_CO" value="darker" />Composition Operation: source-over, source-in, source-atop, lighter, xor, destination-over, destination-in, destination-out, destination-atop, darker, copy<br />
 
 
 <h3>debug</h3>
 <input id="cmd" type="text" onKeypress="fire_cmd(event, this)" value="alert(0);" />
 <br />
 <textarea id="cmd_log" rows="10"></textarea>
+
+<h3>Help</h3>
+Move mouse: move point of view 
+Click: pause move. Click again to resume.
 
 <div style="clear: both;"></div>
 <hr  />
@@ -37,6 +41,17 @@ var canvas = document.getElementById('canvas')
 if(canvas.getContext){ var ctx=canvas.getContext('2d'); }
 
 canvas.onmousemove=draw;
+canvas.onclick=function()
+{
+  if(canvas.onmousemove==null)
+  {
+    canvas.onmousemove=draw;
+  }
+  else
+  {
+    canvas.onmousemove=null;
+  }
+}
 
 function draw(e)
 {
@@ -50,7 +65,7 @@ function draw(e)
   //l1 - distance between Pattern and Barrier
   var l1=parseFloat(document.getElementById('parameter_l1').value);
   //l2 - distance between Barrier and Camera/Eye
-  var l2=parseFloat(document.getElementById('parameter_l2').value);
+  //var l2=parseFloat(document.getElementById('parameter_l2').value);
   //l3 - length of each Barrier
   var l3=parseFloat(document.getElementById('parameter_l3').value);
   //l4 - distance between two eyes
@@ -101,7 +116,7 @@ function draw(e)
     ctx.lineTo(px2l, py);
     ctx.strokeStyle='#222';
     ctx.stroke();
-    ctx.fillStyle='#0e0';
+    ctx.fillStyle='#090';
     ctx.fill();
     
     //draw right eye sight view area
@@ -111,7 +126,7 @@ function draw(e)
     ctx.lineTo(px2r, py);
     ctx.strokeStyle='#222';
     ctx.stroke();
-    ctx.fillStyle='#00e';
+    ctx.fillStyle='#900';
     ctx.fill();
     
     ctx.setCompositeOperation('source-over');
@@ -119,12 +134,7 @@ function draw(e)
     bx+=l3;
   }
   
-
-  
-  
-
-
-  }
+}
 
 function append_log(txt)
 {
