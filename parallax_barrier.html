@@ -1,55 +1,109 @@
-﻿<!doctype html>
-<html>
+﻿<html>
 <head>
 <title>Parallax Barrier playground sandbox</title>
 <style>
 <!--
-canvas#canvas {border: 1px solid gray;overflow:left }
+canvas#canvas {border: 1px solid gray;float:left }
 code.ref { white-space: pre; }
-#cmd, #cmd_log { font-family: monospace; width: 650px; }
+#cmd, #cmd_log { font-family: monospace; width: 500px; }
 -->
 </style>
 </head>
-<body onload-"javascript:draw()">
+<body>
 
 <canvas id="canvas" width="650" height="450">
   <div style="width: 650px; height:650px; text-align: center;">Your browser sucks and does not support <code>canvas</code></div>
 </canvas>
 
-Control and description
+<h3>Control and description</h3>
+L1: <input id="parameter_l1" value="100" />distance between Pattern and Barrier<br />
+L2: <input id="parameter_l2" value="100" />distance between Barrier and Camera/Eye<br />
+L3: <input id="parameter_l3" value="20" />length of each Barrier<br />
+R1: <input id="parameter_r1" value="1" />barrier block-pass ratio<br />
 
-<hr />
 
+<h3>debug</h3>
 <input id="cmd" type="text" onKeypress="fire_cmd(event, this)" value="alert(0);" />
 <br />
 <textarea id="cmd_log" rows="10"></textarea>
 
+<div style="clear: both;"></div>
+<hr  />
 <script language="javascript" type="text/javascript">
 <!--
 var canvas = document.getElementById('canvas')
 if(canvas.getContext){ var ctx=canvas.getContext('2d'); }
-ctx.fillStyle='#fff';
-ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-ctx.save()
-canvas.onmousemove=function(e)
-{
-  ctx.beginPath();
-  ctx.moveTo(0,0);
-  ctx.lineTo(e.offsetX, e.offsetY);
-  ctx.stroke();
-}
-canvas.onclick=function(e)
-{
-  ctx.restore();
-}
 
-  //(px, py) Coordinate of Pattern; (bx, by) coordinate of Barrier; (cx, cy) coordinate of Camera/Eye
-  //h1 - distance between Pattern and Barrier; h2 - distance between Barrier and Camera/Eye;
-  //h3 - length of each Barrier
+canvas.onmousemove=draw;
+
+function draw(e)
+{
+  //clear the whole damn canvas
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  //start  from 10px below the top border
+  var top_offset=10;
+  //configurable parameters
+  //l1 - distance between Pattern and Barrier
+  var l1=parseFloat(document.getElementById('parameter_l1').value);
+  //l2 - distance between Barrier and Camera/Eye
+  var l2=parseFloat(document.getElementById('parameter_l2').value);
+  //l3 - length of each Barrier
+  var l3=parseFloat(document.getElementById('parameter_l3').value);
+  //r1 - barrier block-pass ratio
+  var r1=parseFloat(document.getElementById('parameter_r1').value);
+  //hbb - length of barrier block , accelerating javascript calculation
+  var lbb = (r1*l3)/(1+r1)
   
-  //it took me at least half an hour (until 2011-03-12 20:53) to get this equation. My math is degrading fast :(
-  px=cx+(cy-py)*(cx-bx)/h1
-  py=by-h1
+    
+  //(px, py) Coordinate of Pattern; (bx, by) coordinate of Barrier; (cx, cy) coordinate of Camera/Eye
+  
+
+  ////draw barrier. Nice floor() hack from Blueidea/tid=2822159
+  //var barrier_number = ctx.canvas.width/l3|0;
+  
+  //initial barrier coordinate
+  bx=0;
+  by=top_offset+l1;
+  
+  //get mouse position and draw sight area
+  cx=e.offsetX;
+  cy=e.offsetY;
+  
+  ctx.fillStyle='#000';
+  while(bx<ctx.canvas.width)
+  {
+    //draw the barrier
+    //hard coded barrier height: 3px
+    ctx.fillStyle='#000';
+    ctx.fillRect(bx, by, lbb, 3);
+    
+    
+    //it took me at least half an hour (until 2011-03-12 20:53) to get this equation. My math is degrading fast :(
+    px1 = cx-(cy-by+l1)*(cx-bx-lbb)/(cy-by);
+    px2 = cx-(cy-by+l1)*(cx-bx-l3)/(cy-by);
+    py = top_offset;
+    
+    //draw sight view area
+    ctx.beginPath();
+    ctx.moveTo(px1, py);
+    ctx.lineTo(cx, cy);
+    ctx.lineTo(px2, py);
+    ctx.strokeStyle='#222';
+    ctx.stroke();
+    ctx.fillStyle='#0e0';
+    ctx.fill();
+    
+    bx+=l3;
+  }
+  
+
+  
+  
+
+
+  }
 
 function append_log(txt)
 {
@@ -62,17 +116,6 @@ function append_log(txt)
   {
     cmd_log.textContent+=txt;
   }
-}
-
-
-document.body.onload=function()
-{
-  ctx.lineTo(20,20)
-}
-
-function show_x_y(e, c)
-{
-  alert(c);
 }
 
 function fire_cmd(e, c)
