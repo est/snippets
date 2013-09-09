@@ -1,0 +1,237 @@
+﻿<html>
+
+<head>
+<title>Parallax Barrier playground sandbox</title>
+<style>
+<!--
+canvas#canvas {border: 1px solid gray;float:left }
+code.ref { white-space: pre; }
+#cmd, #cmd_log { font-family: monospace; width: 500px; }
+-->
+</style>
+</head>
+<body>
+
+<canvas id="canvas" width="650" height="900">
+  <div style="width: 650px; height:650px; text-align: center;">Your browser sucks and does not support <code>canvas</code></div>
+</canvas>
+
+<h3>Control and description</h3>
+L1: <input id="parameter_l1" value="100" />distance between Pattern and Barrier<br />
+<!--L2: <input id="parameter_l2" value="100" />distance between Barrier and Camera/Eye<br />-->
+L3: <input id="parameter_l3" value="20" />length of each Barrier<br />
+L4: <input id="parameter_l4" value="40" />distance between two eyes<br />
+R1: <input id="parameter_r1" value="1" />barrier block-pass ratio<br />
+CO: <input id="parameter_CO" value="darker" />Composition Operation: source-over, source-in, source-atop, lighter, xor, destination-over, destination-in, destination-out, destination-atop, darker, copy<br />
+
+
+<h3>debug</h3>
+<input id="cmd" type="text" onKeypress="fire_cmd(event, this)" value="alert(0);" />
+<br />
+<textarea id="cmd_log" rows="10"></textarea>
+
+<h3>Help</h3>
+Move mouse: move point of view<br />
+Click: pause move. Click again to resume<br />
+
+<div style="clear: both;"></div>
+<hr  />
+<script language="javascript" type="text/javascript">
+<!--
+var canvas = document.getElementById('canvas')
+if(canvas.getContext){ var ctx=canvas.getContext('2d'); }
+
+canvas.onmousemove=draw;
+canvas.onclick=function()
+{
+  if(canvas.onmousemove==null)
+  {
+    canvas.onmousemove=draw;
+  }
+  else
+  {
+    canvas.onmousemove=null;
+  }
+}
+
+function draw(e)
+{
+  //clear the whole damn canvas
+  ctx.fillStyle='#fff';
+  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+  //start  from 10px below the top border
+  var top_offset=10;
+  //configurable parameters
+  //l1 - distance between Pattern and Barrier
+  var l1=parseFloat(document.getElementById('parameter_l1').value);
+  //l2 - distance between Barrier and Camera/Eye
+  //var l2=parseFloat(document.getElementById('parameter_l2').value);
+  //l3 - length of each Barrier
+  var l3=parseFloat(document.getElementById('parameter_l3').value);
+  //l4 - distance between two eyes
+  var l4=parseFloat(document.getElementById('parameter_l4').value);
+  //r1 - barrier block-pass ratio
+  var r1=parseFloat(document.getElementById('parameter_r1').value);
+  //hbb - length of barrier block , accelerating javascript calculation
+  var lbb = (r1*l3)/(1+r1)
+  
+    
+  //(px, py) Coordinate of Pattern; (bx, by) coordinate of Barrier; (cx, cy) coordinate of Camera/Eye
+  
+
+  ////draw barrier. Nice floor() hack from Blueidea/tid=2822159
+  //var barrier_number = ctx.canvas.width/l3|0;
+  
+  //initial barrier coordinate
+  bx=0;
+  by=top_offset+l1;
+  
+  //get mouse position
+  cxl=e.offsetX-l4/2; //left eye
+  cxr=e.offsetX+l4/2; //right eye
+  cy=e.offsetY;
+  
+  ctx.fillStyle='#000';
+  while(bx<ctx.canvas.width)
+  {
+    //draw the barrier
+    //hard coded barrier height: 3px
+    ctx.fillStyle='#000';
+    ctx.fillRect(bx, by, lbb, 3);
+    
+    
+    //it took me at least half an hour (until 2011-03-12 20:53) to get this equation. My math is degrading fast :(
+    px1l = cxl-(cy-by+l1)*(cxl-bx-lbb)/(cy-by); //left eye
+    px2l = cxl-(cy-by+l1)*(cxl-bx-l3)/(cy-by);
+    px1r = cxr-(cy-by+l1)*(cxr-bx-lbb)/(cy-by); //right eye
+    px2r = cxr-(cy-by+l1)*(cxr-bx-l3)/(cy-by);
+    py = top_offset;
+    
+    ctx.setCompositeOperation(document.getElementById('parameter_CO').value);
+    
+    //draw left eye sight view area
+    ctx.beginPath();
+    ctx.moveTo(px1l, py);
+    ctx.lineTo(cxl, cy);
+    ctx.lineTo(px2l, py);
+    ctx.strokeStyle='#222';
+    ctx.stroke();
+    ctx.fillStyle='#090';
+    ctx.fill();
+    
+    //draw right eye sight view area
+    ctx.beginPath();
+    ctx.moveTo(px1r, py);
+    ctx.lineTo(cxr, cy);
+    ctx.lineTo(px2r, py);
+    ctx.strokeStyle='#222';
+    ctx.stroke();
+    ctx.fillStyle='#900';
+    ctx.fill();
+    
+    ctx.setCompositeOperation('source-over');
+    
+    bx+=l3;
+  }
+  
+}
+
+function append_log(txt)
+{
+  var cmd_log=document.getElementById('cmd_log')
+  if (cmd_log.innerText)
+  {
+    cmd_log.innerText+=txt;
+  }
+  else
+  {
+    cmd_log.textContent+=txt;
+  }
+}
+
+function fire_cmd(e, c)
+{
+  if(e.keyCode==13)
+  {
+    try
+    {
+      append_log('Return: '+eval(c.value)+'\n')
+    }
+    catch(e)
+    {
+      append_log('Error: '+e+'\n');
+    }
+  }
+  else if(e.keyCode==46)
+  {
+    
+  }
+}
+-->
+</script>
+
+<h3>Canvas Ref</h3>
+<a href="http://simon.html5.org/dump/html5-canvas-cheat-sheet.html">cheatsheet</a>, <a href="http://webcache.googleusercontent.com/search?q=cache:CWyoU8oHl3gJ:www.whatwg.org/specs/web-apps/current-work/multipage/the-canvas-element.html+the-canvas-element.html&cd=2&hl=en&ct=clnk&source=74.125.127.118">HTML5 def</a> <a href="https://developer.mozilla.org/en/Canvas_tutorial">Tutorial</a>
+<code class="ref">
+document.getElementById('canvas').getContext('2d')
+	fillStyle 赋值为字串 "orange"、"#FFA500"、"rgb(255,165,0)"、"rgba(255,165,0,1)"
+	strokeStyle
+	globalAlpha 赋值为 0.0 (全透明) 到 1.0 (不透明)
+	
+	lineWidth 默认1
+	lineCap 为 'butt'（无头，默认）、'round'（圆头）、'square'（方头） 之一
+	lineJoin 为 'round'（园转角）、'bevel'（棱转角）、'miter'（直转角，默认） 之一
+	miterLimit 当lineJoin='miter'<a href="https://developer.mozilla.org/en/Canvas_tutorial/Applying_styles_and_colors">时</a>
+		
+	fillRect(x,y,width,height)
+	strokeRect(x,y,width,height)
+	clearRect(x,y,width,height)
+	rect(x, y, width, height)
+	
+	beginPath()
+	closePath()
+	stroke()
+	fill()
+	
+		moveTo(x, y)
+		lineTo(x, y)
+	
+		arc(x, y, radius, startAngle, endAngle, anticlockwise)
+		quadraticCurveTo(cp1x, cp1y, x, y)
+		bezierCurveTo(cp1x, cp1y, cp2x, cp2y, x, y)
+	
+	drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight)
+	createPattern(image,type) type取值为'repeat''、'repeat-x'、'repeat-y'或'no-repeat'
+	
+	createLinearGradient(x1,y1,x2,y2)
+	createRadialGradient(x1,y1,r1,x2,y2,r2)
+	addColorStop(position, color)
+	
+	shadowOffsetX
+	shadowOffsetY
+	shadowBlur 默认0
+	shadowColor
+	
+	save()
+	restore()
+	
+	translate(x, y)
+	rotate(angle) 顺时针
+	scale(x, y)
+	transform(m11, m12, m21, m22, dx, dy) 矩阵
+	
+	globalCompositeOperation 12个<a href="https://developer.mozilla.org/en/Canvas_tutorial/Compositing">属性</a>
+	
+	clip()
+	
+	<a href="https://developer.mozilla.org/en/Canvas_tutorial/Basic_animations">动画</a>
+</code>
+
+<h3>ToDo</h3>
+<ul>
+  <li>barrier control: bar/space ratio, single barrier width</li>
+</ul>
+<div class="footer">A creation of t.est.im, all rights reserved 2011</div>
+</body>
+</html>
