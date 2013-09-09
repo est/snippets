@@ -1,0 +1,304 @@
+
+<!-- saved from url=(0056)http://www.cis.nctu.edu.tw/~is86007/magicshop/ROCid.html -->
+<HTML><HEAD><META http-equiv="Content-Type" content="text/html; charset=Big5">
+
+<TITLE>ROC ID Generator 台灣身份證字號產生器</TITLE>
+<SCRIPT language="JavaScript" type="text/javascript">
+<!-- 
+function calsex1(selectForm)
+/* 計算 sex 的加權值 */
+{
+	var ret=0;
+	var i=0;
+	for (i=0 ; i < selectForm.a.length ; i++)
+	{
+		if (selectForm.a[i].checked==true)
+		{
+			ret = ret + eval(selectForm.a[i].value)*8;
+		}
+	}
+	return ret;
+}
+function myvoid()
+{
+	return false;
+}
+function myisDigit(num)
+/* isDigit function */
+{
+	var str1="1234567890";
+	var in15=0;
+	if (num.length>1 || num.lengtn <= 0){return false;}
+	in15 = str1.indexOf(num);
+	if (in15 >= 0 && in15 <= 9){return true;}
+	return false;
+}
+
+function checkdigitString(s)
+/* check a string is 'digit' string or not */
+{
+	var i;
+	for (i=0 ; i<s.length ; i++)
+	{
+		if (!myisDigit(s.charAt(i)))
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+function midrand1(mid11)
+{
+	var gen1;
+	gen1 = (Math.random());
+	mid11.a.value = (gen1.toString()).substring(2,9);
+	return gen1;
+}
+
+function calmid1(selectForm)
+/* 計算中間值的加權值 */
+{
+	var ret=0;
+	var i;
+	for (i=0 ; i < selectForm.a.value.length ; i++)
+	{
+		ret = ret + (7-i) * eval(selectForm.a.value.substring(i,i+1));
+	}
+	return ret;
+}
+
+function calcity1(selectForm)
+/* 計算縣市的加權值 */
+{
+	var ret=0;
+	var i;
+	for (i=0 ; i < selectForm.a.length ; i++)
+	{
+		if (selectForm.a[i].selected == true)
+		{
+			ret = eval(selectForm.a[i].value.substring(0,1)) + eval(selectForm.a[i].value.substring(1,2)) * 9;
+		}
+	}
+	return ret;
+}
+function calall(city11,sex11,mid11)
+/* 計算所有的加權值 */
+{
+	var ret=0;
+	ret = calcity1(city11)+calsex1(sex11)+calmid1(mid11);
+	ret = ret % 10;
+	ret = 10 - ret;
+	ret = ret % 10;
+	return ret;
+}
+function output1(city11,sex11,mid11)
+/* 輸出檢查碼 */
+{
+	var cee = 0;
+	cee = calall(city11,sex11,mid11);
+	return cee;
+}
+function output2(city11,sex11,mid11,output11,output12)
+{
+	var out1="";
+	var ret2=0;
+	var out2="";
+	var i;
+	clearout001(output12);
+	midrand1(mid11);
+	ret2 = output1(city11,sex11,mid11);
+	out2 = ret2.toString();
+	for (i=0 ; i < city11.a.length ; i++)
+	{
+		if (city11.a[i].selected == true)
+		{
+			out1 = out1 + city11.a[i].value.substring(2,3);
+		}
+	}
+
+	for (i=0 ; i<sex11.a.length ; i++)
+	{
+		if (sex11.a[i].checked == true)
+		{
+			out1 = out1 + sex11.a[i].value;
+		}
+	}
+	out1 = out1 + mid11.a.value;
+	out1 = out1 + out2;
+	output11.a.value = out1;
+	return out1;
+}
+function clearout001(id04124)
+{
+	id04124.a.value = "";
+}
+function output3(id001,out001,city11,sex11,mid11)
+{
+	var thestr = id001.a.value;
+	var i=0;
+	var ret2 = 0;
+	out001.a.value = "分析中 analyzing...";
+	if (thestr.length != 10)
+	{
+		out001.a.value = "invalid(length) 長度不正確";
+		return 0;
+	}
+	/* 分析縣市 */
+	for (i=0 ; i < city11.a.length ; i++)
+	{
+		if (city11.a[i].value.substring(2,3) ==
+			thestr.substring(0,1).toUpperCase())
+		{
+			city11.a[i].selected = true;
+			break;
+		}
+	}
+	if (i >= city11.a.length)
+	{
+		out001.a.value = "invalid(city) 縣市不正確";
+		return 0;
+	}
+	/* 分析性別 */
+	if (thestr.substring(1,2) == "1")
+	{
+		sex11.a[0].checked = true;
+	}	
+	else if (thestr.substring(1,2) == "2")
+	{
+		sex11.a[1].checked = true;
+	}	
+	else
+	{
+		out001.a.value = "invalid(gender) 性別不正確";
+		return 0;
+	}
+	/* 分析中間值 */
+	mid11.a.value = thestr.substring(2,9);
+	if (!checkdigitString(mid11.a.value) )
+	{
+		out001.a.value = "invalid(serial) 流水號不正確";
+		return 0;
+	}
+
+	
+	/* 計算檢查碼 */
+	ret2 = output1(city11,sex11,mid11);
+
+	if (ret2.toString() != thestr.substring(9,10) )
+	{
+		out001.a.value = "invalid(check) 檢查碼不正確";
+		return 0;
+	}
+	out001.a.value = "valid 正確";
+	return 0;
+}
+// -->
+</SCRIPT>
+</HEAD><BODY>
+<H1>身分證字號產生器</H1>
+<H2>Generation 產生</H2>
+<TABLE border="1">
+<TBODY><TR>
+<TH>City <BR> 縣/市: </TH>
+<TD>
+<FORM name="city" action="http://www.cis.nctu.edu.tw/~is86007/magicshop/ROCid.html#">
+<SELECT name="a">
+	<OPTION value="10A">臺北市(A)</OPTION>
+	<OPTION value="11B">臺中市(B)</OPTION>
+	<OPTION value="12C">基隆市(C)</OPTION>
+	<OPTION value="13D">臺南市(D)</OPTION>
+	<OPTION value="14E">高雄市(E)</OPTION>
+	<OPTION value="15F">臺北縣(F)</OPTION>
+	<OPTION value="16G">宜蘭縣(G)</OPTION>
+	<OPTION value="17H">桃園縣(H)</OPTION>
+	<OPTION value="18J">新竹縣(J)</OPTION>
+	<OPTION value="19K">苗栗縣(K)</OPTION>
+	<OPTION value="20L">臺中縣(L)</OPTION>
+	<OPTION value="21M">南投縣(M)</OPTION>
+	<OPTION value="22N">彰化縣(N)</OPTION>
+	<OPTION value="23P">雲林縣(P)</OPTION>
+	<OPTION value="24Q">嘉義縣(Q)</OPTION>
+	<OPTION value="25R">臺南縣(R)</OPTION>
+	<OPTION value="26S">高雄縣(S)</OPTION>
+	<OPTION value="27T">屏東縣(T)</OPTION>
+	<OPTION value="28U">花蓮縣(U)</OPTION>
+	<OPTION value="29V">臺東縣(V)</OPTION>
+	<OPTION value="30X">澎湖縣(X)</OPTION>
+	<OPTION value="31Y">陽明山(Y)</OPTION>
+	<OPTION value="32W">金門縣(W)</OPTION>
+	<OPTION value="33Z">連江縣(Z)</OPTION>
+	<OPTION value="35O">新竹市(O)</OPTION>
+	<OPTION value="34I">嘉義市(I)</OPTION>
+</SELECT>
+</FORM>
+</TD>
+<TH>Gender <BR> 性別:</TH>
+<TD>
+<FORM name="sex" action="http://www.cis.nctu.edu.tw/~is86007/magicshop/ROCid.html#">
+<INPUT type="radio" name="a" value="1" checked="">Male 男 (1)
+<INPUT type="radio" name="a" value="2">Female 女 (2)
+</FORM>
+</TD>
+<TH>Serial <BR> 流水號  <BR> (不用填):</TH>
+<TD>
+<FORM name="mid" action="http://www.cis.nctu.edu.tw/~is86007/magicshop/ROCid.html#">
+<INPUT type="text" name="a" value="random" size="7">
+</FORM>
+</TD>
+</TR>
+<TR>
+<TD colspan="6">
+<FORM name="gogogogoo12123" action="http://www.cis.nctu.edu.tw/~is86007/magicshop/ROCid.html#">
+<INPUT type="button" value="Generate" onclick="javascript:output2(city,sex,mid,idoutput1,idoutput2);">
+(產生結果在底下)</FORM> 
+</TD></TR>
+</TBODY></TABLE>
+<BR><HR noshade=""><BR>
+<H2>Verification 驗證</H2>
+<TABLE border="1">
+<TBODY><TR>
+<TH>身份證號碼:</TH><TD>
+<FORM name="idoutput1" action="http://www.cis.nctu.edu.tw/~is86007/magicshop/ROCid.html#" onsubmit="javascript:output3(idoutput1,idoutput2,city,sex,mid);return false;">
+<INPUT type="text" name="a" size="10">
+</FORM></TD>
+<TD>
+<FORM name="gogogogoo12124" action="http://www.cis.nctu.edu.tw/~is86007/magicshop/ROCid.html#">
+<INPUT type="button" value="Check" onclick="javascript:output3(idoutput1,idoutput2,city,sex,mid);">
+(如無錯誤, 分析結果會寫在上面)
+</FORM>
+</TD></TR>
+</TBODY></TABLE>
+<FORM name="idoutput2" action="http://www.cis.nctu.edu.tw/~is86007/magicshop/ROCid.html#">
+正確性:
+<INPUT type="text" name="a" size="30">
+</FORM>
+<BR>
+<HR noshade="">
+<BR>
+Copyright (C) 1999 Ying-Chun Liu (PaulLiu). All rights reserved.<BR>
+Version: Sun Jan 19 08:14:59 CST 2003<BR>
+<!--
+Copyright (c) 1999 Ying-Chun Liu (PaulLiu).
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+
+</BODY></HTML>
