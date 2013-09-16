@@ -9,64 +9,38 @@
     </canvas>
   </div>
   <form onsubmit="return input()" style="float:right">
-    <label for="colorInput">color: <input id="colorInput" value="rgb(255,0,0)" /></label>
+    <label for="colorInput">color: <input id="colorInput" value="rgb(255,0,0)+green" /></label>
     <label for="sizeInput">size: <input id="sizeInput" value="400x100" /></label>
     <input type="submit" />
   </form>
   <script type="text/javascript"><!--
-  // var ctx=canvas.getContext('2d');
-
-    // ctx.fillStyle = 'rgb(255,255,0)';
-    // for(var x=0;x<canvas.width;x+=2){
-    //   for(y=0;y<canvas.height/2;y+=1){
-    //     ctx.fillRect (x+(y%2), y, 1, 1);  
-    //   }
-    // }
-
-    // ctx.fillStyle = 'rgb(255,255,255)';
-    // for(var x=1;x<canvas.width;x+=2){
-    //   for(y=0;y<canvas.height/2;y+=1){
-    //     ctx.fillRect (x+(y%2), y, 1, 1);  
-    //   }
-    // }
-
-
-    // ctx.fillStyle = 'rgb(255,0,0)';
-    // for(var x=0;x<canvas.width;x+=2){
-    //   for(y=canvas.height/2;y<canvas.height;y+=1){
-    //     ctx.fillRect (x+(y%2), y, 1, 1);  
-    //   }
-    // }
-
-    // ctx.fillStyle = 'rgb(0,255,0)';
-    // for(var x=1;x<canvas.width;x+=2){
-    //   for(y=canvas.height/2;y<canvas.height;y+=1){
-    //     ctx.fillRect (x+(y%2), y, 1, 1);  
-    //   }
-    // }
 
   function fillRect(colors){
     // console.info(size)
-    for(i=0;i<colors.length;i++){
-      var l = document.getElementsByTagName('canvas');
-      var l = l[l.length-1];
-      var c = document.createElement('canvas');
-      c.width = l.width;
-      c.height = l.height;
-      var ctx = c.getContext('2d');
-      ctx.fillStyle = colors[i];
-      ctx.fillRect(0, 0, c.width, c.height)
-
-
-      l.parentNode.appendChild(c);
+    var l = document.getElementsByTagName('canvas');
+    var l = l[l.length-1];
+    var c = document.createElement('canvas');
+    c.width = l.width;
+    c.height = l.height;
+    var ctx = c.getContext('2d');
+    cl = colors.length
+    for(i=0;i<cl;i++){
+      var color = colors[i].trim();
+      ctx.fillStyle = color;
+      for(var y=0;y<c.height;y++){
+        for(var x=i+(y%cl);x<c.width;x+=cl){
+          ctx.fillRect(x, y, 1, 1)  
+        }  
+      }
+      
     }
-
+    l.parentNode.appendChild(c);
   }
 
   function input(){
-    console.info(1)
-    fillRect( [colorInput.value ], sizeInput.value)
-    console.info(1)
+    var colors = colorInput.value.split('+')
+    console.info(colors)
+    fillRect(colors, sizeInput.value)
     return false; 
   } 
 
