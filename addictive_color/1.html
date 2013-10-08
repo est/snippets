@@ -9,7 +9,9 @@
     </canvas>
   </div>
   <form onsubmit="return input()" style="float:right">
-    <label for="colorInput">color: <input id="colorInput" value="rgb(255,0,0)+green" /></label>
+    <label for="colorInput">color: 
+      <input onchange="console.info(this);" id="colorInput" value="rgb(255,0,0)+green" />
+    </label>
     <label for="sizeInput">size: <input id="sizeInput" value="400x100" /></label>
     <input type="submit" />
   </form>
