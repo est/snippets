@@ -71,14 +71,6 @@ def inplace_quick_sort(v, begin, end):  # list, int, int
 #     inplace_quick_sort(array, i + 1, end)
 
 
-def my_qsort3(l, p, g):
-    if p:
-        return my_qsort3()
-    else:
-        return 
-
-
-
 def group_by_cmp1(pivot, items):
     "return (lesser, equal_or_greater)"
     l = []
@@ -98,14 +90,23 @@ def group_by_cmp2(pivot, items):
     [ l.append(x) if x < pivot else g.append(x) for x in items ]
     return l, g
 
+
 def my_qsort2(items):
     if items == []:
         return []
     else:
         p = items[0]
-        l, g = group_by_cmp(p, items[1:])
+        l, g = group_by_cmp2(p, items[1:])
         return my_qsort2(l) + [p] + my_qsort2(g)
 
+
+def my_qsort3(items):
+    if items == []:
+        return []
+    else:
+        p = items.pop()
+        l, g = group_by_cmp2(p, items)
+        return my_qsort3(l) + [p] + my_qsort3(g)
 
 def groupby(func, items):
     r = {}
@@ -193,11 +194,15 @@ if '__main__' == __name__:
         # l = range(10)
         # random.shuffle(l)
         l = [random.randint(0, 5) for x in range(10)]
-        # s1 = my_qsort2(l)
-        s2 = sorted(l)
-        inplace_quick_sort(l, 0, len(l)-1)
-        s1 = l
-        if s1==s2:
+
+
+        s0 = sorted(l)
+        # s1 = my_qsort1(l)
+        s2 = my_qsort2(l[:])
+        s3 = my_qsort3(l[:])
+        # inplace_quick_sort(l, 0, len(l)-1)
+        # s1 = l
+        if s0==s2==s3:
             print 'ok', l
         else:
             print 'false', s1, s2, l

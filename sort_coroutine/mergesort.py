@@ -1,3 +1,5 @@
+import random
+
 def merge1(left, right):
     result = []
     left_idx, right_idx = 0, 0
@@ -34,7 +36,7 @@ def merge_sort(l):
     # the list.
     L = len(l)
     if L <= 1:
-        return iter(l)
+        return l
     else:
         m = L/2
         left = merge_sort(l[0:m])
@@ -42,5 +44,13 @@ def merge_sort(l):
         return merge(left, right)
 
 if '__main__' == __name__:
+    l = [random.randint(0, 5) for x in range(10)]
+    s0 = sorted(l)
+
     merge = merge1
-    
+    s1 = merge_sort(l)
+    merge = merge2
+    s2 = list(merge_sort(l))
+    merge = merge3
+    s3 = merge_sort(l)
+    print s0==s1==s2==s3, s0, s1, s2, s3
