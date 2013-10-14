@@ -16,6 +16,7 @@ def groupby(func, items):
     for x in items:
         k = func(x)
         r.setdefault(k, []).append(x)
+    print items, r
     return r
 
 def my_qsort1(items):
@@ -24,7 +25,7 @@ def my_qsort1(items):
     else:
         pivot = items[0]
         p = groupby( lambda x:-cmp(pivot, x), items[1:] )
-        return my_qsort1(p.get(-1, [])) + [pivot] + my_qsort1(p.get(1, []))
+        return my_qsort1(p.get(-1, [])) + [pivot] + my_qsort1(p.get(0, [])+p.get(1, []) )
 
 
 """
@@ -90,9 +91,10 @@ def qsort2(items):
 
 
 if '__main__' == __name__:
-	for _ in range(10):
- 		l = range(10)
- 		random.shuffle(l)
- 		s1 = my_qsort1(l)
- 		s2 = sorted(l)
- 		print s1==s2, s1, l
+    for _ in range(10):
+        # l = range(10)
+        # random.shuffle(l)
+        l = [random.randint(0, 5) for x in range(10)]
+        s1 = my_qsort1(l)
+        s2 = sorted(l)
+        print s1==s2, s1, s2, l
