@@ -12,7 +12,19 @@ def qsort1(list):
 
 
 
-def group_by_cmp(pivot, items):
+def group_by_cmp1(pivot, items):
+    "return (lesser, equal_or_greater)"
+    l = []
+    g = []
+    for x in items:
+        if x < pivot:
+            l.append(x)
+        else:
+            g.append(x)
+    return l, g
+
+
+def group_by_cmp2(pivot, items):
     "return (lesser, equal_or_greater)"
     l = []
     g = []
