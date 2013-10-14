@@ -16,11 +16,7 @@ def group_by_cmp(pivot, items):
     "return (lesser, equal_or_greater)"
     l = []
     g = []
-    for x in items:
-        if x < pivot:
-            l.append(x)
-        else:
-            g.append(x)
+    [ l.append(x) if x < pivot else g.append(x) for x in items ]
     return l, g
 
 def my_qsort2(items):
