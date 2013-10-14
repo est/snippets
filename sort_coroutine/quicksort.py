@@ -22,32 +22,9 @@ def my_qsort1(items):
     if items == []:
         return []
     else:
-        pivot = items.pop()
-        p = groupby( functools.partial(cmp, pivot), items )
-        return my_qsort1(p[-1]) + [p[0]] + my_qsort1(p[1])
-
-def partition(items, l, e, g):
-    print 'ha', items, l, e, g
-    if items == []:
-    	return (l, e, g)
-    else:
-        head = items[0]
-        if head < e[0]:
-            return partition(items[1:], l + [head], e, g)
-        elif head > e[0]:
-            return partition(items[1:], l, e, g + [head])
-        else:
-            return partition(items[1:], l, e + [head], g)
-
-def qsort2(items):
-    """Quicksort using a partitioning function"""
-    if items == []: 
-        return []
-    else:
         pivot = items[0]
-        lesser, equal, greater = partition(items[1:], [], [pivot], [])
-        return qsort2(lesser) + equal + qsort2(greater)
-
+        p = groupby( lambda x:-cmp(pivot, x), items[1:] )
+        return my_qsort1(p.get(-1, [])) + [pivot] + my_qsort1(p.get(1, []))
 
 
 """
@@ -89,10 +66,33 @@ ha [] [7] [8] []
 ha [] [] [7] []
 """
 
+def partition(items, l, e, g):
+    print 'ha', items, l, e, g
+    if items == []:
+        return (l, e, g)
+    else:
+        head = items[0]
+        if head < e[0]:
+            return partition(items[1:], l + [head], e, g)
+        elif head > e[0]:
+            return partition(items[1:], l, e, g + [head])
+        else:
+            return partition(items[1:], l, e + [head], g)
+
+def qsort2(items):
+    """Quicksort using a partitioning function"""
+    if items == []: 
+        return []
+    else:
+        pivot = items[0]
+        lesser, equal, greater = partition(items[1:], [], [pivot], [])
+        return qsort2(lesser) + equal + qsort2(greater)
+
+
 if '__main__' == __name__:
 	for _ in range(10):
- 		l = range(1000)
+ 		l = range(10)
  		random.shuffle(l)
  		s1 = my_qsort1(l)
  		s2 = sorted(l)
- 		print s1==s2
+ 		print s1==s2, s1, l
