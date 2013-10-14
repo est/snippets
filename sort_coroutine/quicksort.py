@@ -11,6 +11,27 @@ def qsort1(list):
         return lesser + [pivot] + greater
 
 
+
+def group_by_cmp(pivot, items):
+    "return (lesser, equal_or_greater)"
+    l = []
+    g = []
+    for x in items:
+        if x < pivot:
+            l.append(x)
+        else:
+            g.append(x)
+    return l, g
+
+def my_qsort2(items):
+    if items == []:
+        return []
+    else:
+        p = items[0]
+        l, g = group_by_cmp(p, items[1:])
+        return my_qsort2(l) + [p] + my_qsort2(g)
+
+
 def groupby(func, items):
     r = {}
     for x in items:
@@ -26,6 +47,8 @@ def my_qsort1(items):
         pivot = items[0]
         p = groupby( lambda x:-cmp(pivot, x), items[1:] )
         return my_qsort1(p.get(-1, [])) + [pivot] + my_qsort1(p.get(0, [])+p.get(1, []) )
+
+# @ToDo: use .pop()
 
 
 """
@@ -95,6 +118,6 @@ if '__main__' == __name__:
         # l = range(10)
         # random.shuffle(l)
         l = [random.randint(0, 5) for x in range(10)]
-        s1 = my_qsort1(l)
+        s1 = my_qsort2(l)
         s2 = sorted(l)
-        print s1==s2, s1, s2, l
+        print s1==s2, s1, l
