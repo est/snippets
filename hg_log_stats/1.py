@@ -12,7 +12,7 @@ from mercurial import ui, hg
 # https://bitbucket.org/mg/hgchart/src
 
 # parse hg internal revctx.date() tuple
-get_date_str = lambda x:  datetime.datetime.fromtimestamp(x[0]).date().isoformat()
+get_date_str = lambda x:  datetime.datetime.fromtimestamp(x[0]).date()
                 #  '%s GMT%+d' -x[1]/3600
 
 
@@ -20,6 +20,7 @@ def get_repo_stats(p):
     " p as repo path "
     date_first    = None
     date_last     = None
+    totay_days    = 0
     count_days    = 0
     count_commits = 0
     all_users     = set()
@@ -27,33 +28,31 @@ def get_repo_stats(p):
 
     try:
         repo = hg.repository(ui.ui(), p)
-    except:
-        return ('',) * 7
-    date_prev = None
-    revctx = None
-    for rev in repo:
-        revctx = repo[rev]
 
-        date = revctx.date()
+        date_prev = None
+        revctx = None
+        for rev in repo:
+            revctx = repo[rev]
 
-        if not date_first:
-            date_first = get_date_str( date )
+            date = revctx.date()
 
-        count_commits += 1
+            if not date_first:
+                date_first = get_date_str( date )
 
-        date_now = int(date[0]/3600/24)
-        count_days += 1 if date_prev!=date_now else 0
-        date_prev = date_now
+            count_commits += 1
 
-        all_files |= set(revctx.files())
-        all_users.add(revctx.user())
-    try:
+            date_now = int(date[0]/3600/24)
+            count_days += 1 if date_prev!=date_now else 0
+            date_prev = date_now
+
+            all_files |= set(revctx.files())
+            all_users.add(revctx.user())
+
         date_last = get_date_str(revctx.date())
+        total_days = (date_last - date_first).days
+        return p, date_first.isoformat(), date_last.isoformat(), count_days, total_days, count_commits, len(all_files), all_users
     except:
-        date_last = ''
-
-    return p, date_first, date_last, count_days, count_commits, len(all_files), ', '.join(all_users)
-
+        return ('',) * 8
 
 if '__main__' == __name__:
     projects = os.listdir('.')
@@ -61,4 +60,5 @@ if '__main__' == __name__:
     result.sort(key=lambda x:x[3], reverse=True)
     for r in result:
         print 'Project %s' % r[0]
-        print '  From %s to %s, %s days active developing with %s commits to %s files.\n  Contributors: %s' % r[1:]
+        print '  %s - %s, %s/%s days, %s commits to %s files.' % r[1:-1]
+        print '  %d contributors: %s' % (len(r[-1]), ', '.join(r[-1]))
