@@ -7,4 +7,4 @@ def home_app(environ, start_response):
   yield s
 
 
-bjoern.run(home_app, '127.0.0.1', 8086)
+bjoern.run(home_app, '0.0.0.0', 8086)
