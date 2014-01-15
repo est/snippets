@@ -6,6 +6,8 @@ http://lxr.free-electrons.com/source/include/uapi/linux/tcp.h#L148
     struct tcp_info
 http://stackoverflow.com/a/18189190/41948
 http://linux.die.net/man/7/tcp
+
+TCP_INFO explained: http://blog.csdn.net/zhangskd/article/details/8561950
 """
 
 
