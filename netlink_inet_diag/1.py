@@ -1,84 +1,72 @@
-import re, socket, struct
+import re
+import socket
+import struct
+import pymnl
+from pymnl.message import Message, Payload
+from pymnl.nlsocket import Socket
+s = Socket(pymnl.NETLINK_INET_DIAG)
+s.bind(pymnl.nlsocket.SOCKET_AUTOPID, 0)
+
+msg = Message()
+
+TCPDIAG_GETSOCK = 18
+msg.set_type(TCPDIAG_GETSOCK)
+
+msg.set_flags(pymnl.message.NLM_F_REQUEST | pymnl.message.NLM_F_ROOT | pymnl.message.NLM_F_MATCH)
+msg.set_portid = 0
+msg.set_seq(123456)
+
+INET_DIAG_NONE = 0
+INET_DIAG_MEMINFO = 1
+INET_DIAG_INFO = 2
+INET_DIAG_VEGASINFO = 3
+INET_DIAG_CONG = 4
 
 
-"""
+class InetDiagReq(object):
+    idiag_family = socket.AF_INET
+    idiag_src_len = 0
+    idiag_dst_len = 0
+    idiag_ext = 0
 
-# http://lxr.free-electrons.com/source/net/ipv4/tcp_diag.c
+    idiag_sport = 0
+    idiag_dport = 0
+    idiag_src = 0
+    idiag_dst = 0
+    idiag_if = 0
+    idiag_cookie = 0
 
+    idiag_states = 0
+    idiag_dbs = 0
 
+    def get_binary(self):
+        return struct.pack(
+            '!BBBB'  # idiag family addr
+            'HHIILL'  # intdiagsockid
+            'LL',  # states and tables
+            self.idiag_family,
+            self.idiag_src_len,
+            self.idiag_dst_len,
+            self.idiag_ext,
 
-typedef struct
-{
-	__u8 family;
-	__u8 bytelen;
-	__s16 bitlen;
-	__u32 flags;
-	__u32 data[8];
-} inet_prefix;
+            self.idiag_sport,
+            self.idiag_dport,
+            self.idiag_src,
+            self.idiag_dst,
+            self.idiag_if,
+            self.idiag_cookie,
 
-struct tcpstat
-{
-	inet_prefix	local;
-	inet_prefix	remote;
-	int		lport;
-	int		rport;
-	int		state;
-	int		rq, wq;
-	int		timer;
-	int		timeout;
-	int		retrs;
-	unsigned	ino;
-	int		probes;
-	unsigned	uid;
-	int		refcnt;
-	unsigned long long sk;
-	int		rto, ato, qack, cwnd, ssthresh;
-};
+            self.idiag_states,
+            self.idiag_dbs)
 
-/* Socket identity */
-struct inet_diag_sockid {
-	__be16	idiag_sport;
-	__be16	idiag_dport;
-	__be32	idiag_src[4];
-	__be32	idiag_dst[4];
-	__u32	idiag_if;
-	__u32	idiag_cookie[2];
-#define INET_DIAG_NOCOOKIE (~0U)
-};
-
-/* Request structure */
-
-struct inet_diag_req {
-	__u8	idiag_family;		/* Family of addresses. */
-	__u8	idiag_src_len;
-	__u8	idiag_dst_len;
-	__u8	idiag_ext;		/* Query extended information */
-
-	struct inet_diag_sockid id;
-
-	__u32	idiag_states;		/* States to dump */
-	__u32	idiag_dbs;		/* Tables to dump (NI) */
-};
-
-struct inet_diag_req_v2 {
-	__u8	sdiag_family;
-	__u8	sdiag_protocol;
-	__u8	idiag_ext;
-	__u8	pad;
-	__u32	idiag_states;
-	struct inet_diag_sockid id;
-};
-
-struct nlmsghdr
-{
-  __u32 nlmsg_len;   /* Length of message */
-  __u16 nlmsg_type;  /* Message type. used by app, opaque to core. */
-  __u16 nlmsg_flags; /* Additional flags */
-  __u32 nlmsg_seq;   /* Sequence number. used by app, opaque to core. */
-  __u32 nlmsg_pid;   /* Sending process PID. used by app, opaque to core. */
-};
-"""
-
-nlmsghdr = '!LHHLL'
-
-nl_sock = socket.socket(socket.AF_NETLINK, socket.SOCK_RAW)
+inet_diag_req = InetDiagReq()
+inet_diag_req.idiag_family = socket.AF_INET
+inet_diag_req.idiag_states = 0xFF
+inet_diag_req.idiag_ext = (1 << (INET_DIAG_INFO - 1)) | (1 << (INET_DIAG_VEGASINFO - 1)) | (1 << (INET_DIAG_CONG - 1))
+msg.put_extra_header(inet_diag_req)
+s.send(msg)
+ret = s.recv(flags=socket.MSG_DONTWAIT)
+s.close()
+for m in ret:
+    print m.get_errno(), m.get_errstr()
+    print repr(m.get_payload().get_binary())

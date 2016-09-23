@@ -13,3 +13,16 @@ http://lxr.free-electrons.com/source/include/uapi/linux/tcp.h#L90
 
 > http://superuser.com/a/173542/15252
 > CLOSE_WAIT indicates that the other side of the connection has closed the connection. TIME_WAIT indicates that this side has closed the connection. The connection is being kept around so that any delayed packets can be matched to the connection and handled appropriately.
+
+
+## to parse the Netlink message
+
+ - http://downloads.tuxfamily.org/pymnl/
+ - http://www.netfilter.org/projects/libmnl/doxygen/
+ - http://docs.pyroute2.org
+ - https://github.com/svinota/pyroute2/
+
+## python code that use Netlink
+
+ - iotop http://repo.or.cz/w/iotop.git/tree
+ - pynl80211 http://git.sipsolutions.net/?p=pynl80211.git
