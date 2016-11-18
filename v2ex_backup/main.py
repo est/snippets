@@ -12,5 +12,5 @@ for x in xrange(313, 0, -1):
         r = urllib2.urlopen(url % x).read()
     except:
         continue
-    open('%.html', 'w').write(r)
+    open('%s.html' % x, 'w').write(r)
     time.sleep(2)
