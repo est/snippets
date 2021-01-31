@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+    <textarea id="taOffer" rows="40" cols="120"></textarea>
+<script type="text/javascript">
+    var conn =new RTCPeerConnection()
+    // var ch = conn.createDataChannel('chat')
+    // conn.createOffer().then(function(offer){
+    //     taOffer.innerText = offer.sdp
+    // })
+    conn.addIceCandidate({
+        usernameFragment: "aaaa",
+        sdpMid: 'data',
+    })
+
+</script>
+</body>
+</html>
