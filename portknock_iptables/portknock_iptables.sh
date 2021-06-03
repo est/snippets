@@ -1,58 +1,66 @@
-!/bin/sh
+#!/bin/sh
 
+# show help
 if [ "$#" -lt 2 ]; then
-  echo "Usage: $0 knockport1 [knockport2 ...] openport" >&2
+  echo "Usage: $0 iface knockport1 [knockport2 ...] openport" >&2
+  echo "Author: github.com/est"
   exit 1
 fi
 
+# debug
+sudo () {
+  echo $*
+}
+tac() { tail -r -- "$@"; }  # for macos
 
 # clear all lol
-sudo iptables -P INPUT ACCEPT
-sudo iptables -P FORWARD ACCEPT
-sudo iptables -P OUTPUT ACCEPT
-sudo iptables -F
+# sudo iptables -P INPUT ACCEPT
+# sudo iptables -P FORWARD ACCEPT
+# sudo iptables -P OUTPUT ACCEPT
+# sudo iptables -F
 
 # create chain
-sudo iptables -N KNOCKING
-sudo iptables -N GATE1
-sudo iptables -N GATE2
-sudo iptables -N GATE3
-sudo iptables -N PASSED
+sudo iptables -N KNOCKING  2>/dev/null
+sudo iptables -N GATE1  2>/dev/null
+sudo iptables -N GATE2  2>/dev/null
+sudo iptables -N GATE3  2>/dev/null
+sudo iptables -N PASSED  2>/dev/null
 
+# clear old shit
+for ln in $(sudo iptables -L INPUT --line-numbers | grep '/* estpk:' | awk '{print $1}' | tac); do
+  sudo iptables -D INPUT $ln;
+done;
 
-# allow existing tcp and local iface
-sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-sudo iptables -A INPUT -i lo -j ACCEPT
-
-
-# $1 usually venet0:0 for most kvm vps out there
-# sudo iptables -A INPUT -i $1 -j ACCEPT
-sudo iptables -A INPUT -p tcp --dport 33333 -j ACCEPT
-sudo iptables -A INPUT -p udp -j ACCEPT
-sudo iptables -A INPUT -p tcp -j KNOCKING
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT -m comment --comment "estpk: limit ssh access"
+sudo iptables -A INPUT -i lo -j ACCEPT -m comment --comment "estpk: allow local iface"
+# sudo iptables -A INPUT -i venet0:0 -j ACCEPT -m comment --comment "estpk: allow other iface"
+# sudo iptables -A INPUT -p tcp --dport 22 -j ACCEPT -m comment --comment "estpk: whitelist ssh port"
+sudo iptables -A INPUT -p udp -j ACCEPT -m comment --comment "estpk: allow udp"
+sudo iptables -A INPUT -p tcp -j KNOCKING -m comment --comment "estpk: start block everything"
 
 # 1st port knock
-sudo iptables -A GATE1 -p tcp --dport $2 -m recent --name AUTH1 --set -j DROP
+sudo iptables -A GATE1 -p tcp --dport $1 -m recent --name AUTH1 --set -j DROP
 sudo iptables -A GATE1 -j RETURN
-sudo iptables -A GATE2 -p tcp --dport $2 -j DROP
-sudo iptables -A GATE2 -m recent --name AUTH1 --remove
 
 # 2nd port knock
-sudo iptables -A GATE2 -p tcp --dport $3 -m recent --name AUTH2 --set -j DROP
+sudo iptables -A GATE2 -p tcp --dport $1 -j DROP
+sudo iptables -A GATE2 -m recent --name AUTH1 --remove
+sudo iptables -A GATE2 -p tcp --dport $2 -m recent --name AUTH2 --set -j DROP
 sudo iptables -A GATE2 -j GATE1
-sudo iptables -A GATE3 -p tcp --dport $3 -j DROP
-sudo iptables -A GATE3 -m recent --name AUTH2 --remove
 
 # 3rd port knock
-sudo iptables -A GATE3 -p tcp --dport $4 -m recent --name AUTH3 --set -j DROP
+sudo iptables -A GATE3 -p tcp --dport $2 -j DROP
+sudo iptables -A GATE3 -m recent --name AUTH2 --remove
+sudo iptables -A GATE3 -p tcp --dport $3 -m recent --name AUTH3 --set -j DROP
 sudo iptables -A GATE3 -j GATE1
-sudo iptables -A PASSED -p tcp --dport $4 -j DROP
+
+
+# if knock succeed, allow connection
+sudo iptables -A PASSED -p tcp --dport $3 -j DROP
 # uncomment this line to limit one connection per knock
 # sudo iptables -A PASSED -m recent --name AUTH3 --remove
-
-# knock success, allow connection
-sudo iptables -A PASSED -p tcp --dport $5 -j ACCEPT
-sudo iptables -A PASSED -m state --state NEW,RELATED -p tcp --dport $5  -m recent --name AUTH3 --set
+sudo iptables -A PASSED -p tcp --dport $4 -j ACCEPT
+sudo iptables -A PASSED -m state --state NEW,RELATED -p tcp --dport $4  -m recent --name AUTH3 --set
 sudo iptables -A PASSED -j GATE1
 
 # apply those chains to iptables
