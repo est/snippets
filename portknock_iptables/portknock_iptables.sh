@@ -1,5 +1,11 @@
 !/bin/sh
 
+if [ "$#" -lt 2 ]; then
+  echo "Usage: $0 knockport1 [knockport2 ...] openport" >&2
+  exit 1
+fi
+
+
 # clear all lol
 sudo iptables -P INPUT ACCEPT
 sudo iptables -P FORWARD ACCEPT
