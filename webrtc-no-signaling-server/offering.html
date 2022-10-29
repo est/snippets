@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>offering webrtc without signaling server demo</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<script src="common.js"></script>
+<script type="text/javascript">
+  function clickcreateoffer() {
+  console.log('clickcreateoffer');
+  document.getElementById('buttoncreateoffer').disabled = true;
+  document.getElementById('spanoffer').classList.toggle('invisible');
+  peerConnection = createPeerConnection(lasticecandidate);
+  dataChannel = peerConnection.createDataChannel('chat');
+  dataChannel.onopen = datachannelopen;
+  dataChannel.onmessage = datachannelmessage;
+  createOfferPromise = peerConnection.createOffer();
+  createOfferPromise.then(createOfferDone, createOfferFailed);
+}
+
+function createOfferDone(offer) {
+  console.log('createOfferDone');
+  setLocalPromise = peerConnection.setLocalDescription(offer);
+  setLocalPromise.then(setLocalDone, setLocalFailed);
+}
+
+function createOfferFailed(reason) {
+  console.log('createOfferFailed');
+  console.log(reason);
+}
+
+function setLocalDone() {
+  console.log('setLocalDone');
+}
+
+function setLocalFailed(reason) {
+  console.log('setLocalFailed');
+  console.log(reason);
+}
+
+function lasticecandidate() {
+  console.log('lasticecandidate');
+  textelement = document.getElementById('textoffer');
+  offer = peerConnection.localDescription;
+  textelement.value = JSON.stringify(offer);
+  document.getElementById('buttonoffersent').disabled = false;
+}
+
+function clickoffersent() {
+  console.log('clickoffersent');
+  document.getElementById('spananswer').classList.toggle('invisible');
+  document.getElementById('buttonoffersent').disabled = true;
+}
+
+function clickanswerpasted() {
+  console.log('clickanswerpasted');
+  document.getElementById('buttonanswerpasted').disabled = true;
+  textelement = document.getElementById('textanswer');
+  textelement.readOnly = true;
+  answer = JSON.parse(textelement.value);
+  setRemotePromise = peerConnection.setRemoteDescription(answer);
+  setRemotePromise.then(setRemoteDone, setRemoteFailed);
+}
+
+function setRemoteDone() {
+  console.log('setRemoteDone');
+}
+
+function setRemoteFailed(reason) {
+  console.log('setRemoteFailed');
+  console.log(reason);
+}
+
+
+</script>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body>
+
+<h1>webrtc without signaling server demo.</h1>
+
+<div id="chatlog" class="chatlog"></div>
+<input id="chatinput" type="text"  placeholder="type here" disabled>
+<button id="chatbutton" onclick="chatbuttonclick()" disabled>send</button>
+
+<p>
+offering a connection to a peer
+</p>
+
+<p>
+<button id="buttoncreateoffer" onclick="clickcreateoffer()">create offer</button>
+</p>
+
+<span id="spanoffer" class="invisible">
+<p>
+please copy the offer below and send it to a peer.
+</p>
+<textarea id="textoffer" readonly
+  placeholder="please wait a few seconds"></textarea>
+<button id="buttonoffersent" onclick="clickoffersent()" disabled>offer sent</button>
+</span>
+
+<span id="spananswer" class="invisible">
+<p>
+please wait for peer to give answer and paste it below
+</p>
+<textarea id="textanswer"
+  placeholder="please paste answer from responding side"></textarea>
+<button id="buttonanswerpasted" onclick="clickanswerpasted()">answer pasted</button>
+</span>
+
+</body>
+
+</html>

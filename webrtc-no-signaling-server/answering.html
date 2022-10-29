@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>answering webrtc without signaling server demo</title>
+<link rel="stylesheet" type="text/css" href="style.css">
+<script src="common.js"></script>
+<script type="text/javascript">
+  function clickofferpasted() {
+  console.log('clickremoteoffer');
+  document.getElementById('buttonofferpasted').disabled = true;
+  peerConnection = createPeerConnection(lasticecandidate);
+  peerConnection.ondatachannel = handledatachannel;
+  textelement = document.getElementById('textoffer');
+  textelement.readOnly = true;
+  offer = JSON.parse(textelement.value);
+  setRemotePromise = peerConnection.setRemoteDescription(offer);
+  setRemotePromise.then(setRemoteDone, setRemoteFailed);
+}
+
+function setRemoteDone() {
+  console.log('setRemoteDone');
+  createAnswerPromise = peerConnection.createAnswer();
+  createAnswerPromise.then(createAnswerDone, createAnswerFailed);
+}
+
+function setRemoteFailed(reason) {
+  console.log('setRemoteFailed');
+  console.log(reason);
+}
+
+function createAnswerDone(answer) {
+  console.log('createAnswerDone');
+  setLocalPromise = peerConnection.setLocalDescription(answer);
+  setLocalPromise.then(setLocalDone, setLocalFailed);
+  document.getElementById('spananswer').classList.toggle('invisible');
+}
+
+function createAnswerFailed(reason) {
+  console.log('createAnswerFailed');
+  console.log(reason);
+}
+
+function setLocalDone() {
+  console.log('setLocalDone');
+}
+
+function setLocalFailed(reason) {
+  console.log('setLocalFailed');
+  console.log(reason);
+}
+
+function lasticecandidate() {
+  console.log('lasticecandidate');
+  textelement = document.getElementById('textanswer');
+  answer = peerConnection.localDescription
+  textelement.value = JSON.stringify(answer);
+}
+
+function handledatachannel(event) {
+  console.log('handledatachannel');
+  dataChannel = event.channel;
+  dataChannel.onopen = datachannelopen;
+  dataChannel.onmessage = datachannelmessage;
+}
+
+</script>
+<link rel="shortcut icon" type="image/x-icon" href="favicon.ico">
+</head>
+
+<body>
+
+<h1>webrtc without signaling server demo.</h1>
+
+<div id="chatlog" class="chatlog"></div>
+<input id="chatinput" type="text"  placeholder="type here" disabled>
+<button id="chatbutton" onclick="chatbuttonclick()" disabled>send</button>
+
+<p>
+answering to a connection offer from a peer
+</p>
+<p>
+please wait for peer to give offer and paste it below
+</p>
+<textarea id="textoffer"
+  placeholder="please paste offer from initiating side"></textarea>
+<button id="buttonofferpasted" onclick="clickofferpasted()">offer pasted</button>
+
+<span id="spananswer" class="invisible">
+<p>
+please send following answer to peer
+</p>
+<textarea id="textanswer" readonly
+  placeholder="please wait a few seconds"></textarea>
+</span>
+
+</body>
+
+</html>

@@ -1,0 +1,10 @@
+
+.invisible {
+  display: none;
+}
+
+.chatlog {
+  height: 200px;
+  overflow: auto;
+  border: 1px solid;
+}
