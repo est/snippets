@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title></title>
+</head>
+<body>
+
+<textarea id="output" rows="20" cols="80"></textarea>
+<button id="btn_host">Host</button>
+<button id="btn_join">Join</button>
+<script type="text/javascript">
+function echo(){output.append([].join.call(arguments, ',\t')+'\n')};
+var pc = new RTCPeerConnection({certificates: [
+  await RTCPeerConnection.generateCertificate({name: "ECDSA", namedCurve: "P-256"})
+]});
+btn_host.onclick = async function(){
+  pc.onicecandidate = pc.onconnectionstatechange = pc.oniceconnectionstatechange = echo;
+  // https://webrtchacks.com/the-minimum-viable-sdp/
+  let dc = pc.createDataChannel('est-rtc');
+  dc.onopen = dc.onmessage = echo;
+  let offer = await pc.createOffer(); echo(offer.sdp);
+  pc.setLocalDescription(offer);
+  this.innerText = '✅'; this.onclick=null
+}
+btn_join.onclick = async function(){
+  pc.ondatachannel = echo;
+  await pc.setRemoteDescription(output.innerText);
+  pc.setLocalDescription(await pc.createAnswer())
+}
+</script>
+</body>
+</html>
