@@ -8,33 +8,69 @@
 
 <textarea id="output" rows="20" cols="80"></textarea>
 <button id="btn_host">Host</button>
-<button id="btn_join">Join</button>
 <br />
-<input type="text" id="buf" style="width:40em"><button id="btn_send">Send</button>
+<input type="text" id="buf" style="width:40em"><button id="btn_send">Join</button>
 <script type="text/javascript">
-function echo(){output.append([].join.call(arguments, ',\t')+'\n')};
+function echo(){output.value += ([].join.call(arguments, '\t')+'\n')};
 // (async function(){})();
-btn_host.onclick = async function(){
+(async function(){
   var pc = new RTCPeerConnection({certificates: [
     await RTCPeerConnection.generateCertificate({name: "ECDSA", namedCurve: "P-256"})
   ]})
-  pc.onicecandidate = pc.onconnectionstatechange = pc.oniceconnectionstatechange = echo;
-  // https://webrtchacks.com/the-minimum-viable-sdp/
-  var dc = pc.createDataChannel('est-rtc');
-  dc.onopen = dc.onmessage = echo;
-  let offer = await pc.createOffer(); echo(offer.sdp);
-  pc.setLocalDescription(offer);
-  this.innerText = '✅'; this.onclick=null
-  btn_send.onclick = () => {dc.send(buf.value)}
-}
-btn_join.onclick = async function(){
-  var pc = new RTCPeerConnection({certificates: [
-    await RTCPeerConnection.generateCertificate({name: "ECDSA", namedCurve: "P-256"})
-  ]})
-  pc.ondatachannel = (event) => {event.channel.onopen = event.channel.onmessage = echo};
-  await pc.setRemoteDescription({"type":"offer","sdp":output.value.replace(/[\r\n]/, '\r\n')});
-  pc.setLocalDescription(await pc.createAnswer())
-}
+  pc.onicecandidate = function(ev){if(!event.candidate)echo('Offer:', JSON.stringify(pc.localDescription))}
+  pc.onconnectionstatechange = (e) => echo('onconnectionstatechange', e);
+  pc.oniceconnectionstatechange = (e) => echo('oniceconnectionstatechange', e.target.iceConnectionState);
+
+  btn_host.onclick = async function(){
+    // https://webrtchacks.com/the-minimum-viable-sdp/
+    var dc = pc.createDataChannel('est-rtc');
+    dc.onopen = (e) => ev => btn_host.innerText=ev.channel.readyState;
+    dc.onmessage = ev => echo(ev.data)
+    let offer = await pc.createOffer();  // type+sdp
+    // echo("Offer: ", offer.sdp);
+    pc.setLocalDescription(offer);
+    this.innerText = 'waiting...'; this.onclick=null
+    btn_send.innerText = 'Let in'
+    btn_send.onclick = async function () {
+      pc.setRemoteDescription(JSON.parse(buf.value)).then(echo, echo)
+      
+      this.innerText = 'Send';
+      btn_send.onclick = function (e){
+        try {
+          echo('send ', buf.value, dc.send(buf.value));
+        }
+        catch(ex){
+          echo('error', ex)
+        }
+      }
+    }
+  }
+  btn_send.onclick = async function(){
+    pc.ondatachannel = (event) => {
+      var dc = event.channel; 
+      
+      btn_send.innerText = 'Send';
+        btn_send.onclick = function (e){
+          try {
+            echo('send ', buf.value, dc.send(buf.value));
+          }
+          catch(ex){
+            echo('error', ex)
+          }
+        }
+      dc.onopen = ev => btn_host.innerText=ev.channel.readyState;
+      dc.onmessage = ev => echo(ev.data)
+      echo("Channel open.")
+    };
+    // {"type":"offer","sdp":output.value.replace(/[\r\n]/, '\r\n')}
+    await pc.setRemoteDescription(JSON.parse(buf.value));
+    let ans = await pc.createAnswer() // type+sdp
+    // echo("Answer: ", JSON.stringify(ans))
+    await pc.setLocalDescription(ans)
+
+  }
+
+})()
 </script>
 </body>
 </html>

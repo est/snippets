@@ -9,7 +9,7 @@
 <script src="common.js"></script>
 <script type="text/javascript">
   function clickofferpasted() {
-  console.log('clickremoteoffer');
+  chatlog('clickremoteoffer');
   document.getElementById('buttonofferpasted').disabled = true;
   peerConnection = createPeerConnection(lasticecandidate);
   peerConnection.ondatachannel = handledatachannel;
@@ -21,46 +21,46 @@
 }
 
 function setRemoteDone() {
-  console.log('setRemoteDone');
+  chatlog('setRemoteDone');
   createAnswerPromise = peerConnection.createAnswer();
   createAnswerPromise.then(createAnswerDone, createAnswerFailed);
 }
 
 function setRemoteFailed(reason) {
-  console.log('setRemoteFailed');
-  console.log(reason);
+  chatlog('setRemoteFailed');
+  chatlog(reason);
 }
 
 function createAnswerDone(answer) {
-  console.log('createAnswerDone');
+  chatlog('createAnswerDone');
   setLocalPromise = peerConnection.setLocalDescription(answer);
   setLocalPromise.then(setLocalDone, setLocalFailed);
   document.getElementById('spananswer').classList.toggle('invisible');
 }
 
 function createAnswerFailed(reason) {
-  console.log('createAnswerFailed');
-  console.log(reason);
+  chatlog('createAnswerFailed');
+  chatlog(reason);
 }
 
 function setLocalDone() {
-  console.log('setLocalDone');
+  chatlog('setLocalDone');
 }
 
 function setLocalFailed(reason) {
-  console.log('setLocalFailed');
-  console.log(reason);
+  chatlog('setLocalFailed');
+  chatlog(reason);
 }
 
 function lasticecandidate() {
-  console.log('lasticecandidate');
+  chatlog('lasticecandidate');
   textelement = document.getElementById('textanswer');
   answer = peerConnection.localDescription
   textelement.value = JSON.stringify(answer);
 }
 
 function handledatachannel(event) {
-  console.log('handledatachannel');
+  chatlog('handledatachannel');
   dataChannel = event.channel;
   dataChannel.onopen = datachannelopen;
   dataChannel.onmessage = datachannelmessage;

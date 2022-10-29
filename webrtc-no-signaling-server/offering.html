@@ -9,7 +9,7 @@
 <script src="common.js"></script>
 <script type="text/javascript">
   function clickcreateoffer() {
-  console.log('clickcreateoffer');
+  chatlog('clickcreateoffer');
   document.getElementById('buttoncreateoffer').disabled = true;
   document.getElementById('spanoffer').classList.toggle('invisible');
   peerConnection = createPeerConnection(lasticecandidate);
@@ -21,27 +21,27 @@
 }
 
 function createOfferDone(offer) {
-  console.log('createOfferDone');
+  chatlog('createOfferDone');
   setLocalPromise = peerConnection.setLocalDescription(offer);
   setLocalPromise.then(setLocalDone, setLocalFailed);
 }
 
 function createOfferFailed(reason) {
-  console.log('createOfferFailed');
-  console.log(reason);
+  chatlog('createOfferFailed');
+  chatlog(reason);
 }
 
 function setLocalDone() {
-  console.log('setLocalDone');
+  chatlog('setLocalDone');
 }
 
 function setLocalFailed(reason) {
-  console.log('setLocalFailed');
-  console.log(reason);
+  chatlog('setLocalFailed');
+  chatlog(reason);
 }
 
 function lasticecandidate() {
-  console.log('lasticecandidate');
+  chatlog('lasticecandidate');
   textelement = document.getElementById('textoffer');
   offer = peerConnection.localDescription;
   textelement.value = JSON.stringify(offer);
@@ -49,13 +49,13 @@ function lasticecandidate() {
 }
 
 function clickoffersent() {
-  console.log('clickoffersent');
+  chatlog('clickoffersent');
   document.getElementById('spananswer').classList.toggle('invisible');
   document.getElementById('buttonoffersent').disabled = true;
 }
 
 function clickanswerpasted() {
-  console.log('clickanswerpasted');
+  chatlog('clickanswerpasted');
   document.getElementById('buttonanswerpasted').disabled = true;
   textelement = document.getElementById('textanswer');
   textelement.readOnly = true;
@@ -65,12 +65,12 @@ function clickanswerpasted() {
 }
 
 function setRemoteDone() {
-  console.log('setRemoteDone');
+  chatlog('setRemoteDone');
 }
 
 function setRemoteFailed(reason) {
-  console.log('setRemoteFailed');
-  console.log(reason);
+  chatlog('setRemoteFailed');
+  chatlog(reason);
 }
 
 
