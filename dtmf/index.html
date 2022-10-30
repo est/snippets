@@ -5,7 +5,10 @@
     <title>DTMF with Javascript minimal example</title>
 </head>
 <body>
-<input type="text" id="input" style="width:80em" placeholder="+86 139">
+
+<input type="text" id="input" style="width:40em" placeholder="+86 139"> 
+<a id="blog" href="https://blog.est.im/2022/stdout-10">blog</a>
+
 <script type="text/javascript">
 
 var ctx = new AudioContext();
@@ -30,7 +33,7 @@ function play_freq(fs){
 // dial tone
 input.onfocus = ev=>play_freq([350, 440])
 
-input.onkeydown = ev => {
+input.onkeypress = ev => {
   play_freq({
     "1": [ 1209, 697 ],
     "2": [ 1336, 697 ],
@@ -50,6 +53,7 @@ input.onkeydown = ev => {
     [ 1633, 852 ],  // c
     [ 1633, 941 ],  // d
   ][(ev.keyCode - 1) % 4])  // map 0x41,0x41,0x43,0x44 to A,B,C,D and rest follows
+  blog.innerText=(ev.keyCode)
   
 }
 </script>
