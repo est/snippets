@@ -1,37 +1,56 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title></title>
+    <meta charset="utf-8">
+    <title>DTMF with Javascript minimal example</title>
 </head>
 <body>
-
-
-<div id="dtmf">
-    <h2>Sent tones</h2>
-    <div id="dtmfStatus"></div>
-    <input type="text" disabled style="width: 80%" id="sentTones" />
-    <audio autoplay="autoplay" id="out"></audio>
-</div>
-
+<input type="text" id="input" style="width:80em" placeholder="+86 139">
 <script type="text/javascript">
-var pc, sender;
-dtmf.onclick = async function(){
-  var st = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
-  pc = new RTCPeerConnection({sdpSemantics:'unified-plan'});
-  st.getTracks().forEach(track => pc.addTrack(track, st));
-  // var sender = pc.addTransceiver('audio').sender.dtmf
-  sender = pc.getSenders().find(s=>s.track&&s.track.kind === 'audio')
-  // sender.canInsertDTMF = true
-  out.srcObject = sender.outputStream;
-  out.play();
 
-  sender.ontonechange = function(e) {
-    console.log(JSON.stringify(e));
-  }
-  sender.dtmf.insertDTMF("2145551212,1");
-};
+var ctx = new AudioContext();
 
+function play_freq(s){
+
+    let g = ctx.createGain();
+    g.gain.value = 0.25;
+    let f = ctx.createBiquadFilter();
+    f.type = "lowpass"; f.frequency = 8000;
+    g.connect(f); f.connect(ctx.destination);
+
+  [].forEach.call(arguments, freq=>{
+    let osc = ctx.createOscillator();
+    osc.frequency.value = freq;
+    osc.connect(g);  // or ctx.destination
+    osc.start(0); osc.stop(ctx.currentTime + 0.2);
+ })
+}
+
+// dial tone
+input.onfocus = ev=>play_freq(350, 440)
+
+input.onkeydown = ev => {
+  let fs = {
+    "1": [ 1209, 697 ],
+    "2": [ 1336, 697 ],
+    "3": [ 1477, 697 ],
+    "4": [ 1209, 770 ],
+    "5": [ 1336, 770 ],
+    "6": [ 1477, 770 ],
+    "7": [ 1209, 852 ],
+    "8": [ 1336, 852 ],
+    "9": [ 1477, 852 ],
+    "*": [ 1209, 941 ],
+    "0": [ 1336, 941 ],
+    "#": [ 1477, 941 ],
+  }[String.fromCharCode(ev.keyCode)] || [
+    [ 1633, 697 ],  // a
+    [ 1633, 770 ],  // b
+    [ 1633, 852 ],  // c
+    [ 1633, 941 ],  // d
+  ][ev.keyCode % 4]
+  play_freq.apply(this, fs)
+}
 </script>
 </body>
 </html>

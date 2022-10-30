@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title></title>
+</head>
+<body>
+
+https://devdocs.io/dom/webrtc_api/using_dtmf
+
+https://webrtc.github.io/samples/src/content/peerconnection/dtmf/
+
+<div id="dtmf">
+    <h2>tones</h2>
+    <div id="dtmfStatus"></div>
+    <audio autoplay="autoplay" id="out"></audio>
+</div>
+
+<script type="text/javascript">
+var pc, sender;
+dtmf.onclick = async function(){
+  var st = await navigator.mediaDevices.getUserMedia({audio: true, video: false});
+  pc = new RTCPeerConnection({sdpSemantics:'unified-plan'});
+  st.getTracks().forEach(track => pc.addTrack(track, st));
+  // var sender = pc.addTransceiver('audio').sender.dtmf
+  let offer = await pc.createOffer();
+  pc.setLocalDescription(offer)
+  sender = pc.getSenders().find(s=>s.track&&s.track.kind === 'audio')
+  // sender.canInsertDTMF = true
+  out.srcObject = sender.outputStream;
+  out.play();
+
+  sender.ontonechange = function(e) {
+    console.log(JSON.stringify(e));
+  }
+  sender.dtmf.insertDTMF("2145551212,1");
+};
+
+</script>
+</body>
+</html>
