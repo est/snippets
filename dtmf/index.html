@@ -10,27 +10,28 @@
 
 var ctx = new AudioContext();
 
-function play_freq(s){
+function play_freq(fs){
 
-    let g = ctx.createGain();
-    g.gain.value = 0.25;
-    let f = ctx.createBiquadFilter();
-    f.type = "lowpass"; f.frequency = 8000;
-    g.connect(f); f.connect(ctx.destination);
+  // make it sound better
+  const g = ctx.createGain();
+  g.gain.value = 0.25;
+  const f = ctx.createBiquadFilter();
+  f.type = "lowpass"; f.frequency = 8000;
+  g.connect(f); f.connect(ctx.destination);
 
-  [].forEach.call(arguments, freq=>{
-    let osc = ctx.createOscillator();
+  fs.forEach(freq=>{
+    const osc = ctx.createOscillator();
     osc.frequency.value = freq;
-    osc.connect(g);  // or ctx.destination
+    osc.connect(g);  // or ctx.destination directly
     osc.start(0); osc.stop(ctx.currentTime + 0.2);
  })
 }
 
 // dial tone
-input.onfocus = ev=>play_freq(350, 440)
+input.onfocus = ev=>play_freq([350, 440])
 
 input.onkeydown = ev => {
-  let fs = {
+  play_freq({
     "1": [ 1209, 697 ],
     "2": [ 1336, 697 ],
     "3": [ 1477, 697 ],
@@ -48,8 +49,8 @@ input.onkeydown = ev => {
     [ 1633, 770 ],  // b
     [ 1633, 852 ],  // c
     [ 1633, 941 ],  // d
-  ][ev.keyCode % 4]
-  play_freq.apply(this, fs)
+  ][ev.keyCode % 4])
+  
 }
 </script>
 </body>
