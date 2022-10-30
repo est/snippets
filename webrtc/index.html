@@ -17,7 +17,7 @@ function echo(){output.value += ([].join.call(arguments, '\t')+'\n')};
   var pc = new RTCPeerConnection({certificates: [
     await RTCPeerConnection.generateCertificate({name: "ECDSA", namedCurve: "P-256"})
   ]})
-  pc.onicecandidate = function(ev){if(!event.candidate)echo('Offer:', JSON.stringify(pc.localDescription))}
+  pc.onicecandidate = function(ev){if(!event.candidate)echo(JSON.stringify(pc.localDescription))}
   pc.onconnectionstatechange = (e) => echo('onconnectionstatechange', e);
   pc.oniceconnectionstatechange = (e) => echo('oniceconnectionstatechange', e.target.iceConnectionState);
 
