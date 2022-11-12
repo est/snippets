@@ -8,13 +8,16 @@
 <body>
 <script type="text/javascript">
     const req = new XMLHttpRequest();
-    req.open("POST", url, true);
+    req.open("POST", '/', true);
     req.setRequestHeader('Content-Encoding', 'deflate')
+    // req.setRequestHeader('Content-Length', '8')
     req.onload = (event) => {
       // Uploaded
-      console.info('done')
+      console.info('done');
+      document.write(event.target.response)
     };
-    const blob = new Blob(["abc123"], { type: "application/octet-stream" });
+    // { type: "application/octet-stream" }
+    const blob = new Blob(["KLJ642\x06\x00"], );
     req.send(blob);
 </script>
 </body>
