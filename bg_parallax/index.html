@@ -12,11 +12,13 @@
     <p style="width: 100%">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
     <a href="https://sensor-js.xyz/demo.html">show</a>
 
-    <div id="out"></div>
+    <label for="offsetX">X: <input type="" id="offsetX" /></label>
+    <label for="offsetY">Y: <input type="" id="offsetY" /></label>
+    <label for="offsetZ">Z: <input type="" id="offsetZ" /></label>
     <script type="text/javascript">
         // only works with https. Fuck w3
         window.addEventListener("deviceorientation", (e) => {
-          title.style.transform = `rotateZ(${-e.alpha}deg) rotateX(${-e.beta}deg) rotateY(${e.gamma}deg)`;
+          title.style.transform = `rotateZ(${-e.alpha+parseInt(offsetZ.innerText)}deg) rotateX(${-e.beta+parseInt(offsetX.innerText)}deg) rotateY(${e.gamma+parseInt(offsetY.innerText)}deg)`;
         });
     </script>
 </body>
