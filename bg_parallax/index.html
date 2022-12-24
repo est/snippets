@@ -18,7 +18,7 @@
     <script type="text/javascript">
         // only works with https. Fuck w3
         window.addEventListener("deviceorientation", (e) => {
-          title.style.transform = `rotateZ(${-e.alpha+parseInt(offsetZ.innerText)}deg) rotateX(${-e.beta+parseInt(offsetX.innerText)}deg) rotateY(${e.gamma+parseInt(offsetY.innerText)}deg)`;
+          title.style.transform = `rotateZ(${-e.alpha+parseInt(offsetZ.innerText || '0')}deg) rotateX(${-e.beta+parseInt(offsetX.innerText || '0')}deg) rotateY(${e.gamma+parseInt(offsetY.innerText || '0')}deg)`;
         });
     </script>
 </body>
