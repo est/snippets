@@ -1,0 +1,1224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Shopping Cart - hostEONS.com</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+<link href="/templates/twenty-one/css/all.min.css?v=d807cd" rel="stylesheet">
+<link href="/templates/twenty-one/css/theme.min.css?v=d807cd" rel="stylesheet">
+<link href="/assets/css/fontawesome-all.min.css" rel="stylesheet">
+<script type="d610ba9f041cd100fc4356f6-text/javascript">
+    var csrfToken = '5c413e3726e378066bbb4d482d4419ec4ca9a19c',
+        markdownGuide = 'Markdown Guide',
+        locale = 'en',
+        saved = 'saved',
+        saving = 'autosaving',
+        whmcsBaseUrl = "",
+        requiredText = 'Required',
+        recaptchaSiteKey = "";
+</script>
+<script src="/templates/twenty-one/js/scripts.min.js?v=d807cd" type="d610ba9f041cd100fc4356f6-text/javascript"></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-VFTZ1Y3H6T" type="d610ba9f041cd100fc4356f6-text/javascript"></script>
+<script type="d610ba9f041cd100fc4356f6-text/javascript">
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-VFTZ1Y3H6T');
+</script>
+</head>
+<body class="primary-bg-color" data-phone-cc-input="1">
+<header id="header" class="header">
+<div class="navbar navbar-light">
+<div class="container">
+<a class="navbar-brand mr-3" href="/index.php">
+<img src="/assets/img/logo.png" alt="hostEONS.com" class="logo-img">
+</a>
+<form method="post" action="/knowledgebase/search" class="form-inline ml-auto">
+<input type="hidden" name="token" value="5c413e3726e378066bbb4d482d4419ec4ca9a19c" />
+<div class="input-group search d-none d-xl-flex">
+<div class="input-group-prepend">
+<button class="btn btn-default" type="submit">
+<i class="fas fa-search"></i>
+</button>
+</div>
+<input class="form-control appended-form-control font-weight-light" type="text" name="search" placeholder="Search our knowledgebase...">
+</div>
+</form>
+<ul class="navbar-nav toolbar">
+<li class="nav-item ml-3">
+<a class="btn nav-link cart-btn" href="/cart.php?a=view">
+<i class="far fa-shopping-cart fa-fw"></i>
+<span id="cartItemCount" class="badge badge-info">0</span>
+<span class="sr-only">Shopping Cart</span>
+</a>
+</li>
+<li class="nav-item ml-3 d-xl-none">
+<button class="btn nav-link" type="button" data-toggle="collapse" data-target="#mainNavbar">
+<span class="fas fa-bars fa-fw"></span>
+</button>
+</li>
+</ul>
+</div>
+</div>
+<div class="navbar navbar-expand-xl main-navbar-wrapper">
+<div class="container">
+<div class="collapse navbar-collapse" id="mainNavbar">
+<form method="post" action="/knowledgebase/search" class="d-xl-none">
+<input type="hidden" name="token" value="5c413e3726e378066bbb4d482d4419ec4ca9a19c" />
+<div class="input-group search w-100 mb-2">
+<div class="input-group-prepend">
+<button class="btn btn-default" type="submit">
+<i class="fas fa-search"></i>
+</button>
+</div>
+<input class="form-control prepended-form-control" type="text" name="search" placeholder="Search our knowledgebase...">
+</div>
+</form>
+<ul id="nav" class="navbar-nav mr-auto">
+<li menuItemName="Home" class="d-block no-collapse" id="Primary_Navbar-Home">
+<a class="pr-4" href="/index.php">
+Home
+</a>
+</li>
+<li menuItemName="Store" class="d-block dropdown no-collapse" id="Primary_Navbar-Store">
+<a class="pr-4 dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">
+Store
+</a>
+<ul class="dropdown-menu">
+<li menuItemName="Browse Products Services" class="dropdown-item" id="Primary_Navbar-Store-Browse_Products_Services">
+<a href="/store" class="dropdown-item px-2 py-0">
+Browse All
+</a>
+</li>
+<div class="dropdown-divider"></div>
+<li menuItemName="Premium Ryzen KVM NVME VPS (Los Angeles, Portland, Miami, New York  &amp; Dallas)" class="dropdown-item" id="Primary_Navbar-Store-Premium_Ryzen_KVM_NVME_VPS_(Los_Angeles,_Portland,_Miami,_New_York__&amp;_Dallas)">
+<a href="/store/premium-ryzen-kvm-nvme-vps-los-angeles-and-dallas" class="dropdown-item px-2 py-0">
+Premium Ryzen KVM NVME VPS (Los Angeles, Portland, Miami, New York &amp; Dallas)
+</a>
+</li>
+<li menuItemName="US - Budget Gigabit SSD KVM VPS - LA, PDX, SLC NY, MIA and DAL" class="dropdown-item" id="Primary_Navbar-Store-US_-_Budget_Gigabit_SSD_KVM_VPS_-_LA,_PDX,_SLC_NY,_MIA_and_DAL">
+<a href="/store/budget-gigabit-ssd-kvm-vps-la-ny-jax-dal-and-lv" class="dropdown-item px-2 py-0">
+US - Budget Gigabit SSD KVM VPS - LA, PDX, SLC NY, MIA and DAL
+</a>
+</li>
+<li menuItemName="OpenVZ 7 SSD VPS - LA, SLC and NY" class="dropdown-item" id="Primary_Navbar-Store-OpenVZ_7_SSD_VPS_-_LA,_SLC_and_NY">
+<a href="/store/100-mbps-ssd-openvz-7-vps-la-and-ny" class="dropdown-item px-2 py-0">
+OpenVZ 7 SSD VPS - LA, SLC and NY
+</a>
+</li>
+<li menuItemName="Ryzen 7950X Based HYBRID Dedicated Server" class="dropdown-item" id="Primary_Navbar-Store-Ryzen_7950X_Based_HYBRID_Dedicated_Server">
+<a href="/store/ryzen-7950x-based-hybrid-dedicated-server" class="dropdown-item px-2 py-0">
+Ryzen 7950X Based HYBRID Dedicated Server
+</a>
+</li>
+<li menuItemName="HYBRID Dedicated Server Special - (Ryzen 3950x)" class="dropdown-item" id="Primary_Navbar-Store-HYBRID_Dedicated_Server_Special_-_(Ryzen_3950x)">
+<a href="/store/hybrid-dedicated-server-special" class="dropdown-item px-2 py-0">
+HYBRID Dedicated Server Special - (Ryzen 3950x)
+</a>
+</li>
+<li menuItemName="Ryzen VPS Special" class="dropdown-item" id="Primary_Navbar-Store-Ryzen_VPS_Special">
+<a href="/store/ryzen-vps-special" class="dropdown-item px-2 py-0">
+Ryzen VPS Special
+</a>
+</li>
+<li menuItemName="11.11 VPS Special Deals" class="dropdown-item" id="Primary_Navbar-Store-11.11_VPS_Special_Deals">
+<a href="/store/vps-special-deals" class="dropdown-item px-2 py-0">
+11.11 VPS Special Deals
+</a>
+</li>
+<li menuItemName="Gigabit IPv6 Only VPS" class="dropdown-item" id="Primary_Navbar-Store-Gigabit_IPv6_Only_VPS">
+<a href="/store/gigabit-ipv6-only-vps" class="dropdown-item px-2 py-0">
+Gigabit IPv6 Only VPS
+</a>
+</li>
+<li menuItemName="DDOS Protected Dedicated Servers" class="dropdown-item" id="Primary_Navbar-Store-DDOS_Protected_Dedicated_Servers">
+<a href="/store/ddos-protected-dedicated-servers" class="dropdown-item px-2 py-0">
+DDOS Protected Dedicated Servers
+</a>
+</li>
+<li menuItemName="Premium SSD Web Hosting" class="dropdown-item" id="Primary_Navbar-Store-Premium_SSD_Web_Hosting">
+<a href="/store/premium-ssd-web-hosting" class="dropdown-item px-2 py-0">
+Premium SSD Web Hosting
+</a>
+</li>
+<li menuItemName="Premium SSD Reseller Web Hosting" class="dropdown-item" id="Primary_Navbar-Store-Premium_SSD_Reseller_Web_Hosting">
+<a href="/store/premium-ssd-reseller-web-hosting" class="dropdown-item px-2 py-0">
+Premium SSD Reseller Web Hosting
+</a>
+</li>
+<li menuItemName="Russian Dedicated Servers" class="dropdown-item" id="Primary_Navbar-Store-Russian_Dedicated_Servers">
+<a href="/store/russian-dedicated-servers" class="dropdown-item px-2 py-0">
+Russian Dedicated Servers
+</a>
+</li>
+<li menuItemName="Budget Dedicated Server" class="dropdown-item" id="Primary_Navbar-Store-Budget_Dedicated_Server">
+<a href="/store/budget-dedicated-server" class="dropdown-item px-2 py-0">
+Budget Dedicated Server
+</a>
+</li>
+<li menuItemName="Instant Dedicated Server - USA" class="dropdown-item" id="Primary_Navbar-Store-Instant_Dedicated_Server_-_USA">
+<a href="/store/instant-dedicated-server-usa" class="dropdown-item px-2 py-0">
+Instant Dedicated Server - USA
+</a>
+</li>
+<li menuItemName="Instant Dedicated Server - India" class="dropdown-item" id="Primary_Navbar-Store-Instant_Dedicated_Server_-_India">
+<a href="/store/instant-dedicated-server-india" class="dropdown-item px-2 py-0">
+Instant Dedicated Server - India
+</a>
+</li>
+<li menuItemName="Add-on Softwares" class="dropdown-item" id="Primary_Navbar-Store-Add-on_Softwares">
+<a href="/store/add-on-softwares" class="dropdown-item px-2 py-0">
+Add-on Softwares
+</a>
+</li>
+<li menuItemName="Register a New Domain" class="dropdown-item" id="Primary_Navbar-Store-Register_a_New_Domain">
+<a href="/cart.php?a=add&domain=register" class="dropdown-item px-2 py-0">
+Register a New Domain
+</a>
+</li>
+<li menuItemName="Transfer a Domain to Us" class="dropdown-item" id="Primary_Navbar-Store-Transfer_a_Domain_to_Us">
+<a href="/cart.php?a=add&domain=transfer" class="dropdown-item px-2 py-0">
+Transfer Domains to Us
+</a>
+</li>
+</ul>
+</li>
+<li menuItemName="Announcements" class="d-block" id="Primary_Navbar-Announcements">
+<a class="pr-4" href="/announcements">
+Announcements
+</a>
+</li>
+<li menuItemName="Knowledgebase" class="d-block" id="Primary_Navbar-Knowledgebase">
+<a class="pr-4" href="/knowledgebase">
+Knowledgebase
+</a>
+</li>
+<li menuItemName="Network Status" class="d-block" id="Primary_Navbar-Network_Status">
+<a class="pr-4" href="/serverstatus.php">
+Network Status
+</a>
+</li>
+<li menuItemName="Affiliates" class="d-block" id="Primary_Navbar-Affiliates">
+<a class="pr-4" href="/affiliates.php">
+Affiliates
+</a>
+</li>
+<li menuItemName="Contact Us" class="d-block" id="Primary_Navbar-Contact_Us">
+<a class="pr-4" href="/contact.php">
+Contact Us
+</a>
+</li>
+<li class="d-none dropdown collapsable-dropdown">
+<a class="dropdown-toggle" href="#" id="navbarDropdownMenu" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+More
+</a>
+<ul class="collapsable-dropdown-menu dropdown-menu" aria-labelledby="navbarDropdownMenu">
+</ul>
+</li>
+</ul>
+<ul class="navbar-nav ml-auto">
+<li menuItemName="Account" class="d-block no-collapse dropdown no-collapse" id="Secondary_Navbar-Account">
+<a class=" dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" href="#">
+Account
+</a>
+<ul class="dropdown-menu dropdown-menu-right">
+<li menuItemName="Login" class="dropdown-item" id="Secondary_Navbar-Account-Login">
+<a href="/clientarea.php" class="dropdown-item px-2 py-0">
+Login
+</a>
+</li>
+<li menuItemName="Register" class="dropdown-item" id="Secondary_Navbar-Account-Register">
+<a href="/register.php" class="dropdown-item px-2 py-0">
+Register
+</a>
+</li>
+<div class="dropdown-divider"></div>
+<li menuItemName="Forgot Password?" class="dropdown-item" id="Secondary_Navbar-Account-Forgot_Password?">
+<a href="/password/reset" class="dropdown-item px-2 py-0">
+Forgot Password?
+</a>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</header>
+<nav class="master-breadcrumb" aria-label="breadcrumb">
+<div class="container">
+<ol class="breadcrumb">
+<li class="breadcrumb-item active" aria-current="page">
+Shopping Cart
+</li>
+</ol>
+</div>
+</nav>
+<section id="main-body">
+<div class="container">
+<div class="row">
+<div class="col-12 primary-content">
+<link rel="stylesheet" type="text/css" href="/templates/orderforms/standard_cart/css/all.min.css?v=d807cd" />
+<script type="d610ba9f041cd100fc4356f6-text/javascript" src="/templates/orderforms/standard_cart/js/scripts.min.js?v=d807cd"></script>
+<script type="d610ba9f041cd100fc4356f6-text/javascript">
+var _localLang = {
+    'addToCart': 'Add to Cart',
+    'addedToCartRemove': 'Added to Cart (Remove)'
+}
+</script>
+<div id="order-standard_cart">
+<div class="row">
+<div class="cart-sidebar">
+<div menuItemName="Categories" class="panel card card-sidebar mb-3 panel-sidebar">
+<div class="panel-heading card-header">
+<h3 class="panel-title">
+<i class="fas fa-shopping-cart"></i>&nbsp;
+Categories
+<i class="fas fa-chevron-up card-minimise panel-minimise pull-right float-right"></i>
+</h3>
+</div>
+<div class="list-group collapsable-card-body">
+<a menuItemName="Premium Ryzen KVM NVME VPS (Los Angeles, Portland, Miami, New York  &amp; Dallas)" href="/store/premium-ryzen-kvm-nvme-vps-los-angeles-and-dallas" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Premium_Ryzen_KVM_NVME_VPS_(Los_Angeles,_Portland,_Miami,_New_York__&amp;_Dallas)">
+Premium Ryzen KVM NVME VPS (Los Angeles, Portland, Miami, New York &amp; Dallas)
+</a>
+<a menuItemName="US - Budget Gigabit SSD KVM VPS - LA, PDX, SLC NY, MIA and DAL" href="/store/budget-gigabit-ssd-kvm-vps-la-ny-jax-dal-and-lv" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-US_-_Budget_Gigabit_SSD_KVM_VPS_-_LA,_PDX,_SLC_NY,_MIA_and_DAL">
+US - Budget Gigabit SSD KVM VPS - LA, PDX, SLC NY, MIA and DAL
+</a>
+<a menuItemName="OpenVZ 7 SSD VPS - LA, SLC and NY" href="/store/100-mbps-ssd-openvz-7-vps-la-and-ny" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-OpenVZ_7_SSD_VPS_-_LA,_SLC_and_NY">
+OpenVZ 7 SSD VPS - LA, SLC and NY
+</a>
+<a menuItemName="Ryzen 7950X Based HYBRID Dedicated Server" href="/store/ryzen-7950x-based-hybrid-dedicated-server" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Ryzen_7950X_Based_HYBRID_Dedicated_Server">
+Ryzen 7950X Based HYBRID Dedicated Server
+</a>
+<a menuItemName="HYBRID Dedicated Server Special - (Ryzen 3950x)" href="/store/hybrid-dedicated-server-special" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-HYBRID_Dedicated_Server_Special_-_(Ryzen_3950x)">
+HYBRID Dedicated Server Special - (Ryzen 3950x)
+</a>
+<a menuItemName="Ryzen VPS Special" href="/store/ryzen-vps-special" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Ryzen_VPS_Special">
+Ryzen VPS Special
+</a>
+<a menuItemName="11.11 VPS Special Deals" href="/store/vps-special-deals" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-11.11_VPS_Special_Deals">
+11.11 VPS Special Deals
+</a>
+<a menuItemName="Gigabit IPv6 Only VPS" href="/store/gigabit-ipv6-only-vps" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Gigabit_IPv6_Only_VPS">
+Gigabit IPv6 Only VPS
+</a>
+<a menuItemName="DDOS Protected Dedicated Servers" href="/store/ddos-protected-dedicated-servers" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-DDOS_Protected_Dedicated_Servers">
+DDOS Protected Dedicated Servers
+</a>
+<a menuItemName="Premium SSD Web Hosting" href="/store/premium-ssd-web-hosting" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Premium_SSD_Web_Hosting">
+Premium SSD Web Hosting
+</a>
+<a menuItemName="Premium SSD Reseller Web Hosting" href="/store/premium-ssd-reseller-web-hosting" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Premium_SSD_Reseller_Web_Hosting">
+Premium SSD Reseller Web Hosting
+</a>
+<a menuItemName="Russian Dedicated Servers" href="/store/russian-dedicated-servers" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Russian_Dedicated_Servers">
+Russian Dedicated Servers
+</a>
+<a menuItemName="Budget Dedicated Server" href="/store/budget-dedicated-server" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Budget_Dedicated_Server">
+Budget Dedicated Server
+</a>
+<a menuItemName="Instant Dedicated Server - USA" href="/store/instant-dedicated-server-usa" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Instant_Dedicated_Server_-_USA">
+Instant Dedicated Server - USA
+</a>
+<a menuItemName="Instant Dedicated Server - India" href="/store/instant-dedicated-server-india" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Instant_Dedicated_Server_-_India">
+Instant Dedicated Server - India
+</a>
+<a menuItemName="Add-on Softwares" href="/store/add-on-softwares" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Categories-Add-on_Softwares">
+Add-on Softwares
+</a>
+</div>
+</div>
+<div menuItemName="Actions" class="panel card card-sidebar mb-3 panel-sidebar">
+<div class="panel-heading card-header">
+<h3 class="panel-title">
+<i class="fas fa-plus"></i>&nbsp;
+Actions
+<i class="fas fa-chevron-up card-minimise panel-minimise pull-right float-right"></i>
+</h3>
+</div>
+<div class="list-group collapsable-card-body">
+<a menuItemName="Domain Registration" href="/cart.php?a=add&domain=register" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Actions-Domain_Registration">
+<i class="fas fa-globe fa-fw"></i>&nbsp;
+Register a New Domain
+</a>
+<a menuItemName="Domain Transfer" href="/cart.php?a=add&domain=transfer" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Actions-Domain_Transfer">
+<i class="fas fa-share fa-fw"></i>&nbsp;
+Transfer in a Domain
+</a>
+<a menuItemName="View Cart" href="/cart.php?a=view" class="list-group-item list-group-item-action" id="Secondary_Sidebar-Actions-View_Cart">
+<i class="fas fa-shopping-cart fa-fw"></i>&nbsp;
+View Cart
+</a>
+</div>
+</div>
+<div menuItemName="Choose Currency" class="panel card card-sidebar mb-3 panel-sidebar">
+<div class="panel-heading card-header">
+<h3 class="panel-title">
+<i class="fas fa-plus"></i>&nbsp;
+Choose Currency
+<i class="fas fa-chevron-up card-minimise panel-minimise pull-right float-right"></i>
+</h3>
+</div>
+<div class="panel-body card-body collapsable-card-body">
+<form method="post" action="cart.php?a=confproduct&i=0">
+<input type="hidden" name="token" value="5c413e3726e378066bbb4d482d4419ec4ca9a19c" />
+<select name="currency" onchange="if (!window.__cfRLUnblockHandlers) return false; submit()" class="form-control" data-cf-modified-d610ba9f041cd100fc4356f6-><option value="1" selected>USD</option><option value="2">SGD</option> </select>
+</form>
+</div>
+</div>
+</div>
+<div class="cart-body">
+<div class="header-lined">
+<h1 class="font-size-36">Configure</h1>
+</div>
+<div class="sidebar-collapsed">
+<div class="panel card panel-default">
+<div class="m-0 panel-heading card-header">
+<h3 class="panel-title">
+<i class="fas fa-shopping-cart"></i>&nbsp;
+Categories
+</h3>
+</div>
+<div class="panel-body card-body">
+<form role="form">
+<select class="form-control custom-select" onchange="if (!window.__cfRLUnblockHandlers) return false; selectChangeNavigate(this)" data-cf-modified-d610ba9f041cd100fc4356f6->
+<option menuItemName="Premium Ryzen KVM NVME VPS (Los Angeles, Portland, Miami, New York  &amp; Dallas)" value="/store/premium-ryzen-kvm-nvme-vps-los-angeles-and-dallas" class="list-group-item">
+Premium Ryzen KVM NVME VPS (Los Angeles, Portland, Miami, New York &amp; Dallas)
+</option>
+<option menuItemName="US - Budget Gigabit SSD KVM VPS - LA, PDX, SLC NY, MIA and DAL" value="/store/budget-gigabit-ssd-kvm-vps-la-ny-jax-dal-and-lv" class="list-group-item">
+US - Budget Gigabit SSD KVM VPS - LA, PDX, SLC NY, MIA and DAL
+</option>
+<option menuItemName="OpenVZ 7 SSD VPS - LA, SLC and NY" value="/store/100-mbps-ssd-openvz-7-vps-la-and-ny" class="list-group-item">
+OpenVZ 7 SSD VPS - LA, SLC and NY
+</option>
+<option menuItemName="Ryzen 7950X Based HYBRID Dedicated Server" value="/store/ryzen-7950x-based-hybrid-dedicated-server" class="list-group-item">
+Ryzen 7950X Based HYBRID Dedicated Server
+</option>
+<option menuItemName="HYBRID Dedicated Server Special - (Ryzen 3950x)" value="/store/hybrid-dedicated-server-special" class="list-group-item">
+HYBRID Dedicated Server Special - (Ryzen 3950x)
+</option>
+<option menuItemName="Ryzen VPS Special" value="/store/ryzen-vps-special" class="list-group-item">
+Ryzen VPS Special
+</option>
+<option menuItemName="11.11 VPS Special Deals" value="/store/vps-special-deals" class="list-group-item">
+11.11 VPS Special Deals
+</option>
+<option menuItemName="Gigabit IPv6 Only VPS" value="/store/gigabit-ipv6-only-vps" class="list-group-item">
+Gigabit IPv6 Only VPS
+</option>
+<option menuItemName="DDOS Protected Dedicated Servers" value="/store/ddos-protected-dedicated-servers" class="list-group-item">
+DDOS Protected Dedicated Servers
+</option>
+<option menuItemName="Premium SSD Web Hosting" value="/store/premium-ssd-web-hosting" class="list-group-item">
+Premium SSD Web Hosting
+</option>
+<option menuItemName="Premium SSD Reseller Web Hosting" value="/store/premium-ssd-reseller-web-hosting" class="list-group-item">
+Premium SSD Reseller Web Hosting
+</option>
+<option menuItemName="Russian Dedicated Servers" value="/store/russian-dedicated-servers" class="list-group-item">
+Russian Dedicated Servers
+</option>
+<option menuItemName="Budget Dedicated Server" value="/store/budget-dedicated-server" class="list-group-item">
+Budget Dedicated Server
+</option>
+<option menuItemName="Instant Dedicated Server - USA" value="/store/instant-dedicated-server-usa" class="list-group-item">
+Instant Dedicated Server - USA
+</option>
+<option menuItemName="Instant Dedicated Server - India" value="/store/instant-dedicated-server-india" class="list-group-item">
+Instant Dedicated Server - India
+</option>
+<option menuItemName="Add-on Softwares" value="/store/add-on-softwares" class="list-group-item">
+Add-on Softwares
+</option>
+<option value class="list-group-item" selected selected>- Choose Another Category -</option>
+</select>
+</form>
+</div>
+</div>
+<div class="panel card panel-default">
+<div class="m-0 panel-heading card-header">
+<h3 class="panel-title">
+<i class="fas fa-plus"></i>&nbsp;
+Actions
+</h3>
+</div>
+<div class="panel-body card-body">
+<form role="form">
+<select class="form-control custom-select" onchange="if (!window.__cfRLUnblockHandlers) return false; selectChangeNavigate(this)" data-cf-modified-d610ba9f041cd100fc4356f6->
+<option menuItemName="Domain Registration" value="/cart.php?a=add&domain=register" class="list-group-item">
+Register a New Domain
+</option>
+<option menuItemName="Domain Transfer" value="/cart.php?a=add&domain=transfer" class="list-group-item">
+Transfer in a Domain
+</option>
+<option menuItemName="View Cart" value="/cart.php?a=view" class="list-group-item">
+View Cart
+</option>
+<option value class="list-group-item" selected selected>- Choose Another Category -</option>
+</select>
+</form>
+</div>
+</div>
+<div class="panel card panel-default">
+<div class="m-0 panel-heading card-header">
+<h3 class="panel-title">
+<i class="fas fa-plus"></i>&nbsp;
+Choose Currency
+</h3>
+</div>
+<div class="panel-body card-body">
+<form role="form">
+<select class="form-control custom-select" onchange="if (!window.__cfRLUnblockHandlers) return false; selectChangeNavigate(this)" data-cf-modified-d610ba9f041cd100fc4356f6->
+<option value class="list-group-item" selected selected>- Choose Another Category -</option>
+</select>
+</form>
+</div>
+</div>
+<div class="pull-right form-inline float-right">
+<form method="post" action="/cart.php?a=confproduct">
+<input type="hidden" name="token" value="5c413e3726e378066bbb4d482d4419ec4ca9a19c" />
+<select name="currency" onchange="if (!window.__cfRLUnblockHandlers) return false; submit()" class="form-control" data-cf-modified-d610ba9f041cd100fc4356f6->
+<option value>Choose Currency</option>
+<option value="1" selected>USD</option>
+<option value="2">SGD</option>
+</select>
+</form>
+</div>
+</div>
+<form id="frmConfigureProduct">
+<input type="hidden" name="configure" value="true" />
+<input type="hidden" name="i" value="0" />
+<div class="row">
+<div class="secondary-cart-body">
+<p>Configure your desired options and continue to checkout.</p>
+<div class="product-info">
+<p class="product-title">Gigabit KVM VPS 1</p>
+<p><strong>Gigabit KVM VPS 1</strong> <br/><br/>
+CPU Core: 1<br/><br/>
+RAM: 1 GB<br/><br/>
+SSD Disk Space: 10 GB<br/><br/>
+OS: Linux<br/><br/>
+IPv4: 1<br/><br/>
+IPv6: /64 <br/><br/>
+BANDWIDTH: 1 TB<br/><br/>
+Port Speed: Gigabit<br/><br/>
+Control Panel: YES<br/><br/>
+RDNS: YES<br/><br/>
+VNC: YES<br/><br/>
+DDOS Protection: YES<br/><br/>
+Instant Activation: YES<br/><br/>
+Location: Los Angeles, Portland, New York, Miami, Dallas, Salt Lake City<br/></p>
+</div>
+<div class="alert alert-danger w-hidden" role="alert" id="containerProductValidationErrors">
+<p>Please correct the following errors before continuing:</p>
+<ul id="containerProductValidationErrorsList"></ul>
+</div>
+<div class="field-container">
+<div class="form-group">
+<label for="inputBillingcycle">Choose Billing Cycle</label>
+<br>
+<select name="billingcycle" id="inputBillingcycle" class="form-control select-inline custom-select" onchange="if (!window.__cfRLUnblockHandlers) return false; updateConfigurableOptions(0, this.value); return false" data-cf-modified-d610ba9f041cd100fc4356f6->
+<option value="annually" selected>
+$21.00 USD Annually
+</option>
+<option value="biennially">
+$40.00 USD Biennially
+</option>
+<option value="triennially">
+$55.00 USD Triennially
+</option>
+</select>
+</div>
+</div>
+<div class="sub-heading">
+<span class="primary-bg-color">Configure Server</span>
+</div>
+<div class="field-container">
+<div class="row">
+<div class="col-sm-6">
+<div class="form-group">
+<label for="inputRootpw">Root Password</label>
+<input type="password" name="rootpw" class="form-control" id="inputRootpw" value>
+</div>
+</div>
+<div class="col-sm-6">
+<div class="form-group">
+<input type="hidden" name="hostname" class="form-control" id="inputHostname" value="vps59523248.hosteons.com">
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-sm-6">
+<div class="form-group">
+<input type="hidden" name="ns1prefix" class="form-control" id="inputNs1prefix" value="ns1">
+</div>
+</div>
+<div class="col-sm-6">
+<div class="form-group">
+<input type="hidden" name="ns2prefix" class="form-control" id="inputNs2prefix" value="ns2">
+</div>
+</div>
+</div>
+</div>
+<div class="sub-heading">
+<span class="primary-bg-color">Configurable Options</span>
+</div>
+<div class="product-configurable-options" id="productConfigurableOptions">
+<div class="row">
+<div class="col-sm-12">
+<div class="form-group">
+<label for="inputConfigOption30">Additional IPv4 IP</label>
+<script type="d610ba9f041cd100fc4356f6-text/javascript" src="/assets/js/ion.rangeSlider.min.js"></script>
+<link href="/assets/css/ion.rangeSlider.css" rel="stylesheet">
+<link href="/assets/css/ion.rangeSlider.skinModern.css" rel="stylesheet">
+<input type="text" name="configoption[30]" value="0" id="inputConfigOption30" class="form-control" />
+<script type="d610ba9f041cd100fc4356f6-text/javascript">
+                                                        var sliderTimeoutId = null;
+                                                        var sliderRangeDifference = 3 - 0;
+                                                        // The largest size that looks nice on most screens.
+                                                        var sliderStepThreshold = 25;
+                                                        // Check if there are too many to display individually.
+                                                        var setLargerMarkers = sliderRangeDifference > sliderStepThreshold;
+
+                                                        jQuery("#inputConfigOption30").ionRangeSlider({
+                                                            min: 0,
+                                                            max: 3,
+                                                            grid: true,
+                                                            grid_snap: setLargerMarkers ? false : true,
+                                                            onChange: function() {
+                                                                if (sliderTimeoutId) {
+                                                                    clearTimeout(sliderTimeoutId);
+                                                                }
+
+                                                                sliderTimeoutId = setTimeout(function() {
+                                                                    sliderTimeoutId = null;
+                                                                    recalctotals();
+                                                                }, 250);
+                                                            }
+                                                        });
+                                                    </script>
+</div>
+</div>
+<div class="col-sm-6">
+<div class="form-group">
+<label for="inputConfigOption56">Location</label>
+<br/>
+<label>
+<input type="radio" name="configoption[56]" value="328" checked="checked" />
+Los Angeles (Test IP: 205.234.156.10)
+</label>
+<br/>
+<label>
+<input type="radio" name="configoption[56]" value="518" />
+Salt Lake City DC2 (Test IP: 103.114.162.100)
+</label>
+<br/>
+<label>
+<input type="radio" name="configoption[56]" value="334" />
+Salt Lake City DC1 (Test IP: 103.114.160.100)
+</label>
+<br/>
+<label>
+<input type="radio" name="configoption[56]" value="516" />
+Portland(Test IP: 103.124.106.100)
+</label>
+<br/>
+<label>
+<input type="radio" name="configoption[56]" value="361" />
+Dallas (Test IP: 103.124.105.100)
+</label>
+<br/>
+<label>
+<input type="radio" name="configoption[56]" value="330" />
+Miami (Test IP: 103.124.104.101)
+</label>
+<br/>
+<label>
+<input type="radio" name="configoption[56]" value="329" />
+New York (Test IP: 204.93.201.10)
+</label>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-sm-6">
+<div class="form-group">
+<label for="inputConfigOption61">DNS Hosting (included Free)</label>
+<select name="configoption[61]" id="inputConfigOption61" class="form-control">
+<option value="357" selected="selected">
+FREE DNS HOSTING
+</option>
+</select>
+</div>
+</div>
+<div class="col-sm-6">
+<div class="form-group">
+<label for="inputConfigOption66">Additional Monthly Bandwidth Transfer $2 per Additional TB</label>
+<select name="configoption[66]" id="inputConfigOption66" class="form-control">
+<option value="367" selected="selected">
+None
+</option>
+<option value="363">
+Additional 1TB Transfer $24.00 USD
+</option>
+<option value="364">
+Additional 2TB Transfer $48.00 USD
+</option>
+<option value="381">
+Additiomal 3TB Transfer $72.00 USD
+</option>
+<option value="365">
+Additiomal 4TB Transfer $96.00 USD
+</option>
+<option value="382">
+Additional 5TB Transfer $120.00 USD
+</option>
+<option value="383">
+Additional 6TB Transfer $144.00 USD
+</option>
+<option value="366">
+Additional 8TB Transfer $192.00 USD
+</option>
+<option value="384">
+Additional 10TB Transfer $240.00 USD
+</option>
+<option value="500">
+Additional 15TB Transfer $360.00 USD
+</option>
+<option value="501">
+Additional 18TB Transfer $432.00 USD
+</option>
+</select>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-sm-6">
+<div class="form-group">
+<label for="inputConfigOption67">Additional RAM</label>
+<select name="configoption[67]" id="inputConfigOption67" class="form-control">
+<option value="368" selected="selected">
+NONE
+</option>
+<option value="369">
+1GB Additional RAM $30.00 USD
+</option>
+<option value="370">
+2GB Additional RAM $60.00 USD
+</option>
+<option value="371">
+3 GB Additional RAM $90.00 USD
+</option>
+<option value="372">
+4GB Additional RAM $120.00 USD
+</option>
+<option value="502">
+5GB Additional RAM $150.00 USD
+</option>
+<option value="503">
+6GB Additional RAM $180.00 USD
+</option>
+<option value="504">
+8GB Additional RAM $240.00 USD
+</option>
+<option value="505">
+12GB Additional RAM $540.00 USD
+</option>
+</select>
+</div>
+</div>
+<div class="col-sm-12">
+<div class="form-group">
+<label for="inputConfigOption69">Additional Disk Space ($1 per 5 GB Disk Space)</label>
+<input type="text" name="configoption[69]" value="0" id="inputConfigOption69" class="form-control" />
+<script type="d610ba9f041cd100fc4356f6-text/javascript">
+                                                        var sliderTimeoutId = null;
+                                                        var sliderRangeDifference = 200 - 0;
+                                                        // The largest size that looks nice on most screens.
+                                                        var sliderStepThreshold = 25;
+                                                        // Check if there are too many to display individually.
+                                                        var setLargerMarkers = sliderRangeDifference > sliderStepThreshold;
+
+                                                        jQuery("#inputConfigOption69").ionRangeSlider({
+                                                            min: 0,
+                                                            max: 200,
+                                                            grid: true,
+                                                            grid_snap: setLargerMarkers ? false : true,
+                                                            onChange: function() {
+                                                                if (sliderTimeoutId) {
+                                                                    clearTimeout(sliderTimeoutId);
+                                                                }
+
+                                                                sliderTimeoutId = setTimeout(function() {
+                                                                    sliderTimeoutId = null;
+                                                                    recalctotals();
+                                                                }, 250);
+                                                            }
+                                                        });
+                                                    </script>
+</div>
+</div>
+</div>
+<div class="row">
+<div class="col-sm-6">
+<div class="form-group">
+<label for="inputConfigOption77">Backup Plan / Snapshot</label>
+<select name="configoption[77]" id="inputConfigOption77" class="form-control">
+<option value="533" selected="selected">
+Snapshot or Manual Backup FREE (3 Times Per month)
+</option>
+<option value="408">
+Monthly $12.00 USD
+</option>
+<option value="407">
+Weekly $24.00 USD
+</option>
+<option value="409">
+None
+</option>
+</select>
+</div>
+</div>
+<div class="col-sm-6">
+<div class="form-group">
+<label for="inputConfigOption89">Number of IPv6 Subnet</label>
+<select name="configoption[89]" id="inputConfigOption89" class="form-control">
+<option value="498" selected="selected">
+None
+</option>
+<option value="499">
+/64
+</option>
+</select>
+</div>
+</div>
+</div>
+<div class="row">
+</div>
+</div>
+<div class="sub-heading pb-1">
+<span class="primary-bg-color">Additional Information<br><i><small>(required fields are marked with *)</small></i></span>
+</div>
+<div class="field-container">
+<div class="form-group">
+<label for="customfield799">Operating System *</label>
+<select name="customfield[799]" id="customfield799" class="form-control custom-select"><option value="centos-7.9-x86_64">centos-7.9-x86_64</option><option value="centos-8-x86_64">centos-8-x86_64</option><option value="almalinux-8.3-x86_64">almalinux-8.3-x86_64</option><option value="almalinux-9.0-x86_64">almalinux-9.0-x86_64</option><option value="debian-9.4-x86_64">debian-9.4-x86_64</option><option value="rocky-8.6-86_64">rocky-8.6-86_64</option><option value="debian-10-x86_64">debian-10-x86_64</option><option value="debian-11-x86_64">debian-11-x86_64</option><option value="ubuntu-20.04-x86_64">ubuntu-20.04-x86_64</option><option value="fedora-32-x86_64">fedora-32-x86_64</option><option value="fedora-34-x86_64">fedora-34-x86_64</option><option value="ubuntu-18.04-x86_64">ubuntu-18.04-x86_64</option><option value="ubuntu-20.04-x86_64">ubuntu-20.04-x86_64</option><option value="ubuntu-22.04-x86_64">ubuntu-22.04-x86_64</option><option value="suse-15.1-x86_64">suse-15.1-x86_64</option><option value="oracle-8.6-x86_64">oracle-8.6-x86_64</option><option value="centos-7.8-x86_64">centos-7.8-x86_64</option><option value="centos-8.2-x86_64">centos-8.2-x86_64</option><option value="debian-12-x86_64">debian-12-x86_64</option></select>
+<span class="field-help-text">
+OS
+</span>
+</div>
+</div>
+<div id="productAddonsContainer">
+<div class="sub-heading">
+<span class="primary-bg-color">Available Addons</span>
+</div>
+<div class="row addon-products">
+<div class="col-sm-12">
+<div class="panel card panel-default panel-addon">
+<div class="panel-body card-body">
+<label>
+<input type="checkbox" name="addons[11]" />
+Upgrade to 10Gbps Port
+</label><br/>
+Upgrade to 10Gbps Port. Please submit a support ticket to upgrade to 10Gbps
+</div>
+<div class="panel-price">
+$5.00 USD Monthly
+</div>
+<div class="panel-add">
+<i class="fas fa-plus"></i>
+Add to Cart
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="alert alert-warning info-text-sm">
+<i class="fas fa-question-circle"></i>
+Have questions? Contact our sales team for assistance. <a href="/contact.php" target="_blank" class="alert-link">Click here</a>
+</div>
+</div>
+<div class="secondary-cart-sidebar" id="scrollingPanelContainer">
+<div id="orderSummary">
+<div class="order-summary">
+<div class="loader" id="orderSummaryLoader">
+<i class="fas fa-fw fa-sync fa-spin"></i>
+</div>
+<h2 class="font-size-30">Order Summary</h2>
+<div class="summary-container" id="producttotal"></div>
+</div>
+<div class="text-center">
+<button type="submit" id="btnCompleteProductConfig" class="btn btn-primary btn-lg">
+Continue
+<i class="fas fa-arrow-circle-right"></i>
+</button>
+</div>
+</div>
+</div>
+</div>
+</form>
+</div>
+</div>
+</div>
+<script type="d610ba9f041cd100fc4356f6-text/javascript">recalctotals();</script>
+<div class="hidden" id="divProductHasRecommendations" data-value></div>
+<div class="modal fade" id="recommendationsModal" tabindex="-1" role="dialog">
+<div class="modal-dialog" role="document">
+<div class="modal-content">
+<div class="modal-header">
+<h4 class="float-left pull-left">
+Added to Cart
+</h4>
+<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+<div class="clearfix"></div>
+</div>
+<div class="modal-body">
+<div class="product-recommendations-container">
+<div class="product-recommendations">
+<p>Based on this product, we recommend:</p>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<a class="btn btn-primary" href="#" id="btnContinueRecommendationsModal" data-dismiss="modal" role="button">
+<span class="w-hidden hidden"><i class="fas fa-spinner fa-spin"></i>&nbsp;</span>Continue
+</a>
+</div>
+</div>
+</div>
+<div class="product-recommendation clonable w-hidden hidden">
+<div class="header">
+<div class="cta">
+<div class="price">
+<span class="w-hidden hidden">FREE!</span>
+<span class="breakdown-price"></span>
+<span class="setup-fee"><small>&nbsp;Setup Fee</small></span>
+</div>
+<button type="button" class="btn btn-sm btn-add">
+<span class="text">Add to Cart</span>
+<span class="arrow"><i class="fas fa-chevron-right"></i></span>
+</button>
+</div>
+<div class="expander">
+<i class="fas fa-chevron-right rotate" data-toggle="tooltip" data-placement="right" title="Click to learn more."></i>
+</div>
+<div class="content">
+<div class="headline truncate"></div>
+<div class="tagline truncate">
+A description (tagline) is not available for this product.
+</div>
+</div>
+</div>
+<div class="body clearfix"><p></p></div>
+</div>
+</div>
+</div>
+</div>
+<div class="clearfix"></div>
+</div>
+</div>
+</section>
+<footer id="footer" class="footer">
+<div class="container">
+<ul class="list-inline mb-7 text-center float-lg-right">
+<li class="list-inline-item">
+<a class="btn btn-icon mb-1" href="https://www.facebook.com/HostEons" target="_blank">
+<i class="fab fa-facebook-f"></i>
+</a>
+</li>
+<li class="list-inline-item">
+<a class="btn btn-icon mb-1" href="https://www.twitter.com/hosteonscom" target="_blank">
+<i class="fab fa-twitter"></i>
+</a>
+</li>
+<li class="list-inline-item">
+<a class="btn btn-icon mb-1" href="https://www.youtube.com/@hosteons" target="_blank">
+<i class="fab fa-youtube"></i>
+</a>
+</li>
+<li class="list-inline-item">
+<button type="button" class="btn" data-toggle="modal" data-target="#modalChooseLanguage">
+<div class="d-inline-block align-middle">
+<div class="iti-flag us"></div>
+</div>
+English
+/
+$
+USD
+</button>
+</li>
+</ul>
+<ul class="nav justify-content-center justify-content-lg-start mb-7">
+<li class="nav-item">
+<a class="nav-link" href="/contact.php">
+Contact Us
+</a>
+</li>
+<li class="nav-item">
+<a class="nav-link" href="https://hosteons.com/terms_and_conditions.php" target="_blank">Terms of Service</a>
+</li>
+</ul>
+<p class="copyright mb-0">
+Copyright &copy; 2023 hostEONS.com. All Rights Reserved.
+</p>
+</div>
+</footer>
+<div id="fullpage-overlay" class="w-hidden">
+<div class="outer-wrapper">
+<div class="inner-wrapper">
+<img src="/assets/img/overlay-spinner.svg" alt>
+<br>
+<span class="msg"></span>
+</div>
+</div>
+</div>
+<div class="modal system-modal fade" id="modalAjax" tabindex="-1" role="dialog" aria-hidden="true">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header">
+<h5 class="modal-title"></h5>
+<button type="button" class="close" data-dismiss="modal">
+<span aria-hidden="true">&times;</span>
+<span class="sr-only">Close</span>
+</button>
+</div>
+<div class="modal-body">
+Loading...
+</div>
+<div class="modal-footer">
+<div class="float-left loader">
+<i class="fas fa-circle-notch fa-spin"></i>
+Loading...
+</div>
+<button type="button" class="btn btn-default" data-dismiss="modal">
+Close
+</button>
+<button type="button" class="btn btn-primary modal-submit">
+Submit
+</button>
+</div>
+</div>
+</div>
+</div>
+<form method="get" action="/cart.php?a=confproduct&i=0&">
+<div class="modal modal-localisation" id="modalChooseLanguage" tabindex="-1" role="dialog">
+<div class="modal-dialog modal-lg" role="document">
+<div class="modal-content">
+<div class="modal-body">
+<button type="button" class="close text-light" data-dismiss="modal" aria-label="Close">
+<span aria-hidden="true">&times;</span>
+</button>
+<h5 class="h5 pt-5 pb-3">Choose language</h5>
+<div class="row item-selector">
+<input type="hidden" name="language" data-current="english" value="english" />
+<div class="col-4">
+<a href="#" class="item" data-value="arabic">
+العربية
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="azerbaijani">
+Azerbaijani
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="catalan">
+Català
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="chinese">
+中文
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="croatian">
+Hrvatski
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="czech">
+Čeština
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="danish">
+Dansk
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="dutch">
+Nederlands
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item active" data-value="english">
+English
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="estonian">
+Estonian
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="farsi">
+Persian
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="french">
+Français
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="german">
+Deutsch
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="hebrew">
+עברית
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="hungarian">
+Magyar
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="italian">
+Italiano
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="macedonian">
+Macedonian
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="norwegian">
+Norwegian
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="portuguese-br">
+Português
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="portuguese-pt">
+Português
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="romanian">
+Română
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="russian">
+Русский
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="spanish">
+Español
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="swedish">
+Svenska
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="turkish">
+Türkçe
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="ukranian">
+Українська
+</a>
+</div>
+</div>
+<p class="h5 pt-5 pb-3">Choose Currency</p>
+<div class="row item-selector">
+<input type="hidden" name="currency" data-current="1" value>
+<div class="col-4">
+<a href="#" class="item active" data-value="1">
+$ USD
+</a>
+</div>
+<div class="col-4">
+<a href="#" class="item" data-value="2">
+$ SGD
+</a>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button type="submit" class="btn btn-default">Apply</button>
+</div>
+</div>
+</div>
+</div>
+</form>
+<form action="#" id="frmGeneratePassword">
+<div class="modal fade" id="modalGeneratePassword">
+<div class="modal-dialog">
+<div class="modal-content">
+<div class="modal-header bg-primary text-white">
+<h4 class="modal-title">
+Generate Password
+</h4>
+<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+<span aria-hidden="true">&times;</span>
+</button>
+</div>
+<div class="modal-body">
+<div class="alert alert-danger w-hidden" id="generatePwLengthError">
+Please enter a number between 8 and 64 for the password length
+</div>
+<div class="form-group row">
+<label for="generatePwLength" class="col-sm-4 col-form-label">Password Length</label>
+<div class="col-sm-8">
+<input type="number" min="8" max="64" value="12" step="1" class="form-control input-inline input-inline-100" id="inputGeneratePasswordLength">
+</div>
+</div>
+<div class="form-group row">
+<label for="generatePwOutput" class="col-sm-4 col-form-label">Generated Password</label>
+<div class="col-sm-8">
+<input type="text" class="form-control" id="inputGeneratePasswordOutput">
+</div>
+</div>
+<div class="row">
+<div class="col-sm-8 offset-sm-4">
+<button type="submit" class="btn btn-default btn-sm">
+<i class="fas fa-plus fa-fw"></i>
+Generate new password
+</button>
+<button type="button" class="btn btn-default btn-sm copy-to-clipboard" data-clipboard-target="#inputGeneratePasswordOutput">
+<img src="/assets/img/clippy.svg" alt="Copy to clipboard" width="15">
+Copy
+</button>
+</div>
+</div>
+</div>
+<div class="modal-footer">
+<button type="button" class="btn btn-default" data-dismiss="modal">
+Close
+</button>
+<button type="button" class="btn btn-primary" id="btnGeneratePasswordInsert" data-clipboard-target="#inputGeneratePasswordOutput">
+Copy to clipboard and Insert
+</button>
+</div>
+</div>
+</div>
+</div>
+</form>
+<script type="d610ba9f041cd100fc4356f6-text/javascript" src="https://js.stripe.com/v3/"></script>
+<script src="/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="d610ba9f041cd100fc4356f6-|49" defer></script><script>(function(){var js = "window['__CF$cv$params']={r:'828885daaeb2945f',t:'MTcwMDM5NzYzOS4xNzEwMDA='};_cpo=document.createElement('script');_cpo.nonce='',_cpo.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js',document.getElementsByTagName('head')[0].appendChild(_cpo);";var _0xh = document.createElement('iframe');_0xh.height = 1;_0xh.width = 1;_0xh.style.position = 'absolute';_0xh.style.top = 0;_0xh.style.left = 0;_0xh.style.border = 'none';_0xh.style.visibility = 'hidden';document.body.appendChild(_0xh);function handler() {var _0xi = _0xh.contentDocument || _0xh.contentWindow.document;if (_0xi) {var _0xj = _0xi.createElement('script');_0xj.innerHTML = js;_0xi.getElementsByTagName('head')[0].appendChild(_0xj);}}if (document.readyState !== 'loading') {handler();} else if (window.addEventListener) {document.addEventListener('DOMContentLoaded', handler);} else {var prev = document.onreadystatechange || function () {};document.onreadystatechange = function (e) {prev(e);if (document.readyState !== 'loading') {document.onreadystatechange = prev;handler();}};}})();</script></body>
+</html>
