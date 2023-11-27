@@ -43,16 +43,16 @@ def re_search(ptn, s):
     return ''
 
 def parse(i, c):
-    core = re_search(r'product-title.+?Core: +(\d+)<', c) or ''
+    core = re_search(r'product-title.+?Core[^:]*?: +(\d+)', c) or ''
     if not core:
         return
         cpu = re_search(r'product-title.+?CPU: +([^\r\n]+)<', c) or '?'
         core = f'"{cpu}"'
-    ram = re_search(r'product-title.+?RAM: +(\d+\s?\w)', c).replace(' ', '')
-    disk = re_search(r'product-title.+?Disk Space: +(\d+\s?\w)\w*<', c).replace(' ', '')
-    bw = re_search(r'product-title.+?BANDWIDTH:\D+?(\d+\s?[TMG])\w*<', c).replace(' ', '')
+    ram = re_search(r'product-title.+?RAM: +([\d+\.]+\s?\w)', c).replace(' ', '')
+    disk = re_search(r'product-title.+?(?:Disk Space|Drive): +([\d\.]+\s?\w+)\W', c).replace(' ', '')
+    bw = re_search(r'product-title.+?BANDWIDTH:\D+?([\d\.]+\s?[TMG])', c).replace(' ', '')
     price = re_search(r'"annually".*?(\$[\d\.]+)', c)
-    print(f'{i} {core}C{ram} {disk} {bw}bps {price}')
+    print(f'| {i} | {core}C{ram} | {disk} | {bw}bps | {price} |')
 
 targets = [int(x[:-5]) for x in os.listdir('.') if x.endswith('.html')]
 targets.sort()

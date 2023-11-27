@@ -37,3 +37,4 @@ nosetests.xml
 /venv/
 
 /v2ex_backup/*.html
+/vps_scan/*.html
