@@ -213,14 +213,22 @@
       }
       var metronome = new Metronome();
       tempo.textContent = metronome.tempo;
-      btn_play.onclick = function(){
+      btn_play.onclick = async function(){
         metronome.startStop();
         btn_play_icon.className = metronome.isRunning?'pause':'play';
+
+        try {
+          const wakeLock = await navigator.wakeLock.request("screen");
+        } catch (err) {
+          // the wake lock request fails - usually system related, such being low on battery
+          console.log(`${err.name}, ${err.message}`);
+        }
       }
       document.querySelectorAll('button.tempo-change').forEach((e)=>e.addEventListener('click', function(){
         metronome.tempo += parseInt(this.dataset.change);
         tempo.textContent = metronome.tempo;
       }))
+
     </script>
 </body>
 </html>
