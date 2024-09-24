@@ -22,7 +22,6 @@
     #btn_play {
         width: 150px;
         height: 150px;
-
         display: flex;
         align-items: center;
         justify-content: center;
@@ -42,7 +41,6 @@
     }
     .tempo-controls {
         margin-top: 30px;
-
         display: flex;
         align-items: center;
         justify-content: center;
@@ -131,8 +129,7 @@
             this.lookahead = 25;          // How frequently to call scheduling function (in milliseconds)
             this.scheduleAheadTime = 0.1;   // How far ahead to schedule audio (sec)
             this.nextNoteTime = 0.0;     // when the next note is due
-            this.isRunning = false;
-            this.intervalID = null;
+            this.runningID = null;
         }
 
         nextNote()
@@ -179,31 +176,28 @@
 
         start()
         {
-            if (this.isRunning) return;
+            if (this.runningID) return;
 
             if (this.audioContext == null)
             {
                 this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             }
 
-            this.isRunning = true;
-
             this.currentBeatInBar = 0;
             this.nextNoteTime = this.audioContext.currentTime + 0.05;
 
-            this.intervalID = setInterval(() => this.scheduler(), this.lookahead);
+            this.runningID = setInterval(() => this.scheduler(), this.lookahead);
         }
 
         stop()
         {
-            this.isRunning = false;
-
-            clearInterval(this.intervalID);
+            clearInterval(this.runningID);
+            this.runningID = null;
         }
 
         startStop()
         {
-            if (this.isRunning) {
+            if (this.runningID) {
                 this.stop();
             }
             else {
@@ -215,7 +209,7 @@
       tempo.textContent = metronome.tempo;
       btn_play.onclick = async function(){
         metronome.startStop();
-        btn_play_icon.className = metronome.isRunning?'pause':'play';
+        btn_play_icon.className = metronome.runningID?'pause':'play';
 
         try {
           const wakeLock = await navigator.wakeLock.request("screen");
