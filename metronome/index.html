@@ -113,15 +113,15 @@
     </div>
 
     <div class="created-by">
-      Created by <a href="https://github.com/grantjames/metronome">Grant James</a>, 
-      modified by <a href="">est</a>
+      Created by <a href="https://grantjam.es/creating-a-simple-metronome-using-javascript-and-the-web-audio-api/">Grant James</a>, 
+      modified by <a href="https://lab.est.im/metronome/">est</a>
     </div>
 
     <script>
       class Metronome{
         constructor(tempo = 120)
         {
-            this.audioContext = null;
+            this.ctx = null;
             this.notesInQueue = [];         // notes that have been put into the web audio and may or may not have been played yet {note, time}
             this.currentBeatInBar = 0;
             this.beatsPerBar = 4;
@@ -150,8 +150,8 @@
             this.notesInQueue.push({ note: beatNumber, time: time });
         
             // create an oscillator
-            const osc = this.audioContext.createOscillator();
-            const envelope = this.audioContext.createGain();
+            const osc = this.ctx.createOscillator();
+            const envelope = this.ctx.createGain();
             
             osc.frequency.value = (beatNumber % this.beatsPerBar == 0) ? 1000 : 800;
             envelope.gain.value = 1;
@@ -159,7 +159,7 @@
             envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.02);
 
             osc.connect(envelope);
-            envelope.connect(this.audioContext.destination);
+            envelope.connect(this.ctx.destination);
         
             osc.start(time);
             osc.stop(time + 0.03);
@@ -168,7 +168,7 @@
         scheduler()
         {
             // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
-            while (this.nextNoteTime < this.audioContext.currentTime + this.scheduleAheadTime ) {
+            while (this.nextNoteTime < this.ctx.currentTime + this.scheduleAheadTime ) {
                 this.scheduleNote(this.currentBeatInBar, this.nextNoteTime);
                 this.nextNote();
             }
@@ -178,13 +178,13 @@
         {
             if (this.runningID) return;
 
-            if (this.audioContext == null)
+            if (this.ctx == null)
             {
-                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                this.ctx = new AudioContext();
             }
 
             this.currentBeatInBar = 0;
-            this.nextNoteTime = this.audioContext.currentTime + 0.05;
+            this.nextNoteTime = this.ctx.currentTime + 0.05;
 
             this.runningID = setInterval(() => this.scheduler(), this.lookahead);
         }
