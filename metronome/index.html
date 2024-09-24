@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Metronome v1</title>
+</head>
+<body>
+  <button id="btn_play_pause">⏯️</button>
+  <script>
+    const ctx = new AudioContext();
+    function playClick() {
+        const osc = ctx.createOscillator();
+        const g = ctx.createGain();
+        g.gain.setValueAtTime(0.5, ctx.currentTime); // Adjust volume
+
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1000, ctx.currentTime);
+
+        osc.connect(g);
+        g.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.1);
+    }
+    const bpm = 120; 
+    const interval = (60 / bpm) * 1000; 
+    btn_play_pause.onclick = function(){
+      if (this.c){
+        clearInterval(this.c)
+        delete this.c 
+      } else {
+        this.c=setInterval(playClick, interval);
+      }
+    }
+    </script>
+</body>
+</html>
