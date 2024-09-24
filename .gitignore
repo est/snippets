@@ -33,8 +33,10 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+.DS_Store
 
 /venv/
 
 /v2ex_backup/*.html
 /vps_scan/*.html
+

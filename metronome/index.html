@@ -1,37 +1,226 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Metronome v1</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Metronome</title>
+  <style>
+    html {
+        height: 100%;
+    }
+    body {
+        background-color: #1e2227;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-flow: column;
+        height: 100%;
+        font-family: Arial, sans-serif;
+        color: #e9e9e9;
+    }
+    #btn_play {
+        width: 150px;
+        height: 150px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-flow: column;
+    }
+    .title {
+        margin-bottom: 40px;
+        font-size: 3em;
+        text-align: center;
+    }
+    #tempo {
+        font-size: 40px;
+    }
+    .bpm {
+        font-size: 12px;
+        text-align: center;
+    }
+    .tempo-controls {
+        margin-top: 30px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-flow: row;
+    }
+    .tempo-container {
+        margin: 0 15px;
+    }
+    button {
+      padding: 6px;
+      border: none;
+      border-radius: 100%;
+      width: 40px;
+      height: 40px;
+      margin: 5px;
+      background-color: #2a4949;
+      color: #e9e9e9;
+      cursor: pointer;
+    }
+    button:focus {
+        outline: none;
+    }
+    .created-by {
+        margin-top: 40px;
+    }
+
+    a {
+        color: #e9e9e9;
+    }
+
+    a:hover {
+        color: #356161;
+    }
+
+    .play {
+        width: 0;
+        height: 0;
+        border-top: 30px solid transparent;
+        border-bottom: 30px solid transparent;
+        border-left: 50px solid #e9e9e9;
+        margin-left: 15px;
+    }
+
+    .pause {
+        width: 15px;
+        height: 60px;
+        border: none;
+        border-left: 15px solid #e9e9e9;
+        border-right: 15px solid #e9e9e9;
+    }
+  </style>
 </head>
 <body>
-  <button id="btn_play_pause">⏯️</button>
-  <script>
-    const ctx = new AudioContext();
-    function playClick() {
-        const osc = ctx.createOscillator();
-        const g = ctx.createGain();
-        g.gain.setValueAtTime(0.5, ctx.currentTime); // Adjust volume
+    <div class="title">🎚️ · 🎧 · 🎼</div>
+    <button id="btn_play" class="">
+        <div id="btn_play_icon" class="play"></div>
+    </button>
 
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(1000, ctx.currentTime);
+    <div class="tempo-controls">
+        <button class="tempo-change" data-change="-5">-5</button>
+        <button class="tempo-change" data-change="-1">-</button>
 
-        osc.connect(g);
-        g.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.1);
-    }
-    const bpm = 120; 
-    const interval = (60 / bpm) * 1000; 
-    btn_play_pause.onclick = function(){
-      if (this.c){
-        clearInterval(this.c)
-        delete this.c 
-      } else {
-        this.c=setInterval(playClick, interval);
+        <div class="tempo-container">
+            <div id="tempo">120</div>
+            <div class="bpm">bpm</div>
+        </div>
+
+        <button class="tempo-change" data-change="+1">+</button>
+        <button class="tempo-change" data-change="+5">+5</button>
+    </div>
+
+    <div class="created-by">
+      Created by <a href="https://github.com/grantjames/metronome">Grant James</a>, 
+      modified by <a href="">est</a>
+    </div>
+
+    <script>
+      class Metronome{
+        constructor(tempo = 120)
+        {
+            this.audioContext = null;
+            this.notesInQueue = [];         // notes that have been put into the web audio and may or may not have been played yet {note, time}
+            this.currentBeatInBar = 0;
+            this.beatsPerBar = 4;
+            this.tempo = tempo;
+            this.lookahead = 25;          // How frequently to call scheduling function (in milliseconds)
+            this.scheduleAheadTime = 0.1;   // How far ahead to schedule audio (sec)
+            this.nextNoteTime = 0.0;     // when the next note is due
+            this.isRunning = false;
+            this.intervalID = null;
+        }
+
+        nextNote()
+        {
+            // Advance current note and time by a quarter note (crotchet if you're posh)
+            var secondsPerBeat = 60.0 / this.tempo; // Notice this picks up the CURRENT tempo value to calculate beat length.
+            this.nextNoteTime += secondsPerBeat; // Add beat length to last beat time
+        
+            this.currentBeatInBar++;    // Advance the beat number, wrap to zero
+            if (this.currentBeatInBar == this.beatsPerBar) {
+                this.currentBeatInBar = 0;
+            }
+        }
+
+        scheduleNote(beatNumber, time)
+        {
+            // push the note on the queue, even if we're not playing.
+            this.notesInQueue.push({ note: beatNumber, time: time });
+        
+            // create an oscillator
+            const osc = this.audioContext.createOscillator();
+            const envelope = this.audioContext.createGain();
+            
+            osc.frequency.value = (beatNumber % this.beatsPerBar == 0) ? 1000 : 800;
+            envelope.gain.value = 1;
+            envelope.gain.exponentialRampToValueAtTime(1, time + 0.001);
+            envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.02);
+
+            osc.connect(envelope);
+            envelope.connect(this.audioContext.destination);
+        
+            osc.start(time);
+            osc.stop(time + 0.03);
+        }
+
+        scheduler()
+        {
+            // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
+            while (this.nextNoteTime < this.audioContext.currentTime + this.scheduleAheadTime ) {
+                this.scheduleNote(this.currentBeatInBar, this.nextNoteTime);
+                this.nextNote();
+            }
+        }
+
+        start()
+        {
+            if (this.isRunning) return;
+
+            if (this.audioContext == null)
+            {
+                this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+
+            this.isRunning = true;
+
+            this.currentBeatInBar = 0;
+            this.nextNoteTime = this.audioContext.currentTime + 0.05;
+
+            this.intervalID = setInterval(() => this.scheduler(), this.lookahead);
+        }
+
+        stop()
+        {
+            this.isRunning = false;
+
+            clearInterval(this.intervalID);
+        }
+
+        startStop()
+        {
+            if (this.isRunning) {
+                this.stop();
+            }
+            else {
+                this.start();
+            }
+        }
       }
-    }
+      var metronome = new Metronome();
+      tempo.textContent = metronome.tempo;
+      btn_play.onclick = function(){
+        metronome.startStop();
+        btn_play_icon.className = metronome.isRunning?'pause':'play';
+      }
+      document.querySelectorAll('button.tempo-change').forEach((e)=>e.addEventListener('click', function(){
+        metronome.tempo += parseInt(this.dataset.change);
+        tempo.textContent = metronome.tempo;
+      }))
     </script>
 </body>
 </html>
