@@ -212,16 +212,16 @@
 
         if (metronome.runningID) {
           btn_play_icon.className = 'pause';
-          if (metronome.wakeLock) {
-            await metronome.wakeLock.release();
-          }
-        } else {
-          btn_play_icon.className = 'play';
           try {
             metronome.wakeLock = await navigator.wakeLock.request("screen");
           } catch (err) {
             // low on battery
             console.log(`${err.name}, ${err.message}`);
+          }
+        } else {
+          btn_play_icon.className = 'play';
+          if (metronome.wakeLock) {
+            await metronome.wakeLock.release();
           }
         }
       }
