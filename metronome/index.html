@@ -119,39 +119,26 @@
 
     <script>
       class Metronome{
-        constructor(tempo = 120)
-        {
+        constructor(tempo = 120) {
             this.ctx = null;
-            this.notesInQueue = [];         // notes that have been put into the web audio and may or may not have been played yet {note, time}
             this.currentBeatInBar = 0;
             this.beatsPerBar = 4;
             this.tempo = tempo;
             this.lookahead = 25;          // How frequently to call scheduling function (in milliseconds)
             this.scheduleAheadTime = 0.1;   // How far ahead to schedule audio (sec)
             this.nextNoteTime = 0.0;     // when the next note is due
-            this.runningID = null;
+            this.runningID = null;  // interval id
         }
-
-        nextNote()
-        {
+        calc_next() {
             // Advance current note and time by a quarter note (crotchet if you're posh)
             var secondsPerBeat = 60.0 / this.tempo; // Notice this picks up the CURRENT tempo value to calculate beat length.
             this.nextNoteTime += secondsPerBeat; // Add beat length to last beat time
-        
-            this.currentBeatInBar++;    // Advance the beat number, wrap to zero
-            if (this.currentBeatInBar == this.beatsPerBar) {
-                this.currentBeatInBar = 0;
-            }
+            this.currentBeatInBar = ++this.currentBeatInBar % this.beatsPerBar;
         }
 
-        scheduleNote(beatNumber, time)
-        {
-            // push the note on the queue, even if we're not playing.
-            this.notesInQueue.push({ note: beatNumber, time: time });
-        
-            // create an oscillator
-            const osc = this.ctx.createOscillator();
-            const envelope = this.ctx.createGain();
+        play_at(beatNumber, time) {
+            const osc = this.ctx.createOscillator();  // create a sound
+            const envelope = this.ctx.createGain();  // wrap the sound sharper
             
             osc.frequency.value = (beatNumber % this.beatsPerBar == 0) ? 1000 : 800;
             envelope.gain.value = 1;
@@ -160,70 +147,56 @@
 
             osc.connect(envelope);
             envelope.connect(this.ctx.destination);
-        
             osc.start(time);
             osc.stop(time + 0.03);
         }
 
-        scheduler()
-        {
-            // while there are notes that will need to play before the next interval, schedule them and advance the pointer.
+        scheduler() {
+            // called every `lookahead` ms
             while (this.nextNoteTime < this.ctx.currentTime + this.scheduleAheadTime ) {
-                this.scheduleNote(this.currentBeatInBar, this.nextNoteTime);
-                this.nextNote();
+                this.play_at(this.currentBeatInBar, this.nextNoteTime);
+                this.calc_next();
             }
         }
 
-        start()
-        {
+        start() {
             if (this.runningID) return;
-
-            if (this.ctx == null)
-            {
-                this.ctx = new AudioContext();
-            }
-
-            this.currentBeatInBar = 0;
+            if (this.ctx == null) this.ctx = new AudioContext();
+            this.currentBeatInBar = 0;  // reset
             this.nextNoteTime = this.ctx.currentTime + 0.05;
-
             this.runningID = setInterval(() => this.scheduler(), this.lookahead);
         }
 
-        stop()
-        {
+        stop() {
             clearInterval(this.runningID);
             this.runningID = null;
         }
 
-        startStop()
+        async startStop()
         {
             if (this.runningID) {
                 this.stop();
+                if (this.wakeLock) {
+                  await this.wakeLock.release();
+                }
+                return 'play'
             }
             else {
                 this.start();
+                try {
+                  this.wakeLock = await navigator.wakeLock.request("screen");
+                } catch (err) {
+                  // e.g. low on battery
+                  console.log(`${err.name}, ${err.message}`);
+                }
+                return 'pause'
             }
         }
       }
       var metronome = new Metronome();
       tempo.textContent = metronome.tempo;
       btn_play.onclick = async function(){
-        metronome.startStop();
-
-        if (metronome.runningID) {
-          btn_play_icon.className = 'pause';
-          try {
-            metronome.wakeLock = await navigator.wakeLock.request("screen");
-          } catch (err) {
-            // low on battery
-            console.log(`${err.name}, ${err.message}`);
-          }
-        } else {
-          btn_play_icon.className = 'play';
-          if (metronome.wakeLock) {
-            await metronome.wakeLock.release();
-          }
-        }
+        btn_play_icon.className = await metronome.startStop();
       }
       document.querySelectorAll('button.tempo-change').forEach((e)=>e.addEventListener('click', function(){
         metronome.tempo += parseInt(this.dataset.change);
