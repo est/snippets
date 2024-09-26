@@ -214,12 +214,12 @@
         btn_play_icon.className = await metronome.startStop();
       }
       document.querySelectorAll('.controls button.beats-change').forEach((e)=>e.addEventListener('click', function(){
-        metronome.beatsPerBar += parseInt(this.dataset.change);
-        ctrl_beats.textContent = metronome.beatsPerBar;
+        const c = metronome.beatsPerBar + parseInt(this.dataset.change)
+        if (c > 0) ctrl_beats.textContent = metronome.beatsPerBar = c;
       }))
       document.querySelectorAll('.controls button.tempo-change').forEach((e)=>e.addEventListener('click', function(){
-        metronome.tempo += parseInt(this.dataset.change);
-        ctrl_tempo.textContent = metronome.tempo;
+        const c = metronome.tempo + parseInt(this.dataset.change)
+        if (c > 0) ctrl_tempo.textContent = metronome.tempo = c;
       }))
 
     </script>
