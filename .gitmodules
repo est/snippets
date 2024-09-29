@@ -1,0 +1,3 @@
+[submodule "js-autosuggest"]
+	path = js-autosuggest
+	url = git@github.com:est/js-autosuggest.git
