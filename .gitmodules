@@ -1,3 +1,6 @@
 [submodule "js-autosuggest"]
 	path = js-autosuggest
 	url = git@github.com:est/js-autosuggest.git
+[submodule "metronome"]
+	path = metronome
+	url = git@github.com:est/metronome.git
