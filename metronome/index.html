@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"">
   <title>Metronome</title>
   <style>
     html {
@@ -34,6 +34,7 @@
         text-align: center;
     }
     #ctrl_tempo {
+        width: 2em;
         font-size: 40px;
     }
     #ctrl_beats {
@@ -99,7 +100,7 @@
   </style>
 </head>
 <body>
-    <div class="title">🎚️ · 🎧 · 🎼</div>
+    <div class="title">🎧 · 🎚️ · 🎼</div>
     <button id="btn_play" class="">
         <div id="btn_play_icon" class="play"></div>
     </button>
@@ -151,18 +152,24 @@
         }
 
         play_at(beatNumber, time) {
-            const osc = this.ctx.createOscillator();  // create a sound
             const envelope = this.ctx.createGain();  // wrap the sound sharper
-            
-            osc.frequency.value = (beatNumber % this.beatsPerBar == 0) ? 1000 : 800;
             envelope.gain.value = 1;
             envelope.gain.exponentialRampToValueAtTime(1, time + 0.001);
             envelope.gain.exponentialRampToValueAtTime(0.001, time + 0.02);
-
-            osc.connect(envelope);
             envelope.connect(this.ctx.destination);
+
+            const osc = this.ctx.createOscillator();  // create a sound
+            osc.frequency.value = (beatNumber % this.beatsPerBar == 0) ? 1000 : 800;
+            osc.connect(envelope);
+
             osc.start(time);
             osc.stop(time + 0.03);
+        }
+
+        incr_tempo(val){
+            const c = metronome.tempo + val
+            if (c >0 ) this.tempo = c
+            return this.tempo
         }
 
         scheduler() {
@@ -213,15 +220,26 @@
       btn_play.onclick = async function(){
         btn_play_icon.className = await metronome.startStop();
       }
-      document.querySelectorAll('.controls button.beats-change').forEach((e)=>e.addEventListener('click', function(){
+
+      function change_beats(){
         const c = metronome.beatsPerBar + parseInt(this.dataset.change)
         if (c > 0) ctrl_beats.textContent = metronome.beatsPerBar = c;
-      }))
-      document.querySelectorAll('.controls button.tempo-change').forEach((e)=>e.addEventListener('click', function(){
-        const c = metronome.tempo + parseInt(this.dataset.change)
-        if (c > 0) ctrl_tempo.textContent = metronome.tempo = c;
-      }))
+      }
+      document.querySelectorAll('.controls button.beats-change').forEach((e)=>e.onclick=change_beats)
 
+      function change_tempo(ev){
+          ctrl_tempo.textContent = metronome.incr_tempo(parseInt(this.dataset.change))
+      }
+      document.querySelectorAll('.controls button.tempo-change').forEach(function(el){
+        el.onclick=change_tempo;
+        el.onmousedown=el.ontouchstart=function(){
+					if (!ctrl_tempo.isholding)  ctrl_tempo.isholding = setInterval(change_tempo.bind(this), 250)
+        }
+        el.onmouseup=el.onmouseleave=el.ontouchend=el.touchcancel=()=>{
+            clearInterval(ctrl_tempo.isholding);
+            ctrl_tempo.isholding = null;
+        }
+      })
     </script>
 </body>
 </html>
