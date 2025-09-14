@@ -1,4 +1,3 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="10em" height="1em">
-  <text x="0" y="1em">Hello SVG</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="20ex" height="2em">
+  <text x="50%" y="1em" font-size="2em" text-anchor="middle">Hello SVG</text>
 </svg>
-
