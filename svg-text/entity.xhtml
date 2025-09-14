@@ -1,0 +1,14 @@
+<!DOCTYPE html [
+  <!ENTITY myEntity "Hello World">
+  <!ENTITY wow "alert('hi')">
+  <!ENTITY remote SYSTEM "http://example.com/some.txt">
+]>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<body>
+  &myEntity;
+  <script>
+    &wow;
+  </script>
+
+</body>
+</html>

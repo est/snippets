@@ -1,3 +1,3 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="20ex" height="2em">
-  <text x="50%" y="100%" font-size="2em" dominant-baseline="text-after-edge" text-anchor="middle">Hello SVG</text>
+  <text x="50%" y="100%" style="font-size: 2em" font-size="2em" dominant-baseline="text-after-edge" text-anchor="middle">Hello SVG</text>
 </svg>
