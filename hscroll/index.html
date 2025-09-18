@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Horizontal Scroll Demo</title>
+  <title>PressReader Style Horizontal Scroll</title>
   <style>
     body {
       margin: 0;
-      font-family: sans-serif;
-      background: #f2f2f2;
+      font-family: Georgia, serif;
+      background: #eaeaea;
     }
 
     .scroll-container {
@@ -21,43 +21,134 @@
     .page {
       flex: 0 0 100%;
       scroll-snap-align: start;
-      background: white;
-      border-right: 1px solid #ccc;
-      padding: 2rem;
+      background: #fff;
+      border-right: 2px solid #ddd;
       box-sizing: border-box;
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1.5rem;
+      overflow-y: auto;
     }
 
-    .page h1 {
+    .article {
+      background: #f9f9f9;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .article h2 {
+      font-size: 1.2rem;
       margin-top: 0;
+      margin-bottom: 0.5rem;
     }
 
-    /* Optional: hide scrollbar for aesthetics */
+    .article p {
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    /* Hide scrollbars */
     .scroll-container::-webkit-scrollbar {
       display: none;
     }
     .scroll-container {
-      -ms-overflow-style: none;  /* IE/Edge */
-      scrollbar-width: none;     /* Firefox */
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Page numbers */
+    .page::after {
+      content: attr(data-page);
+      position: absolute;
+      bottom: 1rem;
+      right: 2rem;
+      font-size: 0.8rem;
+      color: #888;
+    }
+
+    .page {
+      position: relative;
     }
   </style>
 </head>
 <body>
   <div class="scroll-container">
-    <section class="page">
-      <h1>Page 1</h1>
-      <p>This is the first page. Scroll right to see more content, similar to flipping through PressReader.</p>
+    <!-- Page 1 -->
+    <section class="page" data-page="Page 1">
+      <div class="article">
+        <h2>Breaking News</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Sed ut orci nec est finibus viverra...</p>
+      </div>
+      <div class="article">
+        <h2>Tech Update</h2>
+        <p>Curabitur at libero at quam pellentesque tristique. Sed sed arcu eu libero malesuada feugiat. Cras vel felis non libero...</p>
+      </div>
+      <div class="article">
+        <h2>Sports</h2>
+        <p>Phasellus viverra mauris eget ligula facilisis, at fermentum mauris fringilla. Duis in dapibus nunc, non commodo metus...</p>
+        <p>Aliquam erat volutpat. Integer sit amet dolor turpis. Suspendisse rutrum arcu vitae lectus congue.</p>
+      </div>
+      <div class="article">
+        <h2>Local News</h2>
+        <p>Sed feugiat sapien non magna bibendum, eget congue magna dignissim. Suspendisse potenti. Proin dictum viverra lacus...</p>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi vitae sapien non dolor porttitor.</p>
+      </div>
     </section>
-    <section class="page">
-      <h1>Page 2</h1>
-      <p>Each section is 100% viewport width. Snap scrolling makes it feel like moving between articles.</p>
+
+    <!-- Page 2 -->
+    <section class="page" data-page="Page 2">
+      <div class="article">
+        <h2>World Affairs</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque malesuada, neque nec bibendum ullamcorper...</p>
+      </div>
+      <div class="article">
+        <h2>Economy</h2>
+        <p>Suspendisse blandit augue at turpis malesuada, eget fermentum nibh aliquam. Nam facilisis, nulla ac sodales.</p>
+        <p>Ut interdum, nunc in faucibus luctus, lorem eros blandit velit, at imperdiet est erat vitae justo. Integer convallis...</p>
+      </div>
+      <div class="article">
+        <h2>Science Feature</h2>
+        <p>Mauris finibus risus id ligula tincidunt, eget facilisis urna rhoncus. Proin rhoncus turpis vitae faucibus tempor...</p>
+        <p>Aenean condimentum ex sed velit vehicula, nec porta sapien tincidunt. Ut ultricies nec lectus vel viverra...</p>
+        <p>Curabitur et erat eget sem accumsan suscipit.</p>
+      </div>
+      <div class="article">
+        <h2>Lifestyle</h2>
+        <p>Integer cursus neque non leo scelerisque, sit amet mattis elit euismod. Nunc et risus ac erat tristique finibus...</p>
+      </div>
+      <div class="article">
+        <h2>Travel</h2>
+        <p>Donec luctus metus a lorem varius, ac tempus turpis dapibus. Ut non felis in risus viverra porta sit amet eget nunc...</p>
+      </div>
     </section>
-    <section class="page">
-      <h1>Page 3</h1>
-      <p>You can style these like newspaper columns or magazine spreads.</p>
-    </section>
-    <section class="page">
-      <h1>Page 4</h1>
-      <p>Try adding images, ads, or multi-column layouts inside each page.</p>
+
+    <!-- Page 3 -->
+    <section class="page" data-page="Page 3">
+      <div class="article">
+        <h2>Opinion</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec at neque urna. Sed dictum risus vitae sapien vulputate.</p>
+      </div>
+      <div class="article">
+        <h2>Culture</h2>
+        <p>Nam ultrices orci id neque tristique, eget convallis tortor ornare. Cras tincidunt libero nec gravida tristique...</p>
+      </div>
+      <div class="article">
+        <h2>Entertainment</h2>
+        <p>Sed cursus, mi non aliquam dictum, sapien risus laoreet justo, sit amet faucibus enim justo a est. Integer eget arcu...</p>
+        <p>Duis congue magna ut augue blandit facilisis. Pellentesque condimentum interdum fermentum.</p>
+      </div>
+      <div class="article">
+        <h2>Tech Review</h2>
+        <p>Aliquam erat volutpat. Maecenas eget purus et justo vehicula posuere. Pellentesque in nisi vel sapien porttitor dapibus...</p>
+      </div>
+      <div class="article">
+        <h2>Health</h2>
+        <p>Aenean a libero tincidunt, sollicitudin mi in, eleifend ex. Nulla facilisi. Pellentesque vel accumsan mauris...</p>
+        <p>Suspendisse a arcu vel velit sagittis gravida. Donec condimentum lacus non pulvinar scelerisque.</p>
+      </div>
     </section>
   </div>
 </body>
