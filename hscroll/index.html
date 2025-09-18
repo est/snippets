@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Horizontal Scroll Demo</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #f2f2f2;
+    }
+
+    .scroll-container {
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      height: 100vh;
+    }
+
+    .page {
+      flex: 0 0 100%;
+      scroll-snap-align: start;
+      background: white;
+      border-right: 1px solid #ccc;
+      padding: 2rem;
+      box-sizing: border-box;
+    }
+
+    .page h1 {
+      margin-top: 0;
+    }
+
+    /* Optional: hide scrollbar for aesthetics */
+    .scroll-container::-webkit-scrollbar {
+      display: none;
+    }
+    .scroll-container {
+      -ms-overflow-style: none;  /* IE/Edge */
+      scrollbar-width: none;     /* Firefox */
+    }
+  </style>
+</head>
+<body>
+  <div class="scroll-container">
+    <section class="page">
+      <h1>Page 1</h1>
+      <p>This is the first page. Scroll right to see more content, similar to flipping through PressReader.</p>
+    </section>
+    <section class="page">
+      <h1>Page 2</h1>
+      <p>Each section is 100% viewport width. Snap scrolling makes it feel like moving between articles.</p>
+    </section>
+    <section class="page">
+      <h1>Page 3</h1>
+      <p>You can style these like newspaper columns or magazine spreads.</p>
+    </section>
+    <section class="page">
+      <h1>Page 4</h1>
+      <p>Try adding images, ads, or multi-column layouts inside each page.</p>
+    </section>
+  </div>
+</body>
+</html>
