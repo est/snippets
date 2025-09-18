@@ -33,6 +33,40 @@
       overflow-y: auto;
     }
 
+    /* Masthead / headline banner */
+    .masthead {
+      grid-column: 1 / span 6;
+      text-align: center;
+      border-bottom: 3px solid #000;
+      padding-bottom: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .masthead h1 {
+      font-size: 2.5rem;
+      margin: 0;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .masthead .subheadline {
+      font-size: 1.2rem;
+      margin-top: 0.5rem;
+      color: #444;
+    }
+
+    /* Datetime + weather box */
+    .meta-info {
+      position: absolute;
+      top: 1rem;
+      right: 2rem;
+      background: #f5f5f5;
+      border: 1px solid #ccc;
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+    }
+
     .article {
       background: #fdfdfd;
       border: 1px solid #ccc;
@@ -53,7 +87,6 @@
       line-height: 1.4;
     }
 
-    /* Example image block */
     .image {
       background: #bbb;
       display: flex;
@@ -88,10 +121,23 @@
 
     <!-- PAGE 1 -->
     <section class="page" data-page="Page 1">
+      <!-- Meta info -->
+      <div class="meta-info">
+        <div>🗓️ Sept 18, 2025</div>
+        <div>⛅ 26°C, Sunny</div>
+      </div>
+
+      <!-- Masthead -->
+      <div class="masthead">
+        <h1>THE DAILY TIMES</h1>
+        <div class="subheadline">All the News That Matters</div>
+      </div>
+
       <div class="article" style="grid-column: 1 / span 6;">
-        <h2>Big Headline Feature Across the Top</h2>
+        <h2>Big Front Page Headline</h2>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed accumsan, purus nec feugiat euismod, mauris risus dictum lorem, vel placerat neque erat ut augue...</p>
       </div>
+
       <div class="article" style="grid-column: 1 / span 2; grid-row: span 2;">
         <h2>Side Column News</h2>
         <p>Curabitur facilisis, ipsum in pulvinar tempor, magna dui luctus augue, sit amet convallis magna...</p>
