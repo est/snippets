@@ -2,11 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>PressReader Style Horizontal Scroll</title>
+  <title>PressReader Newspaper Layout Demo</title>
   <style>
     body {
       margin: 0;
-      font-family: Georgia, serif;
+      font-family: "Georgia", serif;
       background: #eaeaea;
     }
 
@@ -26,28 +26,51 @@
       box-sizing: border-box;
       padding: 2rem;
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: 1.5rem;
+      grid-template-columns: repeat(6, 1fr); /* 6-column newspaper grid */
+      grid-auto-rows: minmax(100px, auto);
+      gap: 1rem;
+      position: relative;
       overflow-y: auto;
     }
 
     .article {
-      background: #f9f9f9;
+      background: #fdfdfd;
       border: 1px solid #ccc;
       padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
     }
 
     .article h2 {
-      font-size: 1.2rem;
-      margin-top: 0;
-      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+      margin: 0 0 0.5rem;
     }
 
     .article p {
-      font-size: 0.9rem;
-      line-height: 1.5;
+      font-size: 0.85rem;
+      line-height: 1.4;
+    }
+
+    /* Example image block */
+    .image {
+      background: #bbb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      color: white;
+    }
+
+    /* Page number */
+    .page::after {
+      content: attr(data-page);
+      position: absolute;
+      bottom: 1rem;
+      right: 2rem;
+      font-size: 0.8rem;
+      color: #888;
     }
 
     /* Hide scrollbars */
@@ -58,98 +81,82 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-
-    /* Page numbers */
-    .page::after {
-      content: attr(data-page);
-      position: absolute;
-      bottom: 1rem;
-      right: 2rem;
-      font-size: 0.8rem;
-      color: #888;
-    }
-
-    .page {
-      position: relative;
-    }
   </style>
 </head>
 <body>
   <div class="scroll-container">
-    <!-- Page 1 -->
+
+    <!-- PAGE 1 -->
     <section class="page" data-page="Page 1">
-      <div class="article">
-        <h2>Breaking News</h2>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla facilisi. Sed ut orci nec est finibus viverra...</p>
+      <div class="article" style="grid-column: 1 / span 6;">
+        <h2>Big Headline Feature Across the Top</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed accumsan, purus nec feugiat euismod, mauris risus dictum lorem, vel placerat neque erat ut augue...</p>
       </div>
-      <div class="article">
-        <h2>Tech Update</h2>
-        <p>Curabitur at libero at quam pellentesque tristique. Sed sed arcu eu libero malesuada feugiat. Cras vel felis non libero...</p>
+      <div class="article" style="grid-column: 1 / span 2; grid-row: span 2;">
+        <h2>Side Column News</h2>
+        <p>Curabitur facilisis, ipsum in pulvinar tempor, magna dui luctus augue, sit amet convallis magna...</p>
+        <p>Aliquam euismod urna nec odio suscipit, ut posuere nisl tincidunt.</p>
       </div>
-      <div class="article">
-        <h2>Sports</h2>
-        <p>Phasellus viverra mauris eget ligula facilisis, at fermentum mauris fringilla. Duis in dapibus nunc, non commodo metus...</p>
-        <p>Aliquam erat volutpat. Integer sit amet dolor turpis. Suspendisse rutrum arcu vitae lectus congue.</p>
+      <div class="article image" style="grid-column: 3 / span 2; grid-row: span 2;">
+        IMAGE
       </div>
-      <div class="article">
-        <h2>Local News</h2>
-        <p>Sed feugiat sapien non magna bibendum, eget congue magna dignissim. Suspendisse potenti. Proin dictum viverra lacus...</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi vitae sapien non dolor porttitor.</p>
+      <div class="article" style="grid-column: 5 / span 2;">
+        <h2>Quick Brief</h2>
+        <p>Etiam sit amet purus nec lorem dictum pretium.</p>
+      </div>
+      <div class="article" style="grid-column: 5 / span 2;">
+        <h2>Short News</h2>
+        <p>Donec vitae magna non ipsum hendrerit dictum.</p>
       </div>
     </section>
 
-    <!-- Page 2 -->
+    <!-- PAGE 2 -->
     <section class="page" data-page="Page 2">
-      <div class="article">
-        <h2>World Affairs</h2>
+      <div class="article image" style="grid-column: 1 / span 4; grid-row: span 2;">
+        LARGE IMAGE
+      </div>
+      <div class="article" style="grid-column: 5 / span 2;">
+        <h2>Editorial</h2>
         <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque malesuada, neque nec bibendum ullamcorper...</p>
       </div>
-      <div class="article">
-        <h2>Economy</h2>
-        <p>Suspendisse blandit augue at turpis malesuada, eget fermentum nibh aliquam. Nam facilisis, nulla ac sodales.</p>
-        <p>Ut interdum, nunc in faucibus luctus, lorem eros blandit velit, at imperdiet est erat vitae justo. Integer convallis...</p>
+      <div class="article" style="grid-column: 1 / span 2;">
+        <h2>Local Politics</h2>
+        <p>Sed euismod ligula id tellus hendrerit egestas.</p>
       </div>
-      <div class="article">
-        <h2>Science Feature</h2>
-        <p>Mauris finibus risus id ligula tincidunt, eget facilisis urna rhoncus. Proin rhoncus turpis vitae faucibus tempor...</p>
-        <p>Aenean condimentum ex sed velit vehicula, nec porta sapien tincidunt. Ut ultricies nec lectus vel viverra...</p>
-        <p>Curabitur et erat eget sem accumsan suscipit.</p>
+      <div class="article" style="grid-column: 3 / span 2;">
+        <h2>Culture</h2>
+        <p>Vestibulum sit amet facilisis risus, eget tincidunt nisl.</p>
       </div>
-      <div class="article">
-        <h2>Lifestyle</h2>
-        <p>Integer cursus neque non leo scelerisque, sit amet mattis elit euismod. Nunc et risus ac erat tristique finibus...</p>
-      </div>
-      <div class="article">
-        <h2>Travel</h2>
-        <p>Donec luctus metus a lorem varius, ac tempus turpis dapibus. Ut non felis in risus viverra porta sit amet eget nunc...</p>
+      <div class="article" style="grid-column: 5 / span 2;">
+        <h2>Opinion</h2>
+        <p>Aliquam condimentum, nibh nec bibendum gravida, justo urna vulputate odio.</p>
       </div>
     </section>
 
-    <!-- Page 3 -->
+    <!-- PAGE 3 -->
     <section class="page" data-page="Page 3">
-      <div class="article">
-        <h2>Opinion</h2>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec at neque urna. Sed dictum risus vitae sapien vulputate.</p>
+      <div class="article" style="grid-column: 1 / span 3; grid-row: span 2;">
+        <h2>Science Feature</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris finibus risus id ligula tincidunt, eget facilisis urna rhoncus...</p>
+        <p>Curabitur et erat eget sem accumsan suscipit. Ut tincidunt turpis eu erat vehicula porta.</p>
       </div>
-      <div class="article">
-        <h2>Culture</h2>
-        <p>Nam ultrices orci id neque tristique, eget convallis tortor ornare. Cras tincidunt libero nec gravida tristique...</p>
+      <div class="article" style="grid-column: 4 / span 3;">
+        <h2>Sports</h2>
+        <p>Phasellus viverra mauris eget ligula facilisis, at fermentum mauris fringilla...</p>
       </div>
-      <div class="article">
-        <h2>Entertainment</h2>
-        <p>Sed cursus, mi non aliquam dictum, sapien risus laoreet justo, sit amet faucibus enim justo a est. Integer eget arcu...</p>
-        <p>Duis congue magna ut augue blandit facilisis. Pellentesque condimentum interdum fermentum.</p>
+      <div class="article image" style="grid-column: 4 / span 3; grid-row: span 2;">
+        PHOTO
       </div>
-      <div class="article">
-        <h2>Tech Review</h2>
-        <p>Aliquam erat volutpat. Maecenas eget purus et justo vehicula posuere. Pellentesque in nisi vel sapien porttitor dapibus...</p>
+      <div class="article" style="grid-column: 1 / span 2;">
+        <h2>Short Column</h2>
+        <p>Sed cursus, mi non aliquam dictum, sapien risus laoreet justo...</p>
       </div>
-      <div class="article">
-        <h2>Health</h2>
-        <p>Aenean a libero tincidunt, sollicitudin mi in, eleifend ex. Nulla facilisi. Pellentesque vel accumsan mauris...</p>
-        <p>Suspendisse a arcu vel velit sagittis gravida. Donec condimentum lacus non pulvinar scelerisque.</p>
+      <div class="article" style="grid-column: 3 / span 1;">
+        <h2>Brief</h2>
+        <p>Duis congue magna ut augue blandit.</p>
       </div>
     </section>
+
   </div>
 </body>
 </html>
