@@ -6,6 +6,7 @@
 </head>
 <body>
   <h1>Controller Page</h1>
+  <input id="receiver_url" type="text" value="receiver.html" />
   <button id="startSession">Start Presentation</button>
   <input id="messageInput" placeholder="Type message"/>
   <button id="sendMessage">Send</button>
@@ -17,9 +18,9 @@
 
     // Only create the request if API exists
     if ('presentation' in navigator && 'PresentationRequest' in window) {
-      presentationRequest = new PresentationRequest('receiver.html');
+      presentationRequest = new PresentationRequest(receiver_url.value);
     } else {
-      alert('Presentation API not supported in this browser');
+      document.write('Presentation API not supported in this browser');
     }
 
     const log = msg => {
