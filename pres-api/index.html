@@ -12,11 +12,25 @@
   <div id="log"></div>
 
   <script>
+    let presentationRequest;
     let presentationSession;
 
+    // Only create the request if API exists
+    if ('presentation' in navigator && 'PresentationRequest' in window) {
+      presentationRequest = new PresentationRequest('https://YOUR_LAN_IP/receiver.html');
+    } else {
+      alert('Presentation API not supported in this browser');
+    }
+
+    const log = msg => {
+      const logDiv = document.getElementById('log');
+      logDiv.innerHTML += `<p>${msg}</p>`;
+    };
+
+    // Start a session
     document.getElementById('startSession').addEventListener('click', async () => {
       try {
-        presentationSession = await navigator.presentation.requestSession('/');
+        presentationSession = await presentationRequest.start();
         log('Session started!');
 
         presentationSession.onmessage = event => {
@@ -32,18 +46,16 @@
       }
     });
 
+    // Send a message
     document.getElementById('sendMessage').addEventListener('click', () => {
       const msg = document.getElementById('messageInput').value;
       if (presentationSession) {
         presentationSession.send(msg);
         log('Sent: ' + msg);
+      } else {
+        log('No active session');
       }
     });
-
-    function log(msg) {
-      const logDiv = document.getElementById('log');
-      logDiv.innerHTML += `<p>${msg}</p>`;
-    }
   </script>
 </body>
 </html>

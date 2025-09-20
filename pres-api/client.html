@@ -10,15 +10,24 @@
 
   <script>
     if (navigator.presentation && navigator.presentation.receiver) {
-      // Listen for incoming connections
       navigator.presentation.receiver.connectionList
         .then(list => {
           list.connections.forEach(connection => {
             connection.onmessage = event => {
               const msgDiv = document.getElementById('messages');
               msgDiv.innerHTML += `<p>Received: ${event.data}</p>`;
-              // Reply to controller
+              // Send acknowledgment back
               connection.send('Ack: ' + event.data);
+            };
+
+            connection.onconnect = () => {
+              const msgDiv = document.getElementById('messages');
+              msgDiv.innerHTML += `<p>Controller connected!</p>`;
+            };
+
+            connection.onclose = () => {
+              const msgDiv = document.getElementById('messages');
+              msgDiv.innerHTML += `<p>Connection closed</p>`;
             };
           });
         })
