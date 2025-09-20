@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>WebRTC DataChannel Demo</title>
+  <style>
+    textarea { width: 40%; height: 5em; }
+    #divLog { white-space: pre-wrap; background: #eee; padding: 0.5em; height: 150px; overflow-y: auto; }
+  </style>
+</head>
+<body>
+  <h1>WebRTC DataChannel Test</h1>
+  <p>Open this page in two tabs/windows. Copy-paste SDP between them.</p>
+
+  <button id="btnOffer">Offer</button>
+  <button id="btnAnswer">Answer</button>
+  <br>
+
+  <textarea id="sdp_offer" placeholder="Offer SDP"></textarea>
+  <textarea id="sdp_answer" placeholder="Answer SDP"></textarea>
+  <br>
+  <textarea id="txtMsg" placeholder="Message"></textarea>
+  <button id="btn_send">Send</button>
+
+  <h3>Log</h3>
+  <div id="divLog"></div>
+
+  <script>
+    function say(msg) {
+      divLog.textContent += msg + "\n"
+      divLog.scrollTop = divLog.scrollHeight
+    }
+
+    const conn = new RTCPeerConnection()
+    let channel;
+
+    conn.onicecandidate = e => {
+      if (e.candidate === null) {
+        const t = conn.localDescription.type
+        document.getElementById('sdp_' + t).value = conn.localDescription.sdp
+        say('onicecandidate: \n' + t)
+      }
+    }
+
+    conn.ondatachannel = e => {
+      channel = e.channel
+      channel.onmessage = ev => say("Peer: " + ev.data)
+      say("Received datachannel")
+    }
+
+    btnOffer.onclick = async () => {
+      channel = conn.createDataChannel("chat")
+      channel.onmessage = ev => say("Peer: " + ev.data)
+      const offer = await conn.createOffer()
+      await conn.setLocalDescription(offer)
+    }
+
+    btnAnswer.onclick = async () => {
+      if (!sdp_offer.value){
+        say('missing offer')
+        return
+      }
+      if (sdp_answer.value) {
+        conn.setRemoteDescription({type: 'answer', sdp: sdp_answer.value})  
+      } else {
+        conn.setRemoteDescription({type: 'offer', sdp: sdp_offer.value})
+      }
+      const answer = await conn.createAnswer()
+      await conn.setLocalDescription(answer)
+    }
+
+    // quick way to send messages from console
+    btn_send.onclick = (e) => {channel.send(txtMsg.value)}
+  </script>
+</body>
+</html>
