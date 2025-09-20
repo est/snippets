@@ -11,9 +11,9 @@
   <script>
     const rcv = navigator?.presentatio?.receiver
     if (!rcv) {
-      document.write('Presentation API receiver not available')
+      document.write('Presentation receiver not available')
     }
-    rcvreceiver.connectionList
+    rcv.connectionList
       .then(list => {
         list.connections.forEach(connection => {
           connection.onmessage = event => {
