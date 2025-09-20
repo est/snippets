@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Presentation Receiver</title>
+</head>
+<body>
+  <h1>Receiver Page</h1>
+  <div id="messages"></div>
+
+  <script>
+    const rcv = navigator?.presentatio?.receiver
+    if (!rcv) {
+      document.write('Presentation API receiver not available')
+    }
+    rcvreceiver.connectionList
+      .then(list => {
+        list.connections.forEach(connection => {
+          connection.onmessage = event => {
+            const msgDiv = document.getElementById('messages');
+            msgDiv.innerHTML += `<p>Received: ${event.data}</p>`;
+            // Send acknowledgment back
+            connection.send('Ack: ' + event.data);
+          };
+
+          connection.onconnect = () => {
+            const msgDiv = document.getElementById('messages');
+            msgDiv.innerHTML += `<p>Controller connected!</p>`;
+          };
+
+          connection.onclose = () => {
+            const msgDiv = document.getElementById('messages');
+            msgDiv.innerHTML += `<p>Connection closed</p>`;
+          };
+        });
+      })
+  </script>
+</body>
+</html>

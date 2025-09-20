@@ -17,7 +17,7 @@
 
     // Only create the request if API exists
     if ('presentation' in navigator && 'PresentationRequest' in window) {
-      presentationRequest = new PresentationRequest('https://YOUR_LAN_IP/receiver.html');
+      presentationRequest = new PresentationRequest('receiver.html');
     } else {
       alert('Presentation API not supported in this browser');
     }
