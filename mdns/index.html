@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Cast API Test</title>
+  <script type="text/javascript" src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
+</head>
+<body>
+  <h1>Cast API Test</h1>
+  <button id="checkCast">Check Cast API</button>
+
+  <script>
+    document.getElementById('checkCast').addEventListener('click', function() {
+      window.__onGCastApiAvailable = function(isAvailable, errorInfo) {
+        if (isAvailable) {
+          document.write("Cast API is available!");
+          document.write("window.cast:", window.cast);
+          alert("Cast API is available! Check console for details.");
+        } else {
+          document.write("Cast API NOT available.", errorInfo);
+          alert("Cast API NOT available. Check console for details.");
+        }
+      };
+    });
+  </script>
+</body>
+</html>

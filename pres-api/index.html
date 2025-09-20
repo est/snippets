@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Presentation Controller</title>
+</head>
+<body>
+  <h1>Controller Page</h1>
+  <button id="startSession">Start Presentation</button>
+  <input id="messageInput" placeholder="Type message"/>
+  <button id="sendMessage">Send</button>
+  <div id="log"></div>
+
+  <script>
+    let presentationSession;
+
+    document.getElementById('startSession').addEventListener('click', async () => {
+      try {
+        presentationSession = await navigator.presentation.requestSession('/');
+        log('Session started!');
+
+        presentationSession.onmessage = event => {
+          log('Received from receiver: ' + event.data);
+        };
+
+        presentationSession.onclose = () => {
+          log('Presentation session closed');
+        };
+      } catch (err) {
+        console.error(err);
+        log('Failed to start session: ' + err);
+      }
+    });
+
+    document.getElementById('sendMessage').addEventListener('click', () => {
+      const msg = document.getElementById('messageInput').value;
+      if (presentationSession) {
+        presentationSession.send(msg);
+        log('Sent: ' + msg);
+      }
+    });
+
+    function log(msg) {
+      const logDiv = document.getElementById('log');
+      logDiv.innerHTML += `<p>${msg}</p>`;
+    }
+  </script>
+</body>
+</html>

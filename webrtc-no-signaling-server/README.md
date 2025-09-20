@@ -3,80 +3,29 @@ webrtc peer to peer chat without signaling server
 
 https://github.com/lesmana/webrtc-without-signaling-server
 
-this tech demo demonstrates a peer to peer webrtc connection
-without any signaling server.
-a free stun server is used if the connection goes over the internet.
-a turn server is never used.
-
-since no signaling server is used the negotiation has to be done manually.
-that means a so called "offer" has to be copied from the initiator to
-the responder. and the "answer" has to be copied from the responder to
-the initiator.
-
-goals of this tech demo
------------------------
-
-have a html css javascript website which only needs to be downloaded once
-on each device and is then usable without constant internet connection.
-usable in this context means to maintain the peer to peer connection.
-
-have well written and commented source code so others can learn.
-
-ideally everything in one big html file.
-secondary: one big html file but still human readable.
-
-motivation
-----------
-
-we want to create a multiplayer game playable without setting up a server.
-target devices are tablets and smartphones
-typically connected in a local network.
-target users are families.
-a typical situation would be a family in a living room,
-each with their own device, wanting to play a game together.
-
-with webrtc we hope to able to create a game which can be played
-multiplayer without setting up any server and even without requiring
-a constant internet connection.
-
-about webrtc
-------------
-
-webrtc is a technology for peer to peer connections over the internet.
-peer to peer means that the data goes from one browser directly
-to the other browser without a server in between.
-webrtc was originally developed for video chats but the underlying
-technology can be used for any data.
-
-a webrtc connection can involve three kinds of servers:
-a signaling server, a stun server, and a turn server.
-
-a signaling server, if used, is only used to negotiate the connection.
-once the connection is established a signaling server is no longer required.
-
-a stun server is required to get the internet facing adress.
-if you try to connect over a local network then a stun server is not required.
-a stun server is also only required in the negotiating phase.
-
-a turn server may be used as a fallback option if a peer to peer connection
-could not be established.
-a connection over a turn server forms a typical
-browser - server - browser connection.
-
-signaling is not part of the webrtc standard.
-any means of communication reachable by both peers can be used to negotiate.
-for example messaging services, emails, or pen and paper.
-
-a stun server is lightweight and typically free to use for anyone.
-one might think of a stun server like a dns server.
-
-a turn server needs to passtrough all data from one end to the other.
-therefore it needs to be powerfull and is typically
-limited to paying customers.
-
-misc
-----
-
 inspired by https://github.com/xem/miniWebRTC
 
 which in turn was inspired by https://github.com/cjb/serverless-webrtc
+
+the minimal SDP 
+
+https://webrtchacks.com/the-minimum-viable-sdp/
+
+v=0
+o=- 2088893440337529897 2 IN IP4 127.0.0.1
+s=-
+t=0 0
+a=group:BUNDLE 0
+a=extmap-allow-mixed
+a=msid-semantic: WMS
+m=application 9 UDP/DTLS/SCTP webrtc-datachannel
+c=IN IP4 0.0.0.0
+a=ice-ufrag:R507
+a=ice-pwd:1a5CoRVolXGslhsi8QbtJzxZ
+a=ice-options:trickle
+a=fingerprint:sha-256 E0:F3:54:67:FD:5E:6B:5A:46:ED:C8:08:3F:88:3A:B3:58:FF:2C:31:13:26:8D:93:89:B5:37:34:83:6D:39:88
+a=setup:actpass
+a=mid:0
+a=sctp-port:5000
+a=max-message-size:262144
+

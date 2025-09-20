@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Presentation Receiver</title>
+</head>
+<body>
+  <h1>Receiver Page</h1>
+  <div id="messages"></div>
+
+  <script>
+    if (navigator.presentation && navigator.presentation.receiver) {
+      // Listen for incoming connections
+      navigator.presentation.receiver.connectionList
+        .then(list => {
+          list.connections.forEach(connection => {
+            connection.onmessage = event => {
+              const msgDiv = document.getElementById('messages');
+              msgDiv.innerHTML += `<p>Received: ${event.data}</p>`;
+              // Reply to controller
+              connection.send('Ack: ' + event.data);
+            };
+          });
+        })
+        .catch(err => console.error('Receiver error:', err));
+    } else {
+      console.log('Presentation API receiver not available');
+    }
+  </script>
+</body>
+</html>
