@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Web Audio Data Transfer Demo</title>
+</head>
+<body>
+  <h2>Web Audio API Data Transfer</h2>
+  <button id="send">Send "HELLO"</button>
+  <button id="listen">Listen</button>
+  <pre id="log"></pre>
+
+<script>
+const log = msg => document.getElementById("log").textContent += msg + "\n";
+
+// --- Simple tone encoder ---
+async function sendMessage(msg) {
+  const ctx = new AudioContext();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain).connect(ctx.destination);
+  gain.gain.value = 0.2;
+
+  const baseFreq = 1000; // Hz
+  const bitDur = 0.2;    // seconds per bit
+  let t = ctx.currentTime;
+
+  osc.start();
+
+  for (let char of msg) {
+    let bits = char.charCodeAt(0).toString(2).padStart(8, "0");
+    for (let b of bits) {
+      osc.frequency.setValueAtTime(
+        baseFreq + (b === "1" ? 500 : 0), 
+        t
+      );
+      t += bitDur;
+    }
+  }
+  osc.stop(t);
+  log("Sent: " + msg);
+}
+
+// --- Simple tone decoder ---
+async function listen() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const ctx = new AudioContext();
+  const src = ctx.createMediaStreamSource(stream);
+  const analyser = ctx.createAnalyser();
+  analyser.fftSize = 2048;
+  src.connect(analyser);
+
+  const baseFreq = 1000, threshold = 100;
+  const buf = new Float32Array(analyser.fftSize);
+
+  let bits = "", lastTime = ctx.currentTime;
+
+  function loop() {
+    analyser.getFloatFrequencyData(buf);
+    let sampleRate = ctx.sampleRate;
+    let freqs = [];
+    for (let i = 0; i < buf.length; i++) {
+      if (buf[i] > -threshold) {
+        let freq = i * sampleRate / analyser.fftSize;
+        freqs.push(freq);
+      }
+    }
+    if (freqs.length) {
+      let avg = freqs.reduce((a,b)=>a+b,0)/freqs.length;
+      let bit = (avg > 1250 ? "1" : "0");
+      if (ctx.currentTime - lastTime > 0.18) {
+        bits += bit;
+        lastTime = ctx.currentTime;
+        if (bits.length % 8 === 0) {
+          let char = String.fromCharCode(parseInt(bits.slice(-8),2));
+          log("Decoded char: " + char);
+        }
+      }
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+}
+document.getElementById("send").onclick = () => sendMessage("HELLO");
+document.getElementById("listen").onclick = listen;
+</script>
+</body>
+</html>
