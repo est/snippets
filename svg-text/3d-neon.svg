@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="Glowing neon 3D letters">
+  <defs>
+    <!-- neon gradient for front faces -->
+    <linearGradient id="neonGrad" x1="0" x2="1">
+      <stop offset="0" stop-color="#7afcff"/>
+      <stop offset="0.45" stop-color="#05f2ff"/>
+      <stop offset="1" stop-color="#6a5cff"/>
+    </linearGradient>
+
+    <!-- darker side gradient for extruded faces -->
+    <linearGradient id="sideGrad" x1="0" x2="1">
+      <stop offset="0" stop-color="#0c1230"/>
+      <stop offset="1" stop-color="#0f1b3a"/>
+    </linearGradient>
+
+    <!-- strong outer glow -->
+    <filter id="glow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- subtle inner highlight -->
+    <filter id="innerLight" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="a" />
+      <feOffset dx="-2" dy="-2" result="o"/>
+      <feComposite in="o" in2="a" operator="out" result="c"/>
+      <feColorMatrix in="c" type="matrix" values="0 0 0 0 0.12  0 0 0 0 0.7  0 0 0 0 1  0 0 0 0.6 0" result="cm"/>
+      <feBlend in="SourceGraphic" in2="cm"/>
+    </filter>
+
+    <!-- soft drop shadow for the whole group -->
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="0" dy="18" stdDeviation="20" flood-color="#000" flood-opacity="0.55"/>
+    </filter>
+
+    <!-- bold display font fallback -->
+    <style>
+      .neonText { font-family: "Impact", "Arial Black", "Helvetica Neue", Arial, sans-serif; font-weight: 900; letter-spacing: -6px; }
+    </style>
+  </defs>
+
+  <!-- dark background -->
+  <rect width="100%" height="100%" fill="#05030b"/>
+
+  <!-- container with an overall angled perspective (skew + rotate + scale) -->
+  <g transform="translate(120,80) skewX(-14) rotate(-6)" filter="url(#shadow)">
+    <!-- For each letter we will draw: extrude layers (darker) + front face (gradient) + glossy highlight + glow -->
+    <!-- N -->
+    <g transform="translate(0,0)">
+      <!-- extrude: manual stacked copies to simulate depth -->
+      <g opacity="1">
+        <!-- each copy offset further down-right: creates 3D thickness -->
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(18,18)">N</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(14,14)">N</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(10,10)">N</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(6,6)">N</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(3,3)">N</text>
+      </g>
+
+      <!-- front face -->
+      <text class="neonText" x="0" y="160" font-size="220" fill="url(#neonGrad)" stroke="#9ff0ff" stroke-width="1.5" filter="url(#glow)">N</text>
+
+      <!-- inner glossy highlight -->
+      <text class="neonText" x="0" y="160" font-size="220" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.18" filter="url(#innerLight)" style="paint-order:stroke;">N</text>
+    </g>
+
+    <!-- E -->
+    <g transform="translate(260,0)">
+      <g opacity="1">
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(18,18)">E</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(14,14)">E</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(10,10)">E</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(6,6)">E</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(3,3)">E</text>
+      </g>
+
+      <text class="neonText" x="0" y="160" font-size="220" fill="url(#neonGrad)" stroke="#9ff0ff" stroke-width="1.5" filter="url(#glow)">E</text>
+      <text class="neonText" x="0" y="160" font-size="220" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.18" filter="url(#innerLight)" style="paint-order:stroke;">E</text>
+    </g>
+
+    <!-- O -->
+    <g transform="translate(520,0)">
+      <g opacity="1">
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(18,18)">O</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(14,14)">O</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(10,10)">O</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(6,6)">O</text>
+        <text class="neonText" x="0" y="160" font-size="220" fill="url(#sideGrad)" transform="translate(3,3)">O</text>
+      </g>
+
+      <text class="neonText" x="0" y="160" font-size="220" fill="url(#neonGrad)" stroke="#9ff0ff" stroke-width="1.5" filter="url(#glow)">O</text>
+      <text class="neonText" x="0" y="160" font-size="220" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.18" filter="url(#innerLight)" style="paint-order:stroke;">O</text>
+    </g>
+  </g>
+
+  <!-- subtle floor reflection to sell 3D -->
+  <g transform="translate(120,360) skewX(-14) rotate(-6)" opacity="0.12">
+    <g>
+      <text class="neonText" x="0" y="28" font-size="220" fill="#7afcff">N</text>
+    </g>
+    <g transform="translate(260,0)">
+      <text class="neonText" x="0" y="28" font-size="220" fill="#7afcff">E</text>
+    </g>
+    <g transform="translate(520,0)">
+      <text class="neonText" x="0" y="28" font-size="220" fill="#7afcff">O</text>
+    </g>
+  </g>
+</svg>
