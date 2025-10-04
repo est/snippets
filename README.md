@@ -16,7 +16,7 @@ Be warned many of the scripts are incomplete or cringy.
 - [Harp MIDI with room echo](/audio/midi)
 - [logo parallax](/bg_parallax) with `deviceorientation`
 - [horizontal scroll](/hscroll) layout
-- [html redirect](/http_redir) with `meta refresh`
+- test [html redirect](/http_redir) to `data:` URL with `meta refresh`
 - mdns with Google [Cast](/mdns) test
 - [Presentation API](/pres-api)
 - transmit data with [Web Audio](/web-audio-data)
@@ -30,6 +30,7 @@ Be warned many of the scripts are incomplete or cringy.
    - [3d-text](/svg/3d-text.html)
    - [metal](/svg/metal.svg)
    - [mouse](/svg/mouse.html)
+   - [favicon1](/svg/fancy.svg)
    - [favicon2](/svg/favicon2.svg)
    - [favicon3](/svg/favicon3.svg)
    - [frame-anim](/svg/frame-anim.svg)
@@ -37,7 +38,6 @@ Be warned many of the scripts are incomplete or cringy.
    - [circle-anim](/svg/circle-anim.svg)
    - [text](/svg/text.svg)
    - [entity](/svg/entity.xhtml)
-   - [fancy](/svg/fancy.svg)
 
 ## Useful toolz
 
