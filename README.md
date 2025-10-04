@@ -10,12 +10,42 @@ Be warned many of the scripts are incomplete or cringy.
 
 - 2011-03-12 [3d Parallax](/3d_parallax_barrier) [blog](https://blog.est.im/archives/3762)
 - 2022-10-30 [dtmf](/dtmf) [blog](https://blog.est.im/2022/stdout-10)
+- [metronome](/metronome) [blog](https://blog.est.im/2024/stdout-19)
+- [HTML5 greyscale animation](/grayscale_animation)
+- [addictive color](/addictive_color)
+- [Harp MIDI with room echo](/audio/midi)
+- [logo parallax](/bg_parallax) with `deviceorientation`
+- [horizontal scroll](/hscroll) layout
+- [html redirect](/http_redir) with `meta refresh`
+- mdns with Google [Cast](/mdns) test
+- [Presentation API](/pres-api)
+- transmit data with [Web Audio](/web-audio-data)
+- [WebRTC](/webrtc)
+   - [scanner](/webrtc/scanner)
+   - [short](/webrtc/short)
+   - [without signal server](/webrtc-no-signaling-server)
+- SVG collections
+   - [shit](/shit_svg)
+   - [3d neon](/svg/3d-neon.svg)
+   - [3d-text](/svg/3d-text.html)
+   - [metal](/svg/metal.svg)
+   - [mouse](/svg/mouse.html)
+   - [favicon2](/svg/favicon2.svg)
+   - [favicon3](/svg/favicon3.svg)
+   - [frame-anim](/svg/frame-anim.svg)
+   - [svg-text](/svg/svg-text.html)
+   - [circle-anim](/svg/circle-anim.svg)
+   - [text](/svg/text.svg)
+   - [entity](/svg/entity.xhtml)
+   - [fancy](/svg/fancy.svg)
 
 ## Useful toolz
 
+## By others
+
+- [Color Wheel](/html5_color_wheel)
 
 ## Python scripts
-
 
 ## License
 
