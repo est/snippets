@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>3D Text - Perspective with Mouse</title>
+<style>
+  :root{
+    --perspective: 900px;    /* distance for 3D perspective */
+    --max-rot: 18deg;       /* max rotation for X/Y */
+    --depth: 28px;          /* total depth (z distance between front/back) */
+    --layers: 12;           /* number of stacked layers */
+    --font-size: clamp(48px, 12vw, 140px);
+    --speed: 0.12;          /* easing (0..1) */
+    --accent: #08e6ff;
+    --bg1: #071025;
+    --bg2: #081827;
+  }
+
+  html,body{height:100%;margin:0;}
+  body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background: linear-gradient(180deg,var(--bg1),var(--bg2));
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color: #fff;
+  }
+
+  /* Scene container provides perspective */
+  .scene {
+    width: min(1100px, 94vw);
+    padding: 40px;
+    box-sizing: border-box;
+    perspective: var(--perspective);
+    -webkit-perspective: var(--perspective);
+    user-select: none;
+  }
+
+  /* The card that rotates in 3D */
+  .card {
+    width:100%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.00));
+    border-radius: 18px;
+    padding: 54px 36px;
+    box-shadow:
+      0 20px 40px rgba(2,8,20,0.6),
+      inset 0 1px 0 rgba(255,255,255,0.02);
+    transform-style: preserve-3d;
+    transition: box-shadow .25s ease;
+    will-change: transform;
+    cursor: none; /* hide default cursor; the demo shows a pointer dot */
+    overflow: visible;
+  }
+
+  /* Container for layered text - this is the object we rotate */
+  .text-3d {
+    display:inline-block;
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+    /* center the text block */
+    width:100%;
+    text-align:center;
+    padding: 8px 6px;
+  }
+
+  /* The text wrapper holds the stacked layers */
+  .text-3d .stack {
+    position: relative;
+    display:inline-block;
+    transform-style: preserve-3d;
+    line-height: 1;
+  }
+
+  /* Each layer is an absolutely positioned span stacked on top of each other */
+  .text-3d .layer {
+    position:absolute;
+    left:0; top:0;
+    right:0;
+    bottom:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight: 800;
+    pointer-events: none;
+    font-size: var(--font-size);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    transform-origin: 50% 50% 0;
+    mix-blend-mode: normal;
+    letter-spacing: -0.02em;
+  }
+
+  /* front-most layer (index 0) styling */
+  .text-3d .front {
+    color: white;
+    text-shadow:
+      0 2px 6px rgba(2,6,20,0.6),
+      0 8px 28px rgba(0,0,0,0.6);
+  }
+
+  /* colored shimmer on the front */
+  .text-3d .front::after {
+    content: attr(data-text);
+    position:absolute;
+    inset:0;
+    background: linear-gradient(90deg, transparent, rgba(8,230,255,0.18) 45%, rgba(255,255,255,0.1) 60%, transparent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    pointer-events: none;
+    mix-blend-mode: screen;
+  }
+
+  /* deeper layers are dimmer and tinted */
+  .text-3d .layer.tinted {
+    color: rgba(8,230,255,0.06);
+    filter: blur(.0px);
+    transform-origin: 50% 50% 0;
+    text-shadow: none;
+  }
+
+  /* small description */
+  .caption{
+    margin-top:18px;
+    text-align:center;
+    font-size:14px;
+    color: rgba(255,255,255,0.6);
+  }
+
+  /* pointer dot */
+  .pointer {
+    position: fixed;
+    width:10px;height:10px;border-radius:50%;
+    background: var(--accent);
+    box-shadow: 0 0 12px rgba(8,230,255,0.55), 0 0 26px rgba(8,230,255,0.12);
+    pointer-events: none;
+    transform: translate(-50%,-50%);
+    mix-blend-mode: screen;
+    z-index: 1000;
+  }
+
+  /* responsive tweaks */
+  @media (max-width:640px){
+    .card{ padding: 36px 18px; border-radius:12px; }
+    :root{ --depth: 18px; --layers: 8; }
+  }
+</style>
+</head>
+<body>
+  <div class="scene" id="scene">
+    <div class="card" id="card">
+      <div class="text-3d" id="text3d" aria-hidden="true">
+        <div class="stack" id="stackRoot" role="img" aria-label="3D text example"></div>
+      </div>
+
+      <div class="caption">Move your mouse (or touch) — the text tilts & perspective changes</div>
+    </div>
+  </div>
+
+  <div class="pointer" id="pointer" style="display:none"></div>
+
+<script>
+/*
+  3D text perspective demo
+  - Creates stacked layers of the same text, each offset in Z to build depth.
+  - Rotates the whole stack with mouse X/Y mapped to rotateY/rotateX.
+  - Adjusts subtle translation of layers (parallax) so sides separate realistically.
+  - Uses requestAnimationFrame + lerp for smoothness.
+*/
+
+// ===== CONFIG =====
+const TEXT = "3D PERSPECTIVE";
+const LAYERS = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--layers')) || 12;
+const DEPTH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--depth')) || 28; // px
+const MAX_ROT = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--max-rot')) || 18; // degrees
+const EASE = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--speed')) || 0.12;
+
+// ===== ELEMENTS =====
+const stackRoot = document.getElementById('stackRoot');
+const text3d = document.getElementById('text3d');
+const scene = document.getElementById('scene');
+const card = document.getElementById('card');
+const pointer = document.getElementById('pointer');
+
+// Create layered spans
+function buildLayers(text, layers){
+  stackRoot.innerHTML = '';
+  for(let i=0;i<layers;i++){
+    const span = document.createElement('span');
+    span.className = 'layer' + (i===0 ? ' front' : ' tinted');
+    span.dataset.index = i;
+    span.dataset.text = text;
+    span.textContent = text;
+    // We absolutely position each layer by stretching the container; text is centered by flexbox CSS.
+    stackRoot.appendChild(span);
+  }
+}
+buildLayers(TEXT, LAYERS);
+
+// Layout info for centering and mapping
+let bounds = card.getBoundingClientRect();
+window.addEventListener('resize', ()=> bounds = card.getBoundingClientRect());
+
+// Track pointer in element coordinates (relative to center)
+let target = { rx:0, ry:0, px:0, py:0, on: false }; // rx,ry are rotation targets (deg), px,py pointer pos
+let current = { rx:0, ry:0, px:0, py:0 };
+
+// convert client coords to percentage [-1..1] relative to card center
+function coordsToNorm(clientX, clientY){
+  const r = bounds;
+  const cx = r.left + r.width/2;
+  const cy = r.top + r.height/2;
+  const nx = (clientX - cx) / (r.width/2);  // -1..1
+  const ny = (clientY - cy) / (r.height/2); // -1..1
+  // clamp
+  return {
+    x: Math.max(-1, Math.min(1, nx)),
+    y: Math.max(-1, Math.min(1, ny))
+  };
+}
+
+// Mouse / touch handlers
+function onPointerMove(clientX, clientY){
+  const n = coordsToNorm(clientX, clientY);
+  // target rotations: ry = nx * MAX_ROT, rx = -ny * MAX_ROT
+  target.ry = n.x * MAX_ROT;
+  target.rx = -n.y * MAX_ROT;
+  target.px = n.x;
+  target.py = n.y;
+  target.on = true;
+
+  // show pointer
+  pointer.style.display = '';
+  pointer.style.left = clientX + 'px';
+  pointer.style.top = clientY + 'px';
+}
+
+function onPointerLeave(){
+  // relax to zero
+  target.ry = 0;
+  target.rx = 0;
+  target.px = 0;
+  target.py = 0;
+  target.on = false;
+  // hide pointer gracefully
+  pointer.style.display = 'none';
+}
+
+// Setup pointer events on the scene
+scene.addEventListener('mousemove', (e)=>{
+  onPointerMove(e.clientX, e.clientY);
+});
+scene.addEventListener('touchmove', (e)=>{
+  if(e.touches && e.touches[0]){
+    const t = e.touches[0];
+    onPointerMove(t.clientX, t.clientY);
+  }
+  e.preventDefault();
+}, { passive: false });
+
+scene.addEventListener('mouseleave', onPointerLeave);
+scene.addEventListener('touchend', onPointerLeave);
+scene.addEventListener('touchcancel', onPointerLeave);
+
+// Smooth animation loop (lerp)
+function lerp(a,b,t){ return a + (b-a) * t; }
+
+function updateLayersTransform(){
+  const layers = stackRoot.children;
+  const nLayers = layers.length;
+  for(let i=0;i<nLayers;i++){
+    const layer = layers[i];
+    const idx = i; // 0 front, larger idx deeper
+    const depthFactor = idx / Math.max(1, nLayers - 1); // 0..1
+    // Map depth to translateZ: front layer 0, back layer -DEPTH
+    const tz = -depthFactor * DEPTH;
+    // A small lateral offset per-layer for parallax
+    // based on pointer position px,py so farther layers shift more
+    const px = current.px * depthFactor * 12; // x px offset
+    const py = current.py * depthFactor * 8;  // y px offset
+
+    // Slight additional rotate for extreme layers so edges feel separated
+    const rxLayer = current.rx * (0.12 * depthFactor);
+    const ryLayer = current.ry * (0.12 * depthFactor);
+
+    // Compose transform: translateZ (depth), translate for parallax, tiny rotate
+    layer.style.transform = `translate3d(${px}px, ${py}px, ${tz}px) rotateX(${rxLayer}deg) rotateY(${ryLayer}deg)`;
+    // Adjust layer opacity slightly to enhance depth
+    layer.style.opacity = 1 - (0.6 * depthFactor);
+  }
+}
+
+function frame(){
+  // lerp current toward target
+  current.rx = lerp(current.rx, target.rx, EASE);
+  current.ry = lerp(current.ry, target.ry, EASE);
+  current.px = lerp(current.px, target.px, EASE);
+  current.py = lerp(current.py, target.py, EASE);
+
+  // apply rotation to the whole text block
+  text3d.style.transform = `rotateX(${current.rx}deg) rotateY(${current.ry}deg)`;
+
+  // slightly lift card when pointer is over
+  if(target.on){
+    card.style.boxShadow = "0 28px 60px rgba(2,8,20,0.7), inset 0 1px 0 rgba(255,255,255,0.02)";
+  } else {
+    card.style.boxShadow = "0 20px 40px rgba(2,8,20,0.6), inset 0 1px 0 rgba(255,255,255,0.02)";
+  }
+
+  updateLayersTransform();
+
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+// show pointer only on bigger screens
+if(window.matchMedia('(pointer:fine)').matches){
+  pointer.style.display = '';
+} else {
+  pointer.style.display = 'none';
+}
+
+// Utility: allow dynamic change of text via double-click (nice for testing)
+card.addEventListener('dblclick', ()=>{
+  const t = prompt('Change text:', TEXT) || TEXT;
+  // rebuild layers with new text
+  buildLayers(t, LAYERS);
+});
+
+// prevent default drag/select interactions
+['dragstart','selectstart','contextmenu'].forEach(ev => {
+  card.addEventListener(ev, (e)=> e.preventDefault());
+});
+</script>
+</body>
+</html>
