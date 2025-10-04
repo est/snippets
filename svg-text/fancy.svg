@@ -1,17 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
-  <!-- Background gradient -->
-  <defs>
-    <linearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0ff"/>
-      <stop offset="100%" stop-color="#08f"/>
-    </linearGradient>
-  </defs>
-  <rect width="32" height="32" rx="6" fill="url(#grad)"/>
-
-  <!-- Fancy letters -->
-  <text x="16" y="21" font-family="Verdana, sans-serif" font-size="14"
-        font-weight="bold" text-anchor="middle" fill="white"
-        style="paint-order: stroke; stroke: rgba(0,0,0,0.6); stroke-width:1;">
-    est
-  </text>
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32">
+<defs><linearGradient id="g">
+<stop offset="0" stop-color="#0ff"/><stop offset="1" stop-color="#08f"/>
+</linearGradient></defs>
+<rect width="32" height="32" rx="6" fill="url(#g)"/>
+<text x="16" y="21" font-family="Verdana" font-size="14" font-weight="700" text-anchor="middle" fill="#fff" stroke="#000" stroke-opacity=".6" stroke-width="1">est</text>
 </svg>

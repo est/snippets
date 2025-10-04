@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Web MIDI Harp Melody with Echo</title>
+</head>
+<body>
+<button id="start">Play Harp Melody</button>
+<div id="status">Click play to start</div>
+
+<script>
+async function init() {
+  const startBtn = document.getElementById('start');
+  const statusEl = document.getElementById('status');
+
+  // Web Audio for echo effect
+  const audioCtx = new AudioContext();
+  const masterGain = audioCtx.createGain();
+  masterGain.gain.value = 0.3;
+  masterGain.connect(audioCtx.destination);
+
+  const delay = audioCtx.createDelay();
+  delay.delayTime.value = 0.35; // 350ms echo
+  const feedback = audioCtx.createGain();
+  feedback.gain.value = 0.4;
+  delay.connect(feedback).connect(delay);
+  delay.connect(masterGain);
+
+  // simple oscillator to mimic harp if no MIDI device
+  function playLocal(freq, duration) {
+    const osc = audioCtx.createOscillator();
+    const env = audioCtx.createGain();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    osc.connect(env);
+    env.connect(delay);
+    env.gain.setValueAtTime(0.8, audioCtx.currentTime);
+    env.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  }
+
+  // Melody (MIDI note numbers, harp-friendly arpeggio)
+  const melody = [60, 64, 67, 72, 67, 64, 60, 55]; // C major arpeggio
+  const noteDur = 0.6; // seconds
+
+  function midiToFreq(n) {
+    return 440 * Math.pow(2, (n - 69) / 12);
+  }
+
+  function playMelody() {
+    let t = 0;
+    // send Program Change to Harp (program 46 in General MIDI)
+    melody.forEach(note => {
+      setTimeout(() => {
+        playLocal(midiToFreq(note), noteDur);
+      }, t * noteDur * 1000);
+      t++;
+    });
+  }
+
+  startBtn.onclick = () => {
+    audioCtx.resume();
+    playMelody();
+  };
+}
+
+init();
+</script>
+</body>
+</html>
