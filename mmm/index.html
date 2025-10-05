@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信朋友圈</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .timeline {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding-bottom: 80px;
+        }
+        
+        .header {
+            position: sticky;
+            top: 0;
+            background-color: #fff;
+            z-index: 100;
+            padding: 10px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        
+        .post {
+            padding: 12px 16px;
+            border-bottom: 8px solid #f5f5f5;
+        }
+        
+        .post-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: #e0e0e0;
+            margin-right: 12px;
+            overflow: hidden;
+        }
+        
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .user-info {
+            flex: 1;
+        }
+        
+        .username {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+        
+        .post-time {
+            font-size: 12px;
+            color: #8e8e93;
+        }
+        
+        .post-content {
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+            word-break: break-word;
+        }
+        
+        .post-images {
+            margin-bottom: 10px;
+        }
+        
+        .image-grid {
+            display: grid;
+            gap: 4px;
+        }
+        
+        .image-grid-1 {
+            grid-template-columns: 1fr;
+        }
+        
+        .image-grid-2,
+        .image-grid-3 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .image-grid-3 > div:nth-child(3n) {
+            grid-column: span 2;
+        }
+        
+        .image-grid-4,
+        .image-grid-5,
+        .image-grid-6 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+        
+        .image-container {
+            aspect-ratio: 1;
+            overflow: hidden;
+            background-color: #f5f5f5;
+        }
+        
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .post-actions {
+            display: flex;
+            justify-content: space-between;
+            padding-top: 8px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            color: #8e8e93;
+            font-size: 14px;
+            padding: 4px 0;
+        }
+        
+        .action-btn svg {
+            width: 20px;
+            height: 20px;
+            margin-right: 6px;
+        }
+        
+        .like-comment-section {
+            margin-top: 10px;
+            padding: 8px 0;
+        }
+        
+        .likes {
+            background-color: #f5f5f5;
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .comments {
+            font-size: 14px;
+        }
+        
+        .comment {
+            margin-bottom: 8px;
+        }
+        
+        .comment-author {
+            font-weight: 600;
+            margin-right: 4px;
+        }
+        
+        .comment-content {
+            color: #333;
+        }
+        
+        .comment-form {
+            display: flex;
+            align-items: center;
+            margin-top: 8px;
+            padding: 8px;
+            background-color: #f5f5f5;
+            border-radius: 20px;
+        }
+        
+        .comment-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 14px;
+        }
+        
+        .comment-submit {
+            background: transparent;
+            border: none;
+            color: #07c160;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        
+        /* 添加更多朋友圈特有样式 */
+        .location-tag {
+            display: inline-flex;
+            align-items: center;
+            font-size: 13px;
+            color: #3478f6;
+            margin-right: 12px;
+            margin-top: 6px;
+        }
+        
+        .location-tag svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+        }
+        
+        .post-more {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .post-more svg {
+            width: 16px;
+            height: 16px;
+            color: #8e8e93;
+        }
+        
+        /* 适配不同屏幕 */
+        @media (max-width: 600px) {
+            .timeline {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="timeline">
+        <div class="header">朋友圈</div>
+        
+        <!-- 朋友圈帖子1 -->
+        <div class="post">
+            <div class="post-header">
+                <div class="avatar"><img src="https://picsum.photos/id/64/200/200" alt="头像"></div>
+                <div class="user-info">
+                    <div class="username">张小明</div>
+                    <div class="post-time">今天 12:30</div>
+                </div>
+                <div class="post-more">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="6" cy="12" r="1.5"></circle>
+                        <circle cx="12" cy="12" r="1.5"></circle>
+                        <circle cx="18" cy="12" r="1.5"></circle>
+                    </svg>
+                </div>
+            </div>
+            <div class="post-content">
+                今天天气真好，出来晒太阳啦！☀️
+            </div>
+            <div class="post-images">
+                <div class="image-grid image-grid-3">
+                    <div class="image-container"><img src="https://picsum.photos/id/1015/600/600" alt="风景"></div>
+                    <div class="image-container"><img src="https://picsum.photos/id/1016/600/600" alt="风景"></div>
+                    <div class="image-container"><img src="https://picsum.photos/id/1018/600/600" alt="风景"></div>
+                </div>
+            </div>
+            <div class="location-tag">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
+                </svg>
+                城市中央公园
+            </div>
+            <div class="post-actions">
+                <div class="action-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
+                    </svg>
+                    赞
+                </div>
+                <div class="action-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
+                    </svg>
+                    评论
+                </div>
+                <div class="action-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                    分享
+                </div>
+            </div>
+            <div class="like-comment-section">
+                <div class="likes">
+                    <span class="like-icon">❤️</span> 5人赞了这条朋友圈
+                </div>
+                <div class="comments">
+                    <div class="comment">
+                        <span class="comment-author">李小华</span>
+                        <span class="comment-content">好漂亮的景色！</span>
+                    </div>
+                    <div class="comment">
+                        <span class="comment-author">王小红</span>
+                        <span class="comment-content">我也在这儿，要不要一起喝咖啡？</span>
+                    </div>
+                </div>
+                <div class="comment-form">
+                    <input type="text" class="comment-input" placeholder="评论...">
+                    <button class="comment-submit">发送</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 朋友圈帖子2 -->
+        <div class="post">
+            <div class="post-header">
+                <div class="avatar"><img src="https://picsum.photos/id/65/200/200" alt="头像"></div>
+                <div class="user-info">
+                    <div class="username">李小华</div>
+                    <div class="post-time">昨天 20:15</div>
+                </div>
+                <div class="post-more">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="6" cy="12" r="1.5"></circle>
+                        <circle cx="12" cy="12" r="1.5"></circle>
+                        <circle cx="18" cy="12" r="1.5"></circle>
+                    </svg>
+                </div>
+            </div>
+            <div class="post-content">
+                自己做的晚餐，味道还不错！🍳
+            </div>
+            <div class="post-images">
+                <div class="image-grid image-grid-1">
+                    <div class="image-container"><img src="https://picsum.photos/id/292/600/600" alt="美食"></div>
+                </div>
+            </div>
+            <div class="post-actions">
+                <div class="action-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
+                    </svg>
+                    赞
+                </div>
+                <div class="action-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
+                    </svg>
+                    评论
+                </div>
+                <div class="action-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                    分享
+                </div>
+            </div>
+            <div class="like-comment-section">
+                <div class="likes">
+                    <span class="like-icon">❤️</span> 12人赞了这条朋友圈
+                </div>
+                <div class="comments">
+                    <div class="comment">
+                        <span class="comment-author">张小明</span>
+                        <span class="comment-content">看起来很美味，求教程！</span>
+                    </div>
+                </div>
+                <div class="comment-form">
+                    <input type="text" class="comment-input" placeholder="评论...">
+                    <button class="comment-submit">发送</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 朋友圈帖子3 -->
+        <div class="post">
+            <div class="post-header">
+                <div class="avatar"><img src="https://picsum.photos/id/66/200/200" alt="头像"></div>
+                <div class="user-info">
+                    <div class="username">王小红</div>
+                    <div class="post-time">3天前</div>
+                </div>
+                <div class="post-more">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="6" cy="12" r="1.5"></circle>
+                        <circle cx="12" cy="12" r="1.5"></circle>
+                        <circle cx="18" cy="12" r="1.5"></circle>
+                    </svg>
+                </div>
+            </div>
+            <div class="post-content">
+                新入手的相机，拍了一组照片，大家觉得怎么样？📷
+            </div>
+            <div class="post-images">
+                <div class="image-grid image-grid-6">
+                    <div class="image-container"><img src="https://picsum.photos/id/1039/600/600" alt="照片"></div>
+                    <div class="image-container"><img src="https://picsum.photos/id/1040/600/600" alt="照片"></div>
+                    <div class="image-container"><img src="https://picsum.photos/id/1041/600/600" alt="照片"></div>
+                    <div class="image-container"><img src="https://picsum.photos/id/1042/600/600" alt="照片"></div>
+                    <div class="image-container"><img src="https://picsum.photos/id/1043/600/600" alt="照片"></div>
+                    <div class="image-container"><img src="https://picsum.photos/id/1044/600/600" alt="照片"></div>
+                </div>
+            </div>
+            <div class="location-tag">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
+                </svg>
+                滨江大道
+            </div>
+            <div class="post-actions">
+                <div class="action-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
+                    </svg>
+                    赞
+                </div>
+                <div class="action-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
+                    </svg>
+                    评论
+                </div>
+                <div class="action-btn">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                    </svg>
+                    分享
+                </div>
+            </div>
+            <div class="like-comment-section">
+                <div class="likes">
+                    <span class="like-icon">❤️</span> 18人赞了这条朋友圈
+                </div>
+                <div class="comments">
+                    <div class="comment">
+                        <span class="comment-author">张小明</span>
+                        <span class="comment-content">构图很棒！</span>
+                    </div>
+                    <div class="comment">
+                        <span class="comment-author">李小华</span>
+                        <span class="comment-content">这是用什么相机拍的？</span>
+                    </div>
+                    <div class="comment">
+                        <span class="comment-author">王小红</span>
+                        <span class="comment-content">@李小华 索尼A7M4</span>
+                    </div>
+                </div>
+                <div class="comment-form">
+                    <input type="text" class="comment-input" placeholder="评论...">
+                    <button class="comment-submit">发送</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 简单的交互功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 点赞功能
+            const likeButtons = document.querySelectorAll('.action-btn:nth-child(1)');
+            likeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const likeIcon = this.querySelector('svg');
+                    if (likeIcon.style.fill === 'red') {
+                        likeIcon.style.fill = 'none';
+                    } else {
+                        likeIcon.style.fill = 'red';
+                    }
+                });
+            });
+            
+            // 评论提交功能
+            const commentForms = document.querySelectorAll('.comment-form');
+            commentForms.forEach(form => {
+                const input = form.querySelector('.comment-input');
+                const submitBtn = form.querySelector('.comment-submit');
+                const commentsContainer = form.parentElement.querySelector('.comments');
+                
+                submitBtn.addEventListener('click', function() {
+                    const commentText = input.value.trim();
+                    if (commentText) {
+                        const newComment = document.createElement('div');
+                        newComment.className = 'comment';
+                        newComment.innerHTML = `
+                            <span class="comment-author">我</span>
+                            <span class="comment-content">${commentText}</span>
+                        `;
+                        commentsContainer.appendChild(newComment);
+                        input.value = '';
+                    }
+                });
+                
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        submitBtn.click();
+                    }
+                });
+            });
+            
+            // 图片点击放大预览（简化版）
+            const images = document.querySelectorAll('.image-container img');
+            images.forEach(img => {
+                img.addEventListener('click', function() {
+                    if (this.style.transform === 'scale(1.05)') {
+                        this.style.transform = 'scale(1)';
+                    } else {
+                        this.style.transform = 'scale(1.05)';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
