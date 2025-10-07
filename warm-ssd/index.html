@@ -1,0 +1,211 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>SSD File Refresh — Read & Rewrite Chunks</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:28px;color:#0b1220}
+  h1{font-size:20px;margin-bottom:6px}
+  label,input,button,select{font:14px;margin:6px 0;display:block}
+  .grid{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+  progress{width:100%}
+  .log{background:#f6f8fb;border:1px solid #e2e6ee;padding:10px;height:180px;overflow:auto;font-family:monospace;font-size:13px;white-space:pre;}
+  .small{font-size:12px;color:#556}
+</style>
+
+<h1>SSD File Refresh — Read & Rewrite Chunks</h1>
+<div class="small">Select a file, set chunk size (default 32 MiB). The script reads each chunk, seeks back and writes the same bytes. Use for refreshing "cold" data on SSDs. Backup first.</div>
+
+<label>Choose file
+  <input id="pick" type="button" value="Pick file..." />
+</label>
+
+<div id="fileInfo" class="small" style="margin-top:6px"></div>
+
+<label class="grid">
+  <span>Chunk size</span>
+  <div style="display:flex;gap:8px;align-items:center">
+    <input id="chunkInput" type="number" min="4096" step="4096" value="33554432" style="width:160px" />
+    <select id="unit">
+      <option value="1">bytes</option>
+      <option value="1024">KB</option>
+      <option value="1048576" selected>MiB</option>
+    </select>
+  </div>
+</label>
+
+<label>
+  <input id="alignCheckbox" type="checkbox" checked /> Align chunk size to allocation unit (cluster) (4096 B)
+</label>
+
+<label>
+  <input id="dryRun" type="checkbox" /> Dry run (read-only; verify read speeds and progress; no writes)
+</label>
+
+<div style="display:flex;gap:8px;margin-top:8px">
+  <button id="start" disabled>Start refresh</button>
+  <button id="cancel" disabled>Cancel</button>
+</div>
+
+<p><progress id="prog" value="0" max="100"></progress></p>
+<div id="stats" class="small">Idle</div>
+
+<h3>Log</h3>
+<div id="log" class="log"></div>
+
+<script>
+(async () => {
+  const pickBtn = document.getElementById('pick');
+  const startBtn = document.getElementById('start');
+  const cancelBtn = document.getElementById('cancel');
+  const fileInfo = document.getElementById('fileInfo');
+  const chunkInput = document.getElementById('chunkInput');
+  const unit = document.getElementById('unit');
+  const alignCheckbox = document.getElementById('alignCheckbox');
+  const prog = document.getElementById('prog');
+  const stats = document.getElementById('stats');
+  const logEl = document.getElementById('log');
+  const dryRun = document.getElementById('dryRun');
+
+  let fileHandle = null;
+  let abort = false;
+
+  function log(...args){
+    const t = new Date().toLocaleTimeString();
+    logEl.textContent += `[${t}] ${args.join(' ')}\n`;
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function human(n){
+    if(n === 0) return "0 B";
+    const units = ['B','KiB','MiB','GiB','TiB'];
+    let i = 0;
+    while(n >= 1024 && i < units.length-1){ n /= 1024; i++; }
+    return `${n.toFixed(n<10?2:1)} ${units[i]}`;
+  }
+
+  pickBtn.addEventListener('click', async () => {
+    try {
+      const [handle] = await window.showOpenFilePicker({
+  mode: 'readwrite'
+});
+      fileHandle = handle;
+      const file = await handle.getFile();
+      fileInfo.textContent = `${file.name} — ${human(file.size)} (last modified: ${new Date(file.lastModified).toLocaleString()})`;
+      startBtn.disabled = false;
+      log(`Selected file: ${file.name}, size=${file.size}`);
+    } catch (e) {
+      log('File pick cancelled or not permitted');
+    }
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    abort = true;
+    cancelBtn.disabled = true;
+    log('Abort requested...');
+  });
+
+  startBtn.addEventListener('click', async () => {
+    if(!fileHandle) return;
+    abort = false;
+    startBtn.disabled = true;
+    cancelBtn.disabled = false;
+    logEl.textContent = '';
+    log('Starting refresh operation...');
+    try {
+      await refreshFile();
+    } catch (err) {
+      log('Error:', err && err.message ? err.message : String(err));
+      console.error(err);
+    } finally {
+      startBtn.disabled = false;
+      cancelBtn.disabled = true;
+      stats.textContent = 'Idle';
+      prog.value = 0;
+      log('Operation finished.');
+    }
+  });
+
+  async function refreshFile(){
+    const rawChunk = Number(chunkInput.value);
+    const unitFactor = Number(unit.value);
+    let chunkSize = Math.max(4096, Math.floor(rawChunk * unitFactor));
+    const CLUSTER = 4096; // assume default cluster; user can change UI if needed
+    if(alignCheckbox.checked) {
+      chunkSize = Math.floor(chunkSize / CLUSTER) * CLUSTER;
+      if(chunkSize === 0) chunkSize = CLUSTER;
+    }
+    log(`Chunk size set to ${chunkSize} bytes`);
+    const file = await fileHandle.getFile();
+    const total = file.size;
+    if(total === 0) { log('File is empty'); return; }
+
+    // Try to create writable. Use keepExistingData when available to avoid truncation.
+    let writable = null;
+    if(dryRun.checked){
+      log('Dry run: reads only, no writes will be performed.');
+    } else {
+      try {
+        writable = await fileHandle.createWritable({ keepExistingData: true });
+      } catch(e) {
+        // Some browsers may not support keepExistingData
+        log('createWritable with keepExistingData failed - trying without it (may truncate!).', e.message || e);
+        writable = await fileHandle.createWritable();
+      }
+    }
+
+    let offset = 0;
+    const startTime = performance.now();
+    let readBytes = 0;
+    let writtenBytes = 0;
+    const perfSampleStart = Date.now();
+
+    while(offset < total){
+      if(abort) { log('Aborting loop...'); break; }
+      const end = Math.min(offset + chunkSize, total);
+      const blob = file.slice(offset, end);
+      const t0 = performance.now();
+      const arr = await blob.arrayBuffer();
+      const t1 = performance.now();
+      readBytes += arr.byteLength;
+
+      // log read timing
+      const readMs = (t1 - t0);
+      log(`Read chunk offset=${offset} len=${arr.byteLength} (${readMs.toFixed(1)} ms)`);
+
+      if(!dryRun.checked){
+        // write back the exact buffer at the same position
+        // For File System Access API, write with position
+        try {
+          await writable.write({ type: "write", position: offset, data: new Uint8Array(arr) });
+          // Note: there's no explicit fsync in the API. close() will flush; browsers may buffer.
+          writtenBytes += arr.byteLength;
+          log(`Wrote chunk at position=${offset} len=${arr.byteLength}`);
+        } catch (we) {
+          log('Write failed at offset', offset, we && we.message ? we.message : we);
+          throw we;
+        }
+      }
+
+      offset = end;
+      // Update progress and stats
+      const elapsed = (performance.now() - startTime) / 1000;
+      const mb = (readBytes/1024/1024).toFixed(2);
+      const wmb = (writtenBytes/1024/1024).toFixed(2);
+      const speed = (readBytes / elapsed / 1024 / 1024).toFixed(2);
+      prog.max = total;
+      prog.value = Math.min(total, offset);
+      stats.textContent = `Processed ${human(offset)} / ${human(total)} — read ${mb} MiB, wrote ${wmb} MiB — avg read ${speed} MiB/s`;
+      await new Promise(r => setTimeout(r, 10)); // yield to UI
+    }
+
+    if(!dryRun.checked && writable){
+      log('Closing writable (flush)...');
+      await writable.close();
+      log('Writable closed.');
+    }
+
+    const totalElapsed = (performance.now() - startTime) / 1000;
+    log(`Done. Read ${human(readBytes)}, wrote ${human(writtenBytes)} in ${totalElapsed.toFixed(1)} s.`);
+  }
+
+})();
+</script>

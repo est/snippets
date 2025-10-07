@@ -1,0 +1,16 @@
+<button id="pick">Pick file (readwrite)</button>
+<script>
+document.getElementById('pick').onclick = async () => {
+  try {
+    const [h] = await window.showOpenFilePicker({mode:'readwrite'});
+    const p = await h.requestPermission({mode:'readwrite'});
+    alert('Permission: ' + p);
+    const w = await h.createWritable();
+    await w.write("test");
+    await w.close();
+    alert('Write OK!');
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+};
+</script>

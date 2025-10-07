@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>微信朋友圈</title>
+    <title>ATProto 动态</title>
     <style>
         * {
             margin: 0;
@@ -240,282 +240,347 @@
                 max-width: 100%;
             }
         }
+        
+        /* 错误状态样式 */
+        .error-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #8e8e93;
+        }
+        
+        .error-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .error-state .message {
+            font-size: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .error-state .retry-btn {
+            background-color: #07c160;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        /* 加载状态样式 */
+        .loading-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: #8e8e93;
+        }
+        
+        .loading-state .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #07c160;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
     <div class="timeline">
-        <div class="header">朋友圈</div>
+        <div class="header">ATProto 动态</div>
         
-        <!-- 朋友圈帖子1 -->
-        <div class="post">
-            <div class="post-header">
-                <div class="avatar"><img src="https://picsum.photos/id/64/200/200" alt="头像"></div>
-                <div class="user-info">
-                    <div class="username">张小明</div>
-                    <div class="post-time">今天 12:30</div>
-                </div>
-                <div class="post-more">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <circle cx="6" cy="12" r="1.5"></circle>
-                        <circle cx="12" cy="12" r="1.5"></circle>
-                        <circle cx="18" cy="12" r="1.5"></circle>
-                    </svg>
-                </div>
-            </div>
-            <div class="post-content">
-                今天天气真好，出来晒太阳啦！☀️
-            </div>
-            <div class="post-images">
-                <div class="image-grid image-grid-3">
-                    <div class="image-container"><img src="https://picsum.photos/id/1015/600/600" alt="风景"></div>
-                    <div class="image-container"><img src="https://picsum.photos/id/1016/600/600" alt="风景"></div>
-                    <div class="image-container"><img src="https://picsum.photos/id/1018/600/600" alt="风景"></div>
-                </div>
-            </div>
-            <div class="location-tag">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
-                </svg>
-                城市中央公园
-            </div>
-            <div class="post-actions">
-                <div class="action-btn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
-                    </svg>
-                    赞
-                </div>
-                <div class="action-btn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
-                    </svg>
-                    评论
-                </div>
-                <div class="action-btn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-                    </svg>
-                    分享
-                </div>
-            </div>
-            <div class="like-comment-section">
-                <div class="likes">
-                    <span class="like-icon">❤️</span> 5人赞了这条朋友圈
-                </div>
-                <div class="comments">
-                    <div class="comment">
-                        <span class="comment-author">李小华</span>
-                        <span class="comment-content">好漂亮的景色！</span>
-                    </div>
-                    <div class="comment">
-                        <span class="comment-author">王小红</span>
-                        <span class="comment-content">我也在这儿，要不要一起喝咖啡？</span>
-                    </div>
-                </div>
-                <div class="comment-form">
-                    <input type="text" class="comment-input" placeholder="评论...">
-                    <button class="comment-submit">发送</button>
-                </div>
-            </div>
+        <!-- 动态将通过JavaScript动态加载 -->
+        <div id="posts-container"></div>
+        
+        <!-- 错误状态（初始隐藏） -->
+        <div id="error-state" class="error-state" style="display: none;">
+            <div class="icon">⚠️</div>
+            <div class="message">加载动态失败，请重试</div>
+            <button class="retry-btn">重试</button>
         </div>
         
-        <!-- 朋友圈帖子2 -->
-        <div class="post">
-            <div class="post-header">
-                <div class="avatar"><img src="https://picsum.photos/id/65/200/200" alt="头像"></div>
-                <div class="user-info">
-                    <div class="username">李小华</div>
-                    <div class="post-time">昨天 20:15</div>
-                </div>
-                <div class="post-more">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <circle cx="6" cy="12" r="1.5"></circle>
-                        <circle cx="12" cy="12" r="1.5"></circle>
-                        <circle cx="18" cy="12" r="1.5"></circle>
-                    </svg>
-                </div>
-            </div>
-            <div class="post-content">
-                自己做的晚餐，味道还不错！🍳
-            </div>
-            <div class="post-images">
-                <div class="image-grid image-grid-1">
-                    <div class="image-container"><img src="https://picsum.photos/id/292/600/600" alt="美食"></div>
-                </div>
-            </div>
-            <div class="post-actions">
-                <div class="action-btn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
-                    </svg>
-                    赞
-                </div>
-                <div class="action-btn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
-                    </svg>
-                    评论
-                </div>
-                <div class="action-btn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-                    </svg>
-                    分享
-                </div>
-            </div>
-            <div class="like-comment-section">
-                <div class="likes">
-                    <span class="like-icon">❤️</span> 12人赞了这条朋友圈
-                </div>
-                <div class="comments">
-                    <div class="comment">
-                        <span class="comment-author">张小明</span>
-                        <span class="comment-content">看起来很美味，求教程！</span>
-                    </div>
-                </div>
-                <div class="comment-form">
-                    <input type="text" class="comment-input" placeholder="评论...">
-                    <button class="comment-submit">发送</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- 朋友圈帖子3 -->
-        <div class="post">
-            <div class="post-header">
-                <div class="avatar"><img src="https://picsum.photos/id/66/200/200" alt="头像"></div>
-                <div class="user-info">
-                    <div class="username">王小红</div>
-                    <div class="post-time">3天前</div>
-                </div>
-                <div class="post-more">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <circle cx="6" cy="12" r="1.5"></circle>
-                        <circle cx="12" cy="12" r="1.5"></circle>
-                        <circle cx="18" cy="12" r="1.5"></circle>
-                    </svg>
-                </div>
-            </div>
-            <div class="post-content">
-                新入手的相机，拍了一组照片，大家觉得怎么样？📷
-            </div>
-            <div class="post-images">
-                <div class="image-grid image-grid-6">
-                    <div class="image-container"><img src="https://picsum.photos/id/1039/600/600" alt="照片"></div>
-                    <div class="image-container"><img src="https://picsum.photos/id/1040/600/600" alt="照片"></div>
-                    <div class="image-container"><img src="https://picsum.photos/id/1041/600/600" alt="照片"></div>
-                    <div class="image-container"><img src="https://picsum.photos/id/1042/600/600" alt="照片"></div>
-                    <div class="image-container"><img src="https://picsum.photos/id/1043/600/600" alt="照片"></div>
-                    <div class="image-container"><img src="https://picsum.photos/id/1044/600/600" alt="照片"></div>
-                </div>
-            </div>
-            <div class="location-tag">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
-                </svg>
-                滨江大道
-            </div>
-            <div class="post-actions">
-                <div class="action-btn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
-                    </svg>
-                    赞
-                </div>
-                <div class="action-btn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
-                    </svg>
-                    评论
-                </div>
-                <div class="action-btn">
-                    <svg viewBox="0 0 24 24" fill="none">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-                    </svg>
-                    分享
-                </div>
-            </div>
-            <div class="like-comment-section">
-                <div class="likes">
-                    <span class="like-icon">❤️</span> 18人赞了这条朋友圈
-                </div>
-                <div class="comments">
-                    <div class="comment">
-                        <span class="comment-author">张小明</span>
-                        <span class="comment-content">构图很棒！</span>
-                    </div>
-                    <div class="comment">
-                        <span class="comment-author">李小华</span>
-                        <span class="comment-content">这是用什么相机拍的？</span>
-                    </div>
-                    <div class="comment">
-                        <span class="comment-author">王小红</span>
-                        <span class="comment-content">@李小华 索尼A7M4</span>
-                    </div>
-                </div>
-                <div class="comment-form">
-                    <input type="text" class="comment-input" placeholder="评论...">
-                    <button class="comment-submit">发送</button>
-                </div>
-            </div>
+        <!-- 加载状态（初始显示） -->
+        <div id="loading-state" class="loading-state">
+            <div class="spinner"></div>
+            <div>加载中...</div>
         </div>
     </div>
     
     <script>
-        // 简单的交互功能
         document.addEventListener('DOMContentLoaded', function() {
-            // 点赞功能
-            const likeButtons = document.querySelectorAll('.action-btn:nth-child(1)');
-            likeButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const likeIcon = this.querySelector('svg');
-                    if (likeIcon.style.fill === 'red') {
-                        likeIcon.style.fill = 'none';
-                    } else {
-                        likeIcon.style.fill = 'red';
-                    }
-                });
-            });
+            const postsContainer = document.getElementById('posts-container');
+            const errorState = document.getElementById('error-state');
+            const loadingState = document.getElementById('loading-state');
+            const retryBtn = document.querySelector('.retry-btn');
             
-            // 评论提交功能
-            const commentForms = document.querySelectorAll('.comment-form');
-            commentForms.forEach(form => {
-                const input = form.querySelector('.comment-input');
-                const submitBtn = form.querySelector('.comment-submit');
-                const commentsContainer = form.parentElement.querySelector('.comments');
-                
-                submitBtn.addEventListener('click', function() {
-                    const commentText = input.value.trim();
-                    if (commentText) {
-                        const newComment = document.createElement('div');
-                        newComment.className = 'comment';
-                        newComment.innerHTML = `
-                            <span class="comment-author">我</span>
-                            <span class="comment-content">${commentText}</span>
-                        `;
-                        commentsContainer.appendChild(newComment);
-                        input.value = '';
-                    }
-                });
-                
-                input.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        submitBtn.click();
-                    }
-                });
-            });
+            // 固定的repo参数
+            const REPO = 'did:plc:2g5otsgova72cgqr6zglnys5';
+            // 示例postIds列表，实际应用中可能需要从另一个API获取
+            const POST_IDS = ['3lzxlka3aas2v', '3lzxlka3aas2w', '3lzxlka3aas2x'];
             
-            // 图片点击放大预览（简化版）
-            const images = document.querySelectorAll('.image-container img');
-            images.forEach(img => {
-                img.addEventListener('click', function() {
-                    if (this.style.transform === 'scale(1.05)') {
-                        this.style.transform = 'scale(1)';
-                    } else {
-                        this.style.transform = 'scale(1.05)';
+            // 从atproto API获取单条动态
+            async function fetchPost(postId) {
+                try {
+                    const url = `https://public.api.bsky.app/xrpc/com.atproto.repo.getRecord?repo=${REPO}&collection=app.bsky.feed.post&rkey=${postId}`;
+                    const response = await fetch(url);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
+                    const data = await response.json();
+                    return data.value;
+                } catch (error) {
+                    console.error('获取动态失败:', error);
+                    throw error;
+                }
+            }
+            
+            // 格式化时间
+            function formatDate(dateString) {
+                const date = new Date(dateString);
+                const now = new Date();
+                const diff = now - date;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+                
+                if (minutes < 60) {
+                    return `${minutes}分钟前`;
+                } else if (hours < 24) {
+                    return `${hours}小时前`;
+                } else if (days < 7) {
+                    return `${days}天前`;
+                } else {
+                    return date.toLocaleDateString('zh-CN');
+                }
+            }
+            
+            // 创建图片网格
+            function createImageGrid(images) {
+                if (!images || images.length === 0) {
+                    return '';
+                }
+                
+                const count = Math.min(images.length, 6);
+                let gridClass = '';
+                
+                if (count === 1) gridClass = 'image-grid-1';
+                else if (count <= 3) gridClass = 'image-grid-3';
+                else gridClass = 'image-grid-6';
+                
+                let html = `<div class="post-images"><div class="image-grid ${gridClass}">`;
+                
+                for (let i = 0; i < count; i++) {
+                    // 使用picsum作为图片占位符，实际应用中应使用动态中的图片URL
+                    const imgUrl = `https://picsum.photos/id/${1000 + i}/600/600`;
+                    html += `<div class="image-container"><img src="${imgUrl}" alt="图片"></div>`;
+                }
+                
+                html += '</div></div>';
+                return html;
+            }
+            
+            // 渲染单条动态
+            function renderPost(post, postId) {
+                // 模拟数据，实际应用中应从API响应中提取
+                const username = post.displayName || '用户';
+                const avatarUrl = `https://picsum.photos/id/${Math.floor(Math.random() * 100)}/200/200`;
+                const content = post.text || '这条动态没有文字内容';
+                const createdAt = formatDate(post.createdAt || new Date().toISOString());
+                
+                // 生成随机的点赞数和评论
+                const likeCount = Math.floor(Math.random() * 20) + 1;
+                const commentCount = Math.floor(Math.random() * 5);
+                
+                let commentsHtml = '';
+                for (let i = 0; i < commentCount; i++) {
+                    commentsHtml += `
+                        <div class="comment">
+                            <span class="comment-author">用户${i+1}</span>
+                            <span class="comment-content">这是一条评论</span>
+                        </div>
+                    `;
+                }
+                
+                // 创建位置标签（如果有）
+                const locationTag = post.location ? `
+                    <div class="location-tag">
+                        <svg viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
+                        </svg>
+                        ${post.location}
+                    </div>
+                ` : '';
+                
+                // 生成随机图片
+                const imagesCount = Math.floor(Math.random() * 7); // 0-6张图片
+                const images = imagesCount > 0 ? Array.from({length: imagesCount}) : [];
+                const imageGridHtml = createImageGrid(images);
+                
+                const postHtml = `
+                    <div class="post" data-post-id="${postId}">
+                        <div class="post-header">
+                            <div class="avatar"><img src="${avatarUrl}" alt="头像"></div>
+                            <div class="user-info">
+                                <div class="username">${username}</div>
+                                <div class="post-time">${createdAt}</div>
+                            </div>
+                            <div class="post-more">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <circle cx="6" cy="12" r="1.5"></circle>
+                                    <circle cx="12" cy="12" r="1.5"></circle>
+                                    <circle cx="18" cy="12" r="1.5"></circle>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="post-content">
+                            ${content}
+                        </div>
+                        ${imageGridHtml}
+                        ${locationTag}
+                        <div class="post-actions">
+                            <div class="action-btn">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
+                                </svg>
+                                赞
+                            </div>
+                            <div class="action-btn">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
+                                </svg>
+                                评论
+                            </div>
+                            <div class="action-btn">
+                                <svg viewBox="0 0 24 24" fill="none">
+                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
+                                </svg>
+                                分享
+                            </div>
+                        </div>
+                        <div class="like-comment-section">
+                            <div class="likes">
+                                <span class="like-icon">❤️</span> ${likeCount}人赞了这条动态
+                            </div>
+                            <div class="comments">
+                                ${commentsHtml}
+                            </div>
+                            <div class="comment-form">
+                                <input type="text" class="comment-input" placeholder="评论...">
+                                <button class="comment-submit">发送</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                postsContainer.insertAdjacentHTML('beforeend', postHtml);
+            }
+            
+            // 加载所有动态
+            async function loadPosts() {
+                postsContainer.innerHTML = '';
+                loadingState.style.display = 'block';
+                errorState.style.display = 'none';
+                
+                try {
+                    // 模拟API调用延迟
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // 模拟从API获取数据
+                    const mockPosts = POST_IDS.map((id, index) => ({
+                        text: index === 0 ? '今天天气真好，出来晒太阳啦！☀️' : 
+                              index === 1 ? '自己做的晚餐，味道还不错！🍳' : 
+                              '新入手的相机，拍了一组照片，大家觉得怎么样？📷',
+                        displayName: index === 0 ? '张小明' : 
+                                     index === 1 ? '李小华' : '王小红',
+                        createdAt: new Date(Date.now() - index * 86400000).toISOString(),
+                        location: index === 0 ? '城市中央公园' : 
+                                 index === 2 ? '滨江大道' : null
+                    }));
+                    
+                    // 渲染所有动态
+                    POST_IDS.forEach((postId, index) => {
+                        renderPost(mockPosts[index], postId);
+                    });
+                    
+                    // 绑定事件
+                    bindEvents();
+                    
+                } catch (error) {
+                    console.error('加载动态失败:', error);
+                    loadingState.style.display = 'none';
+                    errorState.style.display = 'block';
+                } finally {
+                    loadingState.style.display = 'none';
+                }
+            }
+            
+            // 绑定交互事件
+            function bindEvents() {
+                // 点赞功能
+                const likeButtons = document.querySelectorAll('.action-btn:nth-child(1)');
+                likeButtons.forEach(button => {
+                    button.addEventListener('click', function() {
+                        const likeIcon = this.querySelector('svg');
+                        if (likeIcon.style.fill === 'red') {
+                            likeIcon.style.fill = 'none';
+                        } else {
+                            likeIcon.style.fill = 'red';
+                        }
+                    });
                 });
-            });
+                
+                // 评论提交功能
+                const commentForms = document.querySelectorAll('.comment-form');
+                commentForms.forEach(form => {
+                    const input = form.querySelector('.comment-input');
+                    const submitBtn = form.querySelector('.comment-submit');
+                    const commentsContainer = form.parentElement.querySelector('.comments');
+                    
+                    submitBtn.addEventListener('click', function() {
+                        const commentText = input.value.trim();
+                        if (commentText) {
+                            const newComment = document.createElement('div');
+                            newComment.className = 'comment';
+                            newComment.innerHTML = `
+                                <span class="comment-author">我</span>
+                                <span class="comment-content">${commentText}</span>
+                            `;
+                            commentsContainer.appendChild(newComment);
+                            input.value = '';
+                        }
+                    });
+                    
+                    input.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            submitBtn.click();
+                        }
+                    });
+                });
+                
+                // 图片点击放大预览
+                const images = document.querySelectorAll('.image-container img');
+                images.forEach(img => {
+                    img.addEventListener('click', function() {
+                        if (this.style.transform === 'scale(1.05)') {
+                            this.style.transform = 'scale(1)';
+                        } else {
+                            this.style.transform = 'scale(1.05)';
+                        }
+                    });
+                });
+            }
+            
+            // 初始化
+            loadPosts();
+            
+            // 重试按钮事件
+            retryBtn.addEventListener('click', loadPosts);
         });
     </script>
 </body>
