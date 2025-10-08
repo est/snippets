@@ -21,19 +21,22 @@ def refresh_file(path, chunk_size=32 * 1024 * 1024, dry_run=False):
             while offset < size:
                 t1 = time.monotonic()
                 buf = f.read(min(chunk_size, size - offset))
+                cbuf = len(buf)
                 t2 = time.monotonic()
                 if t2 - t1 < 0.2:  # too fast
-                    offset += len(buf)
+                    offset += cbuf
                     continue
+                else:
+                    print(f'  {cbuf/1024:.2f}KB in {t2-t1:.2f}s {offset/1024/1024:.2f}MiB/{size/1024/1024:.2f}MiB')
                 if not buf:
                     break
                 if not dry_run:
-                    f.seek(-len(buf), os.SEEK_CUR)
+                    f.seek(-cbuf, os.SEEK_CUR)
                     offset += f.write(buf)
                 else:
-                    offset += len(buf)
+                    offset += cbuf
             f.flush()
-            os.fsync(f.fileno())
+            os.fsync(f.fileno())  # posix:O_DIRECT win:FILE_FLAG_NO_BUFFERING
             dur = time.monotonic() - t0
             mb = size / 1024 / 1024
             return f"{mb:.1f} MiB, {dur:.2f}s, {(mb/dur):.1f} MB/s"
