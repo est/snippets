@@ -4,8 +4,7 @@
 <style>
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:28px;color:#0b1220}
   h1{font-size:20px;margin-bottom:6px}
-  label,input,button,select{font:14px;margin:6px 0;display:block}
-  .grid{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+  label,button,select{font:14px;margin:6px 0;display:block}
   progress{width:100%}
   .log{background:#f6f8fb;border:1px solid #e2e6ee;padding:10px;height:180px;overflow:auto;font-family:monospace;font-size:13px;white-space:pre;}
   .small{font-size:12px;color:#556}
@@ -20,11 +19,11 @@
 
 <div id="fileInfo" class="small" style="margin-top:6px"></div>
 
-<label class="grid">
+<label>
   <span>Chunk size</span>
-  <div style="display:flex;gap:8px;align-items:center">
-    <input id="chunkInput" type="number" min="4096" step="4096" value="33554432" style="width:160px" />
-    <select id="unit">
+  <div style="display:inline">
+    <input id="chunkInput" type="number" min="4096" step="4096" value="32" style="width:160px" />
+    <select id="unit" style="display:inline">
       <option value="1">bytes</option>
       <option value="1024">KB</option>
       <option value="1048576" selected>MiB</option>
@@ -106,6 +105,7 @@
   startBtn.addEventListener('click', async () => {
     if(!fileHandle) return;
     abort = false;
+    pickBtn.disabled = true;
     startBtn.disabled = true;
     cancelBtn.disabled = false;
     logEl.textContent = '';
