@@ -23,11 +23,11 @@ def refresh_file(path, chunk_size=32 * 1024 * 1024, dry_run=False):
                 buf = f.read(min(chunk_size, total - offset))
                 cbuf = len(buf)
                 t2 = time.monotonic()
-                if t2 - t1 < 0.2:  # too fast
+                if t2 - t1 < 1:  # fast enough. 32MB/s
                     offset += cbuf
                     continue
                 else:
-                    print(f'  {cbuf/1024/1024:.2f}MB in {t2-t1:.2f}s/{t2-t0:.2f}s {offset/1024/1024:.2f}MiB/{total/1024/1024:.2f}MiB')
+                    print(f'  {cbuf/1024/1024:.0f}MB in {t2-t1:4.1f}s/{t2-t0:4.1f}s {offset/1024/1024:.0f}/{total/1024/1024:.0f}MiB')
                 if not buf:
                     break
                 if not dry_run:
