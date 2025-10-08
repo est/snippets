@@ -73,7 +73,7 @@ def main():
     total_bytes = 0
     for f in targets:
         total_files += 1
-        print(f"[{total_files}] Refreshing {f} ... ", end="", flush=True)
+        print(f"[{total_files}] Refreshing {f} ... ", flush=True)
         info = refresh_file(f, chunk_size, args.dry_run)
         print(info)
         if "MiB" in info:
