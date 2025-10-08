@@ -11,23 +11,23 @@ import argparse
 
 def refresh_file(path, chunk_size=32 * 1024 * 1024, dry_run=False):
     try:
-        size = os.path.getsize(path)
-        if size == 0:
+        total = os.path.getsize(path)
+        if total <= 0:
             return "empty"
 
         with open(path, "r+b") as f:  # read/write binary mode
             offset = 0
             t0 = time.monotonic()
-            while offset < size:
+            while offset < total:
                 t1 = time.monotonic()
-                buf = f.read(min(chunk_size, size - offset))
+                buf = f.read(min(chunk_size, total - offset))
                 cbuf = len(buf)
                 t2 = time.monotonic()
                 if t2 - t1 < 0.2:  # too fast
                     offset += cbuf
                     continue
                 else:
-                    print(f'  {cbuf/1024:.2f}KB in {t2-t1:.2f}s {offset/1024/1024:.2f}MiB/{size/1024/1024:.2f}MiB')
+                    print(f'  {cbuf/1024/1024:.2f}MB in {t2-t1:.2f}s/{t2-t0:.2f}s {offset/1024/1024:.2f}MiB/{total/1024/1024:.2f}MiB')
                 if not buf:
                     break
                 if not dry_run:
@@ -38,7 +38,7 @@ def refresh_file(path, chunk_size=32 * 1024 * 1024, dry_run=False):
             f.flush()
             os.fsync(f.fileno())  # posix:O_DIRECT win:FILE_FLAG_NO_BUFFERING
             dur = time.monotonic() - t0
-            mb = size / 1024 / 1024
+            mb = total / 1024 / 1024
             return f"{mb:.1f} MiB, {dur:.2f}s, {(mb/dur):.1f} MB/s"
 
     except PermissionError:
