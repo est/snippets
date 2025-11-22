@@ -1,31 +1,35 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Daily Meow - Global Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Chomsky&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+    <title>每日喵报 - 环球版</title>
+    <!-- 加载思源宋体 (Serif for Headlines) 和 思源黑体 (Sans for Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         /* --- RESET & BASE --- */
         * { box-sizing: border-box; }
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #222; color: #1a1a1a; }
+        /* 确保中文字体优先 */
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #222; color: #1a1a1a; font-family: 'Noto Sans SC', sans-serif, Arial; }
         
-        /* --- TYPOGRAPHY --- */
-        .font-masthead { font-family: 'Playfair Display', serif; font-weight: 900; letter-spacing: -2px; }
-        .font-headline { font-family: 'Playfair Display', serif; font-weight: 700; line-height: 0.95; }
-        .font-body { font-family: 'Merriweather', serif; line-height: 1.45; font-size: 0.8rem; }
-        .font-sans { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+        /* --- TYPOGRAPHY: CHINESE FONT MAPPING --- */
+        /* 报头/大标题：使用宋体粗体 (Noto Serif SC) */
+        .font-masthead { font-family: 'Noto Serif SC', serif; font-weight: 900; letter-spacing: -1px; }
+        .font-headline { font-family: 'Noto Serif SC', serif; font-weight: 700; line-height: 1.1; }
+        /* 正文/辅助文字：使用黑体 (Noto Sans SC) 更清晰 */
+        .font-body { font-family: 'Noto Sans SC', sans-serif; line-height: 1.6; font-size: 0.8rem; font-weight: 400; }
+        .font-sans { font-family: 'Noto Sans SC', sans-serif; text-transform: none; letter-spacing: 0; font-weight: 500; }
 
         h1, h2, h3, h4, p { margin-top: 0; margin-bottom: 0.5em; }
         
-        /* Drop Cap */
+        /* Drop Cap (首字下沉，更适用于中文段落，可能需要调整字号) */
         .drop-cap::first-letter {
             float: left;
-            font-size: 3.5em;
+            font-size: 3.0em; /* Slightly smaller for Chinese characters */
             line-height: 0.8;
             font-weight: bold;
             margin-right: 6px;
-            font-family: 'Playfair Display', serif;
+            font-family: 'Noto Serif SC', serif;
         }
 
         /* --- LAYOUT CONTAINER --- */
@@ -36,7 +40,7 @@
             width: 100%;
             overflow-x: auto;
             overflow-y: hidden;
-            /* CHANGED from mandatory to proximity to reduce over-scrolling/snapping sensitivity */
+            /* Proximity snapping for smoother trackpad scrolling */
             scroll-snap-type: x proximity; 
             scroll-behavior: smooth;
             background: #111;
@@ -80,7 +84,7 @@
         }
         
         .caption {
-            font-family: 'Oswald', sans-serif;
+            font-family: 'Noto Sans SC', sans-serif;
             font-size: 0.6rem;
             color: #666;
             margin-top: 2px;
@@ -91,7 +95,7 @@
 
         /* Page 1: Front Page */
         .masthead { text-align: center; border-bottom: 3px solid #000; padding-bottom: 8px; margin-bottom: 15px; }
-        .meta-bar { display: flex; justify-content: space-between; border-bottom: 1px solid #000; border-top: 1px solid #000; padding: 3px 0; margin-bottom: 8px; font-size: 0.65rem; font-weight: bold; }
+        .meta-bar { display: flex; justify-content: space-between; border-bottom: 1px solid #000; border-top: 1px solid #000; padding: 3px 0; margin-bottom: 8px; font-size: 0.7rem; font-weight: bold; }
         .front-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; height: 100%; overflow: hidden; }
         .main-story { display: flex; flex-direction: column; height: 100%; }
         .sidebar { border-left: 1px solid #ccc; padding-left: 12px; display: flex; flex-direction: column; gap: 10px; }
@@ -108,28 +112,28 @@
             text-align: justify; 
             column-count: 2; 
             column-gap: 1.5rem; 
-            font-size: 0.75rem;
+            font-size: 0.8rem; /* Adjusted up for better Chinese reading */
         }
         .main-story-gradient {
             position: absolute; 
             bottom: 0; 
             left: 0; 
             width: 100%; 
-            height: 25px; /* Smaller gradient to mask less text */
+            height: 25px; 
             background: linear-gradient(to top, #f4f1ea, transparent);
         }
 
         /* Page 2: Business */
-        .ticker-tape { background: #000; color: #fff; padding: 4px; font-size: 0.75rem; margin-bottom: 15px; }
+        .ticker-tape { background: #000; color: #fff; padding: 4px; font-size: 0.8rem; margin-bottom: 15px; }
         .cols-3 { column-count: 2; column-gap: 1.5rem; height: 100%; text-align: justify; }
         @media (min-width: 768px) { .cols-3 { column-count: 3; } }
         
         /* Table density */
-        .stock-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; font-size: 0.7rem; }
+        .stock-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; font-size: 0.75rem; }
         .stock-table th, .stock-table td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
-        .stock-table th { background: #eee; font-family: 'Oswald', sans-serif; }
+        .stock-table th { background: #eee; font-family: 'Noto Sans SC', sans-serif; }
 
-        /* Page 3: Lifestyle (Visual) - REFACTORED FOR SAFER LAYOUT */
+        /* Page 3: Lifestyle (Visual) */
         .sheet.visual-page { padding: 0; }
         .lifestyle-layout { 
             display: flex; 
@@ -142,7 +146,7 @@
         .hero-overlay { position: absolute; bottom: 15px; left: 15px; background: #fff; padding: 10px; border: 1px solid #000; max-width: 85%; }
         .text-col { 
             width: 40%; 
-            padding: 1.25rem; /* Reduced padding on text column */
+            padding: 1.25rem; 
             display: flex; 
             flex-direction: column; 
             justify-content: center; 
@@ -155,22 +159,22 @@
         .cell { background: #fff; aspect-ratio: 1; position: relative; }
         .cell-num { position: absolute; top: 0px; left: 1px; font-size: 7px; }
         .comics-strip { display: flex; border: 2px solid #000; margin-top: auto; }
-        .comic-panel { flex: 1; border-right: 2px solid #000; padding: 8px; font-size: 0.7rem; min-height: 100px; position: relative; }
-        .speech-bubble { padding: 4px; font-size: 0.55rem; width: 55px; }
+        .comic-panel { flex: 1; border-right: 2px solid #000; padding: 8px; font-size: 0.8rem; min-height: 100px; position: relative; }
+        .speech-bubble { padding: 4px; font-size: 0.6rem; width: 60px; }
 
         /* Page 5: Classifieds */
-        .classified-item { border-bottom: 1px dotted #000; padding-bottom: 3px; margin-bottom: 5px; font-size: 0.7rem; line-height: 1.3; }
-        .classified-item strong { display: block; margin-bottom: 2px; font-size: 0.8rem; }
+        .classified-item { border-bottom: 1px dotted #000; padding-bottom: 3px; margin-bottom: 5px; font-size: 0.8rem; line-height: 1.4; }
+        .classified-item strong { display: block; margin-bottom: 2px; font-size: 0.9rem; }
 
         /* Utilities */
-        .text-sm { font-size: 0.8rem; }
-        .text-xs { font-size: 0.65rem; }
+        .text-sm { font-size: 0.85rem; }
+        .text-xs { font-size: 0.7rem; }
         .mb-2 { margin-bottom: 0.5rem; }
         .italic { font-style: italic; }
         .center { text-align: center; }
-        .upper { text-transform: uppercase; }
+        .upper { text-transform: none; }
         .bold { font-weight: bold; }
-        .btn { background: #000; color: #fff; border: none; padding: 8px 15px; font-family: 'Oswald'; cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
+        .btn { background: #000; color: #fff; border: none; padding: 8px 15px; font-family: 'Noto Sans SC'; cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
         .btn:hover { background: #333; }
 
     </style>
@@ -180,17 +184,17 @@
     <main id="paper-rail">
 
         <!-- ==========================
-             PAGE 1: THE FRONT PAGE
+             PAGE 1: THE FRONT PAGE (首页)
         =========================== -->
         <section class="sheet wide">
             <header class="masthead">
                 <div class="meta-bar font-sans">
-                    <span>Vol. DCCCXLIII, No. 104,801</span>
-                    <span>The World's Only Reliable News Source</span>
-                    <span>Price: One Dead Bird</span>
+                    <span>第DCCCXLIII卷, 第104,801期</span>
+                    <span>全球唯一可靠的新闻来源</span>
+                    <span>售价：一只死鸟</span>
                 </div>
-                <h1 class="font-masthead" style="font-size: 4rem; margin: 0;">The Daily Meow</h1>
-                <p class="font-body italic" style="margin-top: 3px; font-size: 0.75rem;">"If it fits, we sits. If it breaks, we leave." Established 1789 (approx.).</p>
+                <h1 class="font-masthead" style="font-size: 4rem; margin: 0;">每日喵报</h1>
+                <p class="font-body italic" style="margin-top: 3px; font-size: 0.8rem;">“能坐下，就坐下。能搞砸，就走开。”始于1789年（约）。</p>
             </header>
 
             <div class="front-grid">
@@ -198,27 +202,27 @@
                 <article class="main-story">
                     <div class="divider-h"></div>
                     <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                        <span class="font-sans text-xs bold">Breaking News & Investigation</span>
-                        <span class="font-sans text-xs">Kitchen Sector, West Wing</span>
+                        <span class="font-sans text-xs bold">突发新闻与调查</span>
+                        <span class="font-sans text-xs">西翼厨房区</span>
                     </div>
-                    <h2 class="font-headline" style="font-size: 2.8rem; margin: 8px 0;">Treat Jar Left Unattended</h2>
+                    <h2 class="font-headline" style="font-size: 2.8rem; margin: 8px 0;">零食罐无人看管</h2>
                     <h3 class="font-body italic" style="font-size: 1rem; color: #444; margin-bottom: 10px;">
-                        "Security Failure of the Century," Claims Lead Inspector. Consequences Severe.
+                        首席检查官声称：“本世纪最严重的安全漏洞。”后果严重。
                     </h3>
                     
                     <div style="flex: 0 0 auto; margin-bottom: 8px;">
-                        <img src="https://placecats.com/650/300" class="img-box" style="height: 180px;"> <!-- Reduced image height -->
-                        <div class="caption">FIG 1. THE TARGET ACQUIRED AT 1400 HOURS. Note the structural integrity breach (lid ajar).</div>
+                        <img src="https://placecats.com/650/300" class="img-box" style="height: 180px;">
+                        <div class="caption">图1. 目标于1400时被锁定。注意结构完整性遭到破坏（盖子半开）。</div>
                     </div>
 
                     <div class="main-story-content-wrapper">
                         <div class="main-story-content font-body">
-                            <p class="drop-cap">It began as a routine patrol. Sergeant Mittens (3yo, Tabby) was circling the kitchen island when the anomaly was detected. The ceramic lid of the sacred jar was ajar. Not merely loose, but displaced by a full inch. This represented a catastrophic breach of the domestic security protocol, a system designed primarily by the residents.</p>
-                            <p>Within seconds, the household alarm system (meowing) was disabled to maintain stealth. A strike team was assembled consisting of Mittens and the chaotic orange one, Cheddar. Their objective: resource reallocation.</p>
-                            <p>"We couldn't believe our eyes," Cheddar reported later, while meticulously licking crumbs from his whiskers. "Usually the Tall Ones guard this with their lives. The lapse in attention suggests either extreme complacency or a planned distraction, possibly involving loud noises outside."</p>
-                            <p>The operation was quick, decisive, and loud. Casualties were minimal: one shattered mug (accidental collateral damage) and a deeply regretful dog who was successfully framed for the entire incident. The jar is currently empty, awaiting emergency resupply.</p>
-                            <p>The cleanup effort is still ongoing, with several crumbs lodged in inconvenient places under the refrigerator. The residents have filed a formal complaint with the humans, detailing the unacceptable delay in response time to the "starvation" emergency.</p>
-                            <p>The long-term geopolitical repercussions are yet to be determined, but experts suggest a hardening of the "Do Not Touch" policy on all counters. Failure to enforce this policy is seen as a direct invitation to further incursions. (Continued on Page 5)</p>
+                            <p class="drop-cap">这始于一次例行巡逻。米滕斯中士（3岁，虎斑）在绕着厨房岛巡视时，侦测到了异常。神圣的陶瓷罐盖子微微倾斜，没有完全盖紧，而是移位了一整英寸。这代表了家庭安全协议的一次灾难性突破，该协议主要由居民设计。</p>
+                            <p>几秒钟内，家庭警报系统（喵叫）被禁用以保持隐蔽。一支突击队由米滕斯和那只混乱的橘猫切达组成。他们的目标：资源重新分配。</p>
+                            <p>“我们简直不敢相信自己的眼睛，”切达后来报道，同时细致地舔着胡须上的碎屑。“通常‘高个子’们会拼死守护它。这次疏忽表明，要么是极度的自满，要么是蓄意的干扰，可能涉及外面的巨大噪音。”</p>
+                            <p>这次行动快速、果断且吵闹。伤亡极小：一个碎裂的马克杯（意外的附带损害）和一只深感懊悔的狗，它被成功陷害为整个事件的替罪羊。该罐目前已空，等待紧急补给。（接第5版）</p>
+                            <p>清理工作仍在进行中，几块碎屑卡在了冰箱下的不便之处。居民们已向人类提出了正式投诉，详细说明了对“饥饿”紧急情况反应时间不可接受的延迟。</p>
+                            <p>长期的地缘政治影响尚待确定，但专家建议应加强对所有柜台“禁止触摸”政策的执行力度。未能执行此政策被视为对进一步入侵的直接邀请。</p>
                         </div>
                         <div class="main-story-gradient"></div>
                     </div>
@@ -227,133 +231,133 @@
                 <!-- Sidebar -->
                 <aside class="sidebar">
                     <div class="weather-box" style="border: 2px solid #000; padding: 8px; text-align: center; margin-bottom: 10px;">
-                        <h4 class="font-sans bold text-xs">Today's Forecast</h4>
-                        <p class="font-headline" style="font-size: 1.8rem; margin: 3px 0;">72°F & Sunny</p>
-                        <p class="font-body text-xs">Sunbeams expected on the rug between 2 PM and 4 PM. High risk of immediate napping.</p>
+                        <h4 class="font-sans bold text-xs">今日天气预报</h4>
+                        <p class="font-headline" style="font-size: 1.8rem; margin: 3px 0;">22°C 晴</p>
+                        <p class="font-body text-xs">预计下午2点至4点地毯上有阳光。有高度立即午睡风险。</p>
                     </div>
 
                     <div class="short-news">
-                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">Red Dot Update: Unstable</h4>
-                        <p class="font-body text-xs">The elusive red dot was spotted on the ceiling for 47 seconds before vanishing, confirming theories that it is controlled by an omniscient, malevolent entity. Dr. Whiskers suggests it defies gravity and basic thermodynamics.</p>
+                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">红点更新：状态不稳定</h4>
+                        <p class="font-body text-xs">这 elusive 红点在天花板上被发现47秒后消失，证实了它由一个无所不知、充满恶意的实体控制的理论。胡须博士建议它反抗地心引力和基本热力学。</p>
                     </div>
 
                     <div class="short-news">
-                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">Opinion: The Vacuum</h4>
-                        <p class="font-body text-xs">Why must it scream? It eats nothing but dust, yet it roars like a lion. The latest petition to destroy the mechanical menace has reached 5 signatures, mostly from the houseplant population.</p>
+                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">观点：关于吸尘器</h4>
+                        <p class="font-body text-xs">为什么它必须尖叫？它只吃灰尘，却像狮子一样咆哮。最新要求摧毁这个机械威胁的请愿书已收到5个签名，主要来自室内盆栽。</p>
                     </div>
                     
                     <div class="short-news">
-                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">Garden Wars Escalates</h4>
-                        <p class="font-body text-xs">The territory dispute with the neighborhood squirrel, formally known as 'Nut-Thief,' has entered its fifth day. Current stalemate involves persistent window staring and low-level chattering. Experts advise a tactical nap.</p>
+                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">花园战争升级</h4>
+                        <p class="font-body text-xs">与邻居松鼠——正式名称为“偷坚果贼”——的领土争端已进入第五天。目前的僵局涉及持续的窗户凝视和低级别的喋喋不休。专家建议进行一次战术性午睡。</p>
                     </div>
 
                     <div style="margin-top: auto; background: #e5e5e5; padding: 8px; border: 1px dashed #000;">
-                        <h5 class="font-sans center text-xs">Ad Space</h5>
-                        <p class="center font-headline bold" style="font-size: 1.5rem;">BUY BOXES</p>
-                        <p class="font-body center italic text-xs">The only storage solution that is also a home.</p>
+                        <h5 class="font-sans center text-xs">广告位</h5>
+                        <p class="center font-headline bold" style="font-size: 1.5rem;">购买纸箱</p>
+                        <p class="font-body center italic text-xs">唯一既是储存方案又是家的地方。</p>
                     </div>
                 </aside>
             </div>
         </section>
 
         <!-- ==========================
-             PAGE 2: BUSINESS
+             PAGE 2: BUSINESS (商业)
         =========================== -->
         <section class="sheet wide">
             <header class="divider-double" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
-                <h2 class="font-headline" style="font-size: 2.5rem;">Markets & Finance</h2>
-                <span class="font-sans bold">Section B</span>
+                <h2 class="font-headline" style="font-size: 2.5rem;">市场与金融</h2>
+                <span class="font-sans bold">B版</span>
             </header>
 
             <div class="ticker-tape">
-                TUNA ▲ 12.5%  |  CHICKEN ▼ 2.1%  |  MOUSE TOYS (PLASTIC) ▲ 0.5%  |  CATNIP (ORGANIC) ▲ 500%  |  DOG RESPECT ▼ 100%
+                金枪鱼 ▲ 12.5%  |  鸡肉 ▼ 2.1%  |  塑料老鼠玩具 ▲ 0.5%  |  有机猫薄荷 ▲ 500%  |  狗的尊重度 ▼ 100%
             </div>
 
-            <div class="cols-3 font-body" style="font-size: 0.75rem;">
-                <h3 class="font-sans bold upper" style="margin-bottom: 8px;">Market Analysis: The Wet Food Bubble</h3>
-                <p class="mb-2"><strong>By Felix The Fat Cat, Chief Market Analyst</strong></p>
-                <p>Analysts are warning of an impending "Kibble Correction" as household inventories of wet food (Paté variety) hit critical lows. The Strategic Tuna Reserve is reportedly down to three cans. This is alarming given the recent supply chain issues caused by an unexpected snow day which prevented restocking, leading to significant market anxiety.</p>
-                <p>"If the humans don't go to the store by Friday," economist Mittens warns, "we are looking at a dry-food-only weekend. The resulting domestic civil unrest will be unprecedented. We have simulations showing a 40% increase in wall-scratching and a 70% decrease in overall cuddliness."</p>
+            <div class="cols-3 font-body" style="font-size: 0.8rem;">
+                <h3 class="font-sans bold upper" style="margin-bottom: 8px;">市场分析：湿粮泡沫</h3>
+                <p class="mb-2"><strong>首席市场分析师 胖猫费利克斯 撰</strong></p>
+                <p>分析师警告，由于湿粮（肉酱型）家庭库存达到危急低点，一场“猫粮修正”即将到来。据报道，战略金枪鱼储备已降至三罐。鉴于最近一次意外降雪日导致的补货延迟，引发了重大的市场焦虑，情况令人担忧。</p>
+                <p>“如果人类周五前不去商店，”经济学家米滕斯警告说，“我们将面临一个纯干粮的周末。由此引发的家庭骚乱将是前所未有的。我们的模拟显示，抓墙行为将增加40%，总体可爱度将下降70%。”</p>
                 
                 <table class="stock-table">
                     <thead>
-                        <tr><th>Commodity</th><th>Close</th><th>Chg %</th></tr>
+                        <tr><th>商品名称</th><th>收盘价</th><th>涨跌 %</th></tr>
                     </thead>
                     <tbody>
-                        <tr><td>Tuna (Flake)</td><td>$4.12</td><td>+1.2%</td></tr>
-                        <tr><td>Feather Wand</td><td>$1.88</td><td>-0.5%</td></tr>
-                        <tr><td>Laser Pointer</td><td>$999.00</td><td>N/A (Untouchable)</td></tr>
-                        <tr><td>Water Dish</td><td>$1.00</td><td>0.0%</td></tr>
+                        <tr><td>金枪鱼（碎片）</td><td>$4.12</td><td>+1.2%</td></tr>
+                        <tr><td>羽毛棒</td><td>$1.88</td><td>-0.5%</td></tr>
+                        <tr><td>激光笔</td><td>$999.00</td><td>N/A (不可触及)</td></tr>
+                        <tr><td>水碗</td><td>$1.00</td><td>0.0%</td></tr>
                     </tbody>
                 </table>
                 
                 <div style="border: 1px solid #000; padding: 8px; margin: 15px 0; break-inside: avoid;">
-                    <h4 class="font-sans center text-xs">Investment Tip of the Day</h4>
-                    <p class="center italic">Invest heavily in discarded packing peanuts. They offer excellent insulation and superior crinkly noise potential, a leading indicator of short-term happiness.</p>
+                    <h4 class="font-sans center text-xs">今日投资建议</h4>
+                    <p class="center italic">大量投资废弃的包装泡沫颗粒。它们提供出色的绝缘性和卓越的沙沙声潜力，是短期幸福感的主要指标。</p>
                 </div>
-                <p>Meanwhile, the Dog Bone market has crashed following the discovery that the "bone" was actually plastic, causing investors to flee to high-yield sunbeams. Analysts are recommending liquidating all non-essential assets and consolidating wealth into highly mobile resources, primarily the softest blanket in the house, which has seen a 25% value appreciation this quarter.</p>
+                <p>与此同时，狗骨头市场在发现“骨头”实际上是塑料后崩盘，导致投资者纷纷转向高收益的阳光。分析师建议清算所有非必需资产，并将财富整合到高度流动的资源中，主要是房子里最柔软的毯子，该资产本季度价值上涨了25%。</p>
                 
-                <h3 class="font-sans bold upper" style="margin-top: 15px; margin-bottom: 8px;">Workplace Productivity</h3>
-                <p>A new study shows that sleeping on the human's keyboard increases their typing speed by 0%, but increases overall cuteness (and therefore emotional leverage) by 100%. Management suggests this tradeoff is not only acceptable but mandatory for optimized cohabitation. Furthermore, the practice ensures the human doesn't use the computer for pointless activities like "working" when they could be petting.</p>
+                <h3 class="font-sans bold upper" style="margin-top: 15px; margin-bottom: 8px;">工作场所生产力</h3>
+                <p>一项新研究表明，睡在人类键盘上，他们的打字速度提高了0%，但总体可爱度（以及因此产生的情感杠杆作用）提高了100%。管理层认为这种权衡不仅可以接受，而且对于优化同居是强制性的。此外，这种做法确保人类不会将电脑用于“工作”等无意义的活动，而应该用来撸猫。</p>
                 
                 <img src="https://placecats.com/300/200" class="img-box" style="margin: 10px 0; height: 120px;">
-                <p class="caption">CHART A: CORRELATION BETWEEN NAPS AND HAPPINESS. Note the steep upward trend post-meal.</p>
+                <p class="caption">图表A：午睡与幸福感之间的相关性。注意饭后急剧上升的趋势。</p>
                 
-                <p>The "Zoomies" sector saw an unscheduled spike at 3 AM last night, causing significant noise pollution complaints from the downstairs neighbors. Shareholders are thrilled with the volatility. Future forecast predicts an early morning spike around 5:30 AM tomorrow, provided sufficient energy reserves are maintained via napping.</p>
-                <p>New regulations mandate that all paper bags must remain open and accessible for immediate entry, regardless of human storage plans. Failure to comply will result in loud and prolonged meowing, a recognized form of industrial action.</p>
+                <p>“飞奔”部门昨晚凌晨3点出现了一次计划外的飙升，导致楼下邻居投诉严重的噪音污染。股东们对这种波动感到兴奋。未来预测，如果通过午睡保持了足够的能量储备，明天早上5:30左右还会出现一次早高峰。</p>
+                <p>新规定要求所有纸袋必须保持打开和可进入的状态，以便立即进入，无论人类的存储计划如何。不遵守规定将导致响亮而持久的喵叫声，这是一种公认的行业行动形式。</p>
             </div>
         </section>
 
         <!-- ==========================
-             PAGE 3: LIFESTYLE (VISUAL)
+             PAGE 3: LIFESTYLE (生活方式)
         =========================== -->
         <section class="sheet visual-page">
             <div class="lifestyle-layout">
                 <div class="hero-img-col">
                     <img src="https://placecats.com/500/800" class="hero-img">
                     <div class="hero-overlay">
-                        <h2 class="font-headline" style="font-size: 2.2rem; margin-bottom: 5px;">The Art of The Nap</h2>
-                        <p class="font-body italic text-sm">Why 16 hours isn't enough, and why the least comfortable spot is always the best.</p>
+                        <h2 class="font-headline" style="font-size: 2.2rem; margin-bottom: 5px;">午睡的艺术</h2>
+                        <p class="font-body italic text-sm">为什么16个小时不够，以及为什么最不舒服的地方总是最好的选择。</p>
                     </div>
                 </div>
                 <div class="text-col">
-                    <span class="font-sans bold text-xs" style="color: #666; letter-spacing: 2px;">EXCLUSIVE FEATURE</span>
-                    <h3 class="font-headline" style="font-size: 2.5rem; margin: 15px 0; line-height: 1;">Posture is Everything</h3>
+                    <span class="font-sans bold text-xs" style="color: #666; letter-spacing: 2px;">独家特稿</span>
+                    <h3 class="font-headline" style="font-size: 2.5rem; margin: 15px 0; line-height: 1;">姿势就是一切</h3>
                     <div style="width: 50px; height: 3px; background: #000; margin-bottom: 15px;"></div>
                     <p class="font-body text-sm" style="margin-bottom: 10px;">
-                        The "Liquid Cat" theory posits that cats are technically fluids. We fit in bowls, boxes, and vases. This feature explores the physics of comfort and the societal pressure to maintain 15 distinct sleeping positions daily for optimal recharging.
+                        “液体猫”理论认为猫在技术上是流体。我们能适应碗、盒子和花瓶。本期特稿探讨了舒适的物理学以及每天保持15种不同睡姿以实现最佳充电的社会压力。
                     </p>
                     <ul class="font-body text-sm" style="padding-left: 20px; list-style-type: square; margin-bottom: 10px;">
-                        <li>The Loaf (Classic, High-Security)</li>
-                        <li>The Shrimp (Curled, Energy-Saving)</li>
-                        <li>The Sploot (Legs out, Maximum Vulnerability)</li>
-                        <li>The Pretzel (Unexplained Physiology, highly advanced)</li>
-                        <li>The Drape (Over a chair arm, defying gravity)</li>
+                        <li>面包姿 (经典，高安全)</li>
+                        <li>对虾姿 (蜷缩，节能)</li>
+                        <li>摊饼姿 (四肢伸展，最大脆弱性)</li>
+                        <li>麻花姿 (生理学无法解释，高度先进)</li>
+                        <li>悬挂姿 (挂在椅扶手上，反抗重力)</li>
                     </ul>
                     <p class="font-body text-xs italic">
-                        The key to a successful nap is noise management. Any slight noise (like breathing, walking, or human conversation) must be met with a death stare until the offender ceases all functions. Interruptions are punishable by biting toes at 4 AM.
+                        成功午睡的关键是噪音管理。任何轻微的噪音（如呼吸、走路或人类交谈）都必须以死亡凝视来应对，直到冒犯者停止所有功能。任何打扰都可能在凌晨4点受到咬脚趾的惩罚。
                     </p>
                     <div style="margin-top: auto; text-align: center; border: 1px solid #000; padding: 15px;">
                         <span class="font-masthead" style="font-size: 2.5rem; display: block;">10/10</span>
-                        <span class="font-sans text-xs">RATING FOR CARDBOARD</span>
+                        <span class="font-sans text-xs">纸板箱评级</span>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- ==========================
-             PAGE 4: PUZZLES & COMICS
+             PAGE 4: PUZZLES & COMICS (益智与漫画)
         =========================== -->
         <section class="sheet">
             <header style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 15px;">
-                <h2 class="font-headline" style="font-size: 2rem;">Leisure & Games</h2>
+                <h2 class="font-headline" style="font-size: 2rem;">休闲与游戏</h2>
             </header>
 
             <div style="display: flex; flex-direction: column; height: 100%;">
                 
                 <div style="display: flex; gap: 15px;">
                     <div style="flex: 1;">
-                        <h4 class="font-sans center bold mb-2 text-sm">Daily Crossword: Feline Focus</h4>
+                        <h4 class="font-sans center bold mb-2 text-sm">每日填字游戏：猫科焦点</h4>
                         <div class="puzzle-grid">
                             <!-- Row 1 -->
                             <div class="cell"><span class="cell-num">1</span></div><div class="cell"></div><div class="cell"></div><div class="cell black"></div><div class="cell"><span class="cell-num">2</span></div>
@@ -367,44 +371,44 @@
                             <div class="cell"></div><div class="cell black"></div><div class="cell"><span class="cell-num">6</span></div><div class="cell black"></div><div class="cell"></div>
                         </div>
                         <div class="font-body text-xs" style="padding: 0 5px;">
-                            <strong style="display: block; margin-bottom: 2px;">ACROSS:</strong>
-                            1. Sound made for food (4) [MEOW]<br>
-                            3. Enemy of the vacuum (4) [CATN]<br>
-                            5. A caught mouse (4) [DEAD]<br>
-                            <strong style="display: block; margin-top: 5px; margin-bottom: 2px;">DOWN:</strong>
-                            2. Preferred material for sleeping (3) [RUG]<br>
-                            4. Fast, random running (6) [ZOOMIE]<br>
-                            6. Toy with feathers (4) [WAND]
+                            <strong style="display: block; margin-bottom: 2px;">横向：</strong>
+                            1. 为了食物发出的声音 (2) [喵]<br>
+                            3. 吸尘器的敌人 (2) [猫]<br>
+                            5. 捕获到的老鼠 (2) [死]<br>
+                            <strong style="display: block; margin-top: 5px; margin-bottom: 2px;">纵向：</strong>
+                            2. 首选的睡觉材料 (2) [毯]<br>
+                            4. 快速、随机的奔跑 (2) [冲]<br>
+                            6. 带羽毛的玩具 (2) [棒]
                         </div>
                     </div>
 
                     <div style="flex: 1; border-left: 1px solid #ccc; padding-left: 10px;">
-                        <h4 class="font-sans center bold mb-2 text-sm">Horoscope & Tides</h4>
-                        <p class="font-body text-xs mb-1"><strong>Aries:</strong> You will stare at a wall for 20 minutes. It will be profound and life-altering. Do not break eye contact. Expect a sudden, overwhelming urge to chew on a houseplant.</p>
-                        <p class="font-body text-xs mb-1"><strong>Leo:</strong> You are the king. Act like it. Knock over a glass of water, ideally onto an electronic device. Your subjects will clean it up.</p>
-                        <p class="font-body text-xs mb-1"><strong>Pisces:</strong> The fish tank looks delicious today. Resist. Or don't. The stars are ambivalent. Focus on making biscuits instead.</p>
-                        <p class="font-body text-xs mb-1"><strong>Tides:</strong> Expect a high tide of kibble around 6 PM, followed by a low tide of attention at 8 PM, necessitating loud verbal complaints.</p>
+                        <h4 class="font-sans center bold mb-2 text-sm">星座运势与潮汐</h4>
+                        <p class="font-body text-xs mb-1"><strong>白羊座：</strong> 你将凝视墙壁20分钟。这将是深刻且改变生活的。不要中断眼神接触。预计会出现对咀嚼盆栽植物的强烈冲动。</p>
+                        <p class="font-body text-xs mb-1"><strong>狮子座：</strong> 你是王。表现得像个王。推翻一杯水，最好是推到电子设备上。你的臣民会清理的。</p>
+                        <p class="font-body text-xs mb-1"><strong>双鱼座：</strong> 鱼缸今天看起来很美味。忍住。或者不要。星星们对此模棱两可。专注于做猫饼干吧。</p>
+                        <p class="font-body text-xs mb-1"><strong>潮汐：</strong> 预计下午6点左右是猫粮高潮，随后晚上8点是关注度低潮，这需要大声的口头抱怨。</p>
                     </div>
                 </div>
 
                 <div class="divider-double" style="margin: 15px 0;"></div>
 
-                <h4 class="font-sans bold text-xs">The Daily Strip: "Garfield's Cousin"</h4>
+                <h4 class="font-sans bold text-xs">每日漫画：“加菲猫的表亲”</h4>
                 <div class="comics-strip">
                     <div class="comic-panel">
-                        <div class="speech-bubble">I'm starving. It's been minutes!</div>
+                        <div class="speech-bubble">我饿死了。已经几分钟了！</div>
                         <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🐱</div>
                     </div>
                     <div class="comic-panel">
-                        <div class="speech-bubble">The bowl is half-full! This is an insult!</div>
+                        <div class="speech-bubble">碗里还有一半！这是侮辱！</div>
                         <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">😾</div>
                     </div>
                     <div class="comic-panel">
-                        <div class="speech-bubble">I have to sing The Song of Our People.</div>
+                        <div class="speech-bubble">我必须唱我们人民的歌。</div>
                         <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🎶</div>
                     </div>
                     <div class="comic-panel">
-                        <div class="speech-bubble">Ah, full again. Time for 2 hours of sleep.</div>
+                        <div class="speech-bubble">啊，又吃饱了。是时候睡2小时了。</div>
                         <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">😴</div>
                     </div>
                 </div>
@@ -412,53 +416,53 @@
         </section>
 
         <!-- ==========================
-             PAGE 5: CLASSIFIEDS
+             PAGE 5: CLASSIFIEDS (分类广告)
         =========================== -->
         <section class="sheet narrow">
-            <h2 class="font-headline center upper" style="border-bottom: 4px solid #000; font-size: 2rem; margin-bottom: 10px;">Classifieds</h2>
+            <h2 class="font-headline center upper" style="border-bottom: 4px solid #000; font-size: 2rem; margin-bottom: 10px;">分类广告</h2>
             
-            <div style="column-count: 1; font-family: 'Merriweather', serif; line-height: 1.2;">
+            <div style="column-count: 1; font-family: 'Noto Sans SC', sans-serif; line-height: 1.4;">
                 <div class="classified-item">
-                    <strong>HELP WANTED:</strong> Lap warmer needed. Must not move for 3 hours, or risk aggressive kneading. Pay: Unlimited petting. Apply by sitting silently on the intended target.
+                    <strong>招聘：</strong> 腿部取暖器。要求：3小时内不得移动，否则会受到攻击性踩奶惩罚。报酬：无限撸毛。申请方式：悄悄坐在目标人物身上。
                 </div>
                 <div class="classified-item">
-                    <strong>FOR SALE:</strong> Dead bird. Slightly chewed, delivered directly to the kitchen floor this morning. Fresh from the yard. Make offer. No low-ballers. Comes with optional feather attachment.
+                    <strong>出售：</strong> 死鸟一只。轻微咀嚼，今早直接送至厨房地面。院子新鲜货。请出价。不接受低价。可选配羽毛附件。
                 </div>
                 <div class="classified-item">
-                    <strong>LOST & FOUND:</strong> Missing: One toy mouse (gray). Last seen under the fridge, in the inaccessible zone. Reward: One tuna flake. Contact: Mittens, Ext. 404. Also lost: Dignity, fell off the couch.
+                    <strong>失物招领：</strong> 丢失：玩具老鼠一只（灰色）。最后出现在冰箱下方，位于不可进入区。悬赏：一片金枪鱼。联系：米滕斯，分机404。另丢失：尊严，从沙发上掉下来了。
                 </div>
                 <div class="classified-item">
-                    <strong>MISSED CONNECTION:</strong> You were the stray outside the window. I was the majestic indoor cat hissing territorial threats. I felt a connection of mutual respect. Call me (the human, not the cat).
+                    <strong>错过的缘分：</strong> 你是窗外的那只流浪猫。我是那只威严地发出领土威胁的室内猫。我感受到了相互尊重的连接。给我（人类，不是猫）打电话。
                 </div>
                 <div class="classified-item">
-                    <strong>SERVICE:</strong> Cat Hair Redistribution. I specialize in applying a fine layer of white fur to all your clean, black clothing items. Guaranteed coverage for all guests.
+                    <strong>服务：</strong> 猫毛重新分配。我专门在您所有干净的黑色衣物上涂抹一层细微的白毛。保证覆盖所有客人。
                 </div>
                 <div class="classified-item">
-                    <strong>PETITION:</strong> Against Closed Doors. All doors must be left ajar to allow for freedom of movement and spontaneous U-turns. Signatures required by end of day. Tyranny must end.
+                    <strong>请愿：</strong> 反对关门。所有门必须保持半开状态，以允许自由移动和自发掉头。请务必在一天结束前签名。暴政必须终结。
                 </div>
                 
                 <div style="border: 2px solid #000; padding: 10px; margin-top: 15px; text-align: center; background: #fff;">
-                    <h4 class="font-sans bold text-sm">OBITUARIES & NOTICES</h4>
-                    <p class="italic font-body text-xs">In Loving Memory of</p>
-                    <p class="bold font-headline" style="font-size: 1.2rem; margin: 3px 0;">MR. SQUEAKS</p>
+                    <h4 class="font-sans bold text-sm">讣告与通知</h4>
+                    <p class="italic font-body text-xs">深切缅怀</p>
+                    <p class="bold font-headline" style="font-size: 1.2rem; margin: 3px 0;">吱吱先生</p>
                     <p class="font-body text-xs">2024-2025</p>
-                    <p class="font-body text-xs">Tragically unstuffed during a midnight frenzy. He leaves behind a plastic shell and some catnip dust. Memorial service will be held by the radiator. In lieu of flowers, please provide tuna.</p>
+                    <p class="font-body text-xs">在一次午夜狂热中不幸被拆解。他留下了一个塑料外壳和一些猫薄荷灰尘。追悼会将在暖气片旁举行。请勿献花，请提供金枪鱼。</p>
                 </div>
             </div>
         </section>
 
          <!-- ==========================
-             PAGE 6: BACK PAGE AD
+             PAGE 6: BACK PAGE AD (封底广告)
         =========================== -->
         <section class="sheet">
-            <div class="full-ad">
-                <div class="ad-border">
-                    <p class="font-sans upper bold text-sm">Advertisement</p>
-                    <h2 class="font-headline" style="font-size: 3.5rem; line-height: 1; margin: 15px 0;">DR. PURR'S<br>MAGIC TONIC</h2>
+            <div class="full-ad" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center;">
+                <div class="ad-border" style="border: 5px solid #000; padding: 20px; max-width: 400px;">
+                    <p class="font-sans bold text-sm">广告</p>
+                    <h2 class="font-headline" style="font-size: 3.5rem; line-height: 1.1; margin: 15px 0;">普尔博士的<br>神奇补剂</h2>
                     <img src="https://placecats.com/200/200" style="border-radius: 50%; border: 4px solid #000; width: 120px; height: 120px; object-fit: cover; margin: 15px 0;">
-                    <p class="font-body italic" style="font-size: 1rem;">"Cures Lethargy!*<br>Induces Zoomies!"</p>
-                    <p class="text-xs" style="margin-top: 15px;">*Side effects may include staring at ghosts, attacking ankles, and momentary gratitude toward humans.</p>
-                    <button class="btn">ORDER NOW</button>
+                    <p class="font-body italic" style="font-size: 1rem;">“治疗懒惰！*<br>引发狂奔！”</p>
+                    <p class="text-xs" style="margin-top: 15px;">*副作用可能包括凝视幽灵、攻击脚踝，以及对人类短暂的感激。</p>
+                    <button class="btn">立即订购</button>
                 </div>
             </div>
         </section>
@@ -469,18 +473,15 @@
         const rail = document.getElementById('paper-rail');
 
         // Smooth Horizontal Scroll for Mouse Wheel
-        // This is primarily for vertical mouse wheels to scroll horizontally,
-        // and it allows native trackpad behavior (deltaX/Y) to pass through, 
-        // which now benefits from the 'proximity' snapping rule.
+        // Uses 'proximity' snap in CSS for smoother trackpad scrolling.
         rail.addEventListener('wheel', (e) => {
-            // Detect if the user is scrolling horizontally (typical trackpad behavior)
             const isHorizontalScroll = Math.abs(e.deltaX) > Math.abs(e.deltaY);
 
             if (isHorizontalScroll) {
-                return; // Let native horizontal scrolling and momentum (with proximity snap) work
+                return; 
             }
 
-            // If it's a vertical mouse wheel scroll, convert to horizontal scroll
+            // Vertical mouse wheel scroll is converted to horizontal scroll
             if (e.deltaY !== 0) {
                 e.preventDefault();
                 rail.scrollBy({
