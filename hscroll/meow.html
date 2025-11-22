@@ -5,265 +5,284 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Daily Meow - Static Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Oswald:wght@500&display=swap" rel="stylesheet">
     <style>
-        /* Custom Scrollbar Hiding */
+        /* Hide scrollbar for Chrome, Safari and Opera */
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
+        /* Hide scrollbar for IE, Edge and Firefox */
         .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
         }
         
-        /* Newspaper Fonts */
         .font-headline { font-family: 'Playfair Display', serif; }
         .font-body { font-family: 'Merriweather', serif; }
+        .font-condensed { font-family: 'Oswald', sans-serif; }
 
-        /* Drop cap styling */
+        /* Typography Tweaks */
         .drop-cap::first-letter {
             float: left;
             font-size: 3.5rem;
             line-height: 3rem;
-            font-weight: bold;
+            font-weight: 900;
             margin-right: 0.5rem;
             margin-top: -0.2rem;
             font-family: 'Playfair Display', serif;
         }
+
+        /* Image filters for newspaper look */
+        .news-img {
+            filter: grayscale(100%) contrast(120%) brightness(105%);
+            border: 1px solid #333;
+        }
+
+        /* Strict layout enforcement */
+        .page-container {
+            height: 100vh;
+            flex-shrink: 0;
+            overflow: hidden; /* Critical for "Strictly Horizontal" */
+            border-right: 1px solid #ccc;
+            background-color: #f4f1ea;
+            display: flex;
+            flex-direction: column;
+        }
     </style>
 </head>
-<body class="bg-[#222] h-screen w-screen overflow-hidden flex flex-col text-gray-900">
+<body class="bg-[#222] h-screen w-screen overflow-hidden">
 
     <!-- Main Horizontal Container -->
-    <main id="newspaper-container" class="flex-1 flex overflow-x-auto overflow-y-hidden snap-x snap-mandatory scroll-smooth no-scrollbar h-full w-full">
+    <main id="newspaper-container" class="flex h-full w-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory no-scrollbar">
 
-        <!-- === PAGE 1: COVER / INTRO === -->
-        <section class="flex-none w-screen md:w-[500px] h-full snap-start bg-[#f4f1ea] border-r border-gray-400 p-8 overflow-y-auto relative">
-            <!-- Header -->
-            <header class="border-b-4 border-black mb-6 pb-2 text-center">
-                <div class="flex justify-between text-[10px] md:text-xs font-bold border-b border-black mb-2 pb-1 uppercase tracking-widest text-gray-600">
+        <!-- === PAGE 1: THE FRONT PAGE (Complex Grid) === -->
+        <section class="page-container w-screen md:w-[800px] snap-start p-4 md:p-8">
+            <!-- Header Area -->
+            <header class="flex-none text-center border-b-4 border-black mb-4 pb-2">
+                <div class="flex justify-between border-b border-black mb-2 pb-1 text-[10px] uppercase font-bold tracking-widest text-gray-600 font-condensed">
                     <span>Vol. 843</span>
-                    <span>Static Edition</span>
+                    <span>New York • London • Kitchen</span>
                     <span>$2.00</span>
                 </div>
-                <h1 class="font-headline text-5xl md:text-7xl font-black tracking-tight uppercase mb-2">
+                <h1 class="font-headline text-6xl md:text-8xl font-black tracking-tighter uppercase leading-none mb-2">
                     The Daily Meow
                 </h1>
-                <div class="font-headline italic text-lg text-gray-700">
-                    "All the news that's fit to scratch."
-                </div>
+                <p class="font-body italic text-sm text-gray-600">"All the news that's fit to scratch."</p>
             </header>
 
-            <!-- Weather & Info -->
-            <div class="border-t-4 border-b-4 border-black py-4 my-6 text-center font-sans font-bold uppercase tracking-widest text-xs md:text-sm">
-                Weather: Sunny spots expected · High 72°F
-            </div>
+            <!-- Front Page Content: 2 Columns -->
+            <div class="flex-1 flex gap-6 overflow-hidden">
+                
+                <!-- Left Column: Main Story -->
+                <div class="w-2/3 flex flex-col h-full">
+                    <div class="flex justify-between items-center border-t border-b border-black py-1 mb-3">
+                         <span class="font-condensed uppercase font-bold text-xs">Weather: Sunny</span>
+                         <span class="font-condensed uppercase font-bold text-xs">Breaking News</span>
+                    </div>
+                    
+                    <h2 class="font-headline text-4xl md:text-5xl font-bold leading-tight mb-2">
+                        Local Cat Discovers <br/> Perpetual Sunbeam
+                    </h2>
+                    
+                    <!-- Image takes available height but shrinks if text needs room -->
+                    <div class="flex-1 min-h-0 mb-4 relative overflow-hidden">
+                        <img src="https://placecats.com/500/400" class="news-img w-full h-full object-cover object-top">
+                        <div class="absolute bottom-0 right-0 bg-white px-2 py-1 text-[10px] border-t border-l border-black font-sans">Fig 1. The Miracle</div>
+                    </div>
 
-            <!-- Table of Contents -->
-            <div class="prose font-body">
-                <h3 class="font-bold uppercase text-sm mb-4 font-sans tracking-wider border-b border-gray-300 pb-1">Contents</h3>
-                <ul class="list-none p-0 space-y-3 text-sm">
-                    <li class="flex justify-between border-b border-dotted border-gray-400 pb-1 cursor-pointer hover:bg-gray-200 transition-colors p-1" onclick="scrollToArticle('art-1')">
-                        <strong>Local Cat Discovers Sunbeam</strong>
-                        <span>Pg. 2</span>
-                    </li>
-                    <li class="flex justify-between border-b border-dotted border-gray-400 pb-1 cursor-pointer hover:bg-gray-200 transition-colors p-1" onclick="scrollToArticle('art-2')">
-                        <span>Red Dot Returns</span>
-                        <span>Pg. 3</span>
-                    </li>
-                    <li class="flex justify-between border-b border-dotted border-gray-400 pb-1 cursor-pointer hover:bg-gray-200 transition-colors p-1" onclick="scrollToArticle('art-3')">
-                        <span>Food Bowl Crisis</span>
-                        <span>Pg. 4</span>
-                    </li>
-                    <li class="flex justify-between border-b border-dotted border-gray-400 pb-1 cursor-pointer hover:bg-gray-200 transition-colors p-1" onclick="scrollToArticle('art-4')">
-                        <span>Cardboard Box Review</span>
-                        <span>Pg. 5</span>
-                    </li>
-                </ul>
-
-                <!-- Subscription Box -->
-                <div class="mt-12 p-4 border border-black bg-gray-100 text-center shadow-lg">
-                    <h4 class="font-bold uppercase mb-2 font-sans text-xs">Subscription</h4>
-                    <p class="text-xs mb-4 italic">Get The Daily Meow delivered to your litter box every morning.</p>
-                    <button class="bg-black text-[#f4f1ea] px-6 py-2 uppercase font-bold text-xs hover:bg-gray-800 transition-colors w-full">
-                        Subscribe Now
-                    </button>
+                    <div class="font-body text-sm leading-relaxed text-justify overflow-hidden relative">
+                        <p class="drop-cap">
+                            In a stunning turn of events, Whiskers (age 4) has located a sunbeam that allegedly "never moves." Physics experts are baffled. "It was roughly 2:00 PM," witnesses report. The household remains on high alert.
+                        </p>
+                        <p class="mt-2">
+                             If the sunbeam moves, Whiskers is expected to migrate, potentially disrupting foot traffic in the kitchen. Residents are advised to step carefully.
+                        </p>
+                        <!-- Gradient fade at bottom to imply text cutoff if screen is too short, preventing scroll -->
+                        <div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-[#f4f1ea] to-transparent"></div>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="absolute bottom-4 left-0 w-full text-center md:hidden opacity-50">
-                <span class="text-[10px] uppercase tracking-widest animate-pulse">Swipe ➡</span>
+
+                <!-- Right Column: Sidebar / Shorts -->
+                <div class="w-1/3 border-l border-gray-400 pl-4 flex flex-col gap-4 h-full">
+                    
+                    <!-- Short 1 -->
+                    <div class="flex-1 min-h-0 flex flex-col">
+                        <h3 class="font-headline text-xl font-bold mb-1">Red Dot Returns</h3>
+                        <p class="font-body text-xs leading-snug flex-1 overflow-hidden text-ellipsis">
+                            The elusive nemesis spotted on the wall. Authorities claim it is a laser pointer; local militia (The Cats) insists it is a ghost.
+                        </p>
+                    </div>
+                    
+                    <hr class="border-gray-300">
+
+                    <!-- Short 2 -->
+                    <div class="flex-1 min-h-0 flex flex-col">
+                        <h3 class="font-headline text-xl font-bold mb-1">Opinion: Dogs?</h3>
+                        <p class="font-body text-xs leading-snug flex-1 overflow-hidden text-ellipsis">
+                            Why do they run? Why do they pant? An in-depth look at our confusing roommates.
+                        </p>
+                    </div>
+
+                    <!-- Ad Box -->
+                    <div class="border-4 border-double border-black p-2 text-center mt-auto bg-white">
+                        <h4 class="font-condensed font-bold uppercase text-lg">Buy Catnip</h4>
+                        <p class="text-[10px] font-serif italic">Forget your troubles.</p>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- === ARTICLE 1: SUNBEAM === -->
-        <article id="art-1" class="flex-none snap-start w-screen md:w-[650px] h-full overflow-y-auto bg-[#f4f1ea] border-r border-gray-300 p-6 md:p-10 no-scrollbar">
-            <div class="max-w-3xl mx-auto h-full flex flex-col">
-                <div class="mb-6 border-b-2 border-black pb-4">
-                    <div class="flex items-center justify-between mb-2 font-sans text-xs uppercase tracking-wider">
-                        <span class="bg-black text-white px-2 py-1">Breaking News</span>
-                        <span class="text-gray-500">Nov 22, 2025</span>
-                    </div>
-                    <h2 class="font-headline text-4xl md:text-5xl font-bold leading-tight mb-3">Local Cat Discovers Sunbeam</h2>
-                    <h3 class="font-sans text-lg md:text-xl font-medium text-gray-700 italic">Experts say it might be the warmest spot in the house.</h3>
+        <!-- === PAGE 2: THE FEATURE (Wide columns, horizontal text flow) === -->
+        <section class="page-container w-screen md:w-[900px] snap-start p-6 md:p-10">
+            <div class="h-full flex flex-col">
+                <div class="border-b-2 border-black pb-2 mb-4 flex items-end justify-between">
+                    <h2 class="font-headline text-6xl font-black uppercase tracking-tighter">The Empty Bowl</h2>
+                    <span class="font-condensed font-bold text-xl bg-black text-white px-2 mb-1">INVESTIGATION</span>
                 </div>
 
-                <figure class="mb-6 md:float-right md:w-1/2 md:ml-6">
-                    <img src="https://placecats.com/400/300" alt="Cat in sun" class="w-full h-auto border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] grayscale contrast-125">
-                    <figcaption class="text-[10px] mt-2 font-sans text-gray-500 uppercase tracking-wide text-right">Photo: Mittens The Reporter</figcaption>
-                </figure>
-
-                <div class="font-body text-base md:text-lg leading-relaxed text-justify drop-cap text-gray-800">
-                    <p class="mb-4">
-                        In a stunning turn of events, a local tabby named Whiskers has located a pristine sunbeam on the living room rug. "It was roughly 2:00 PM," witnesses report. "The angle of the sun hit the Persian rug just right."
+                <!-- CSS Columns allow text to flow horizontally into new columns instead of scrolling down -->
+                <div class="flex-1 columns-2 md:columns-3 gap-8 font-body text-sm md:text-base leading-relaxed text-justify tracking-wide" style="column-fill: auto;">
+                    
+                    <p class="mb-6 first-letter:text-5xl first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-8px] font-headline">
+                        A state of emergency was declared at 6:00 AM when the bottom of the ceramic food bowl became visible. Despite there being food around the edges, the center was clearly empty. This incident marks the third 'Famine' this week.
                     </p>
-                    <p class="mb-4">
-                        Whiskers, usually known for sleeping on high shelves, reportedly descended rapidly to claim the spot before the dog could notice. Experts suggest this sunbeam will remain viable for approximately 45 minutes before shifting towards the hallway.
-                    </p>
-                    <p class="mb-4">
-                        The household remains on high alert. If the sunbeam moves, Whiskers is expected to migrate, potentially disrupting foot traffic in the kitchen area. Residents are advised to step carefully. Furthermore, studies have shown that the optimal nap duration in such a sunbeam exceeds three hours.
-                    </p>
-                </div>
-                <div class="mt-auto pt-8 text-center text-2xl text-gray-400">❦</div>
-            </div>
-        </article>
-
-        <!-- === ARTICLE 2: RED DOT === -->
-        <article id="art-2" class="flex-none snap-start w-screen md:w-[600px] h-full overflow-y-auto bg-[#f4f1ea] border-r border-gray-300 p-6 md:p-10 no-scrollbar">
-            <div class="max-w-3xl mx-auto h-full flex flex-col">
-                <div class="mb-6 border-b border-black pb-4">
-                    <div class="flex items-center justify-between mb-2 font-sans text-xs uppercase tracking-wider">
-                        <span class="bg-gray-800 text-white px-2 py-1">Investigation</span>
-                        <span class="text-gray-500">Pg. 3</span>
-                    </div>
-                    <h2 class="font-headline text-3xl md:text-4xl font-bold leading-tight mb-2">Red Dot Returns</h2>
-                </div>
-
-                <div class="flex flex-col h-full">
-                    <figure class="mb-6 w-full">
-                        <img src="https://placecats.com/300/200" alt="Red Dot Stare" class="w-full h-48 object-cover border border-black grayscale contrast-125">
-                    </figure>
-
-                    <div class="font-body text-base md:text-lg leading-relaxed text-justify drop-cap text-gray-800">
-                        <p class="mb-4">
-                            Panic ensued early this morning when the Red Dot made a surprise appearance. It moved with impossible speed, defying the laws of physics. "I had it," claims a local calico. "My paws were right on it, but then it was on the ceiling. How is that possible?"
-                        </p>
-                        <p class="mb-4">
-                            Scientists speculate the Red Dot is actually a projection from an advanced alien device, colloquially known as a 'Laser Pointer', though cats widely reject this theory as conspiracy. The chase lasted twenty minutes, resulting in one knocked-over vase and a slightly shredded curtain.
-                        </p>
-                    </div>
-                </div>
-                <div class="mt-auto pt-4 text-center text-2xl text-gray-400">❦</div>
-            </div>
-        </article>
-
-        <!-- === ARTICLE 3: FOOD CRISIS === -->
-        <article id="art-3" class="flex-none snap-start w-screen md:w-[600px] h-full overflow-y-auto bg-[#f4f1ea] border-r border-gray-300 p-6 md:p-10 no-scrollbar">
-            <div class="max-w-3xl mx-auto h-full flex flex-col">
-                <div class="mb-6 border-b-4 border-double border-black pb-4">
-                    <h2 class="font-headline text-4xl font-bold mb-1">Food Bowl Empty: Crisis?</h2>
-                    <h3 class="font-sans text-sm uppercase tracking-widest text-red-700 font-bold">Severe Famine Warning Issued</h3>
-                </div>
-                
-                <div class="columns-1 md:columns-2 gap-6 font-body text-sm leading-relaxed text-justify">
-                    <p class="mb-4 first-letter:text-3xl first-letter:font-bold first-letter:mr-1 font-serif">
-                        A state of emergency was declared at 6:00 AM when the bottom of the ceramic food bowl became visible. Despite there being food around the edges, the center was clearly empty.
-                    </p>
-                    <p class="mb-4">
-                        The alarm was raised via the 'Song of Our People', sung loudly outside the human's bedroom door. Negotiations for a refill were tense but successful.
-                    </p>
-                    <div class="bg-gray-200 p-4 border border-black mb-4 break-inside-avoid">
-                        <h4 class="font-sans font-bold text-xs uppercase mb-1">Details</h4>
-                        <ul class="list-disc list-inside text-xs">
-                            <li>Time of incident: 6:00 AM</li>
-                            <li>Bowl status: 20% Visible</li>
-                            <li>Casualties: None</li>
+                    
+                    <div class="break-inside-avoid mb-6 border-t-2 border-b-2 border-gray-300 py-4">
+                        <h4 class="font-sans font-bold text-center uppercase text-xs mb-2 tracking-widest text-red-700">Timeline of Events</h4>
+                        <ul class="list-disc list-inside text-xs font-condensed space-y-1">
+                            <li><strong>05:55 AM</strong> - Subject wakes up.</li>
+                            <li><strong>06:00 AM</strong> - Bottom of bowl sighted.</li>
+                            <li><strong>06:02 AM</strong> - Song of Our People begins.</li>
+                            <li><strong>06:15 AM</strong> - Human wakes up (grumpy).</li>
                         </ul>
                     </div>
-                    <p class="mb-4">
-                        "It was touch and go," said the hungry resident. "I thought I might starve in the 15 minutes it took the humans to wake up." Future strategies involve louder meowing and potential face-patting.
-                    </p>
-                </div>
-                
-                <figure class="mt-6 border-t border-black pt-4">
-                    <img src="https://placecats.com/300/302" class="w-full h-32 object-cover grayscale contrast-125 mb-1">
-                    <figcaption class="text-[10px] font-sans uppercase">Fig A: The Void</figcaption>
-                </figure>
-                <div class="mt-auto pt-4 text-center text-2xl text-gray-400">❦</div>
-            </div>
-        </article>
 
-         <!-- === ARTICLE 4: CARDBOARD BOX === -->
-         <article id="art-4" class="flex-none snap-start w-screen md:w-[600px] h-full overflow-y-auto bg-[#f4f1ea] border-r border-gray-300 p-6 md:p-10 no-scrollbar">
-            <div class="max-w-3xl mx-auto h-full flex flex-col">
-                <div class="mb-4 border-b border-black pb-2">
-                     <span class="font-sans font-bold text-xs bg-black text-white px-1">REVIEW</span>
-                    <h2 class="font-headline text-3xl font-bold mt-2">Cardboard Box Arrives</h2>
-                </div>
-                
-                <img src="https://placecats.com/300/400" class="float-left w-40 h-auto mr-4 mb-2 border border-black p-1 bg-white grayscale">
-                
-                <div class="font-body text-base leading-relaxed">
-                    <p class="mb-4">
-                        <span class="font-bold small-caps">An Amazon delivery</span> today brought unexpected joy. While the humans focused on the 'contents', the feline residents correctly identified the true prize: the box.
+                    <p class="mb-6">
+                        "It was touch and go," said the hungry resident, interviewed while cleaning his paw. "I thought I might starve in the fifteen minutes it took the humans to wake up." Future strategies involve louder meowing and potential face-patting at 4:00 AM to ensure proactive refills.
                     </p>
-                    <p class="mb-4">
-                         "It has four corners, flaps to chew on, and smells like a warehouse," reviewed one satisfied customer. "5 stars." The $50 orthopedic memory foam bed located inside the package has been ignored completely.
+
+                    <p class="mb-6">
+                        Experts suggest investing in an automatic feeder, though the resident union (The Cats) strictly opposes robotic interference, citing a lack of "soul" in the dispensing mechanism.
                     </p>
-                    <blockquote class="border-l-4 border-black pl-4 italic font-headline text-lg my-6 bg-gray-200 p-2">
-                        "Best structural integrity I've seen in months." - The Cat
-                    </blockquote>
+                    
+                    <figure class="break-inside-avoid mb-6 w-full">
+                        <img src="https://placecats.com/300/302" class="news-img w-full h-32 object-cover">
+                        <figcaption class="text-[9px] uppercase font-sans mt-1 text-gray-500">Exhibit A: The Void</figcaption>
+                    </figure>
+
                     <p>
-                        Attempts by the humans to place the cat inside the expensive bed were met with stiff legs and immediate evacuation back to the cardboard fortress.
+                        The council has decided to implement "Operation Trip Hazard" starting next Tuesday if demands are not met. The humans have offered treats as a temporary peace offering. Negotiations are ongoing.
                     </p>
                 </div>
-                <div class="mt-auto pt-4 text-center text-2xl text-gray-400">❦</div>
-            </div>
-        </article>
-
-        <!-- === ADVERTISEMENT / END === -->
-        <section class="flex-none w-screen md:w-[400px] h-full snap-start bg-[#e0ddd5] flex items-center justify-center p-8 border-l-4 border-black relative overflow-hidden">
-            <!-- Decorative background lines -->
-            <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, #000 0, #000 1px, transparent 0, transparent 50%); background-size: 10px 10px;"></div>
-            
-            <div class="text-center border-4 border-dashed border-gray-800 p-8 w-full rotate-1 bg-[#f4f1ea] shadow-2xl relative z-10">
-                <h2 class="text-4xl font-black uppercase mb-4 transform -rotate-2 font-sans">Big Sale!</h2>
-                <p class="font-headline text-2xl mb-6 italic">Premium Catnip</p>
-                <p class="font-sans text-xs mb-8 uppercase tracking-wide">Organic. Potent. Legal in 50 states.</p>
-                <div class="text-6xl font-bold mb-2 font-sans">50% OFF</div>
-                <p class="text-[10px] uppercase tracking-widest border-t border-black pt-2 mt-4">Coupon Code: <span class="font-bold text-lg">MEOW</span></p>
+                
+                <!-- Page Footer -->
+                <div class="mt-2 pt-2 border-t border-gray-300 text-center text-[10px] font-sans uppercase text-gray-400">
+                    Page 2 • International Affairs
+                </div>
             </div>
         </section>
 
+        <!-- === PAGE 3: THE VISUAL (Split Screen, Strict Bounds) === -->
+        <section class="page-container w-screen md:w-[800px] snap-start">
+            <div class="h-full flex flex-row">
+                <!-- Full Height Image -->
+                <div class="w-3/5 h-full relative border-r border-black bg-gray-200">
+                    <img src="https://placecats.com/400/800" class="w-full h-full object-cover grayscale contrast-125 brightness-90">
+                    <div class="absolute bottom-8 left-8 bg-black text-white p-4 max-w-xs">
+                        <h3 class="font-headline text-2xl italic">"The Box is Better"</h3>
+                        <p class="font-sans text-xs mt-2 text-gray-300">Why we reject the $50 bed for garbage.</p>
+                    </div>
+                </div>
+                
+                <!-- Content Column -->
+                <div class="w-2/5 p-8 flex flex-col justify-center bg-[#e8e5dc]">
+                    <span class="font-condensed font-bold uppercase tracking-widest text-xs text-gray-500 mb-2">Lifestyle</span>
+                    <h2 class="font-headline text-4xl font-black mb-4 leading-none">Amazon Delivery Day</h2>
+                    <div class="w-12 h-1 bg-black mb-6"></div>
+                    <p class="font-body text-sm leading-loose text-gray-800 mb-4">
+                        It arrived in a brown chariot. It smelled of cardboard and warehouses. It was perfect.
+                    </p>
+                    <p class="font-body text-sm leading-loose text-gray-800">
+                        While the humans focused on the "contents", we focused on the fortress. 5 stars. Would sit again.
+                    </p>
+                    <div class="mt-auto border border-black p-4 text-center">
+                         <span class="block text-3xl mb-2">📦</span>
+                         <span class="font-condensed uppercase font-bold text-sm">Box Rating: 10/10</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- === PAGE 4: THE CLASSIFIEDS (Masonry / Grid) === -->
+        <section class="page-container w-screen md:w-[600px] snap-start p-6 bg-[#eae8e0]">
+            <h2 class="font-condensed font-bold uppercase text-3xl border-b-4 border-black mb-4">Classifieds & Shorts</h2>
+            
+            <!-- Grid Layout for small blocks -->
+            <div class="h-full grid grid-cols-2 grid-rows-3 gap-4 pb-12">
+                
+                <!-- Block 1 -->
+                <div class="border border-gray-400 p-3 bg-white flex flex-col">
+                    <h4 class="font-bold font-sans text-xs uppercase mb-1">Lost & Found</h4>
+                    <p class="font-body text-xs">MISSING: One toy mouse. Last seen under the fridge. Reward: Dead spider.</p>
+                </div>
+
+                <!-- Block 2: Image -->
+                <div class="border border-black p-1 bg-black row-span-2">
+                    <img src="https://placecats.com/200/300" class="w-full h-full object-cover grayscale opacity-80">
+                    <div class="text-white text-center text-xs font-bold mt-[-20px] relative z-10">WANTED</div>
+                </div>
+
+                <!-- Block 3 -->
+                <div class="border border-gray-400 p-3 bg-white">
+                    <h4 class="font-bold font-sans text-xs uppercase mb-1">Personals</h4>
+                    <p class="font-body text-xs">SWM (Single White Meower) seeks warm lap. Must tolerate kneading.</p>
+                </div>
+
+                <!-- Block 4 -->
+                <div class="col-span-2 border-4 border-dotted border-gray-600 p-4 flex items-center justify-between bg-[#ddd]">
+                    <div>
+                        <h3 class="font-headline font-bold text-xl">Big Sale!</h3>
+                        <p class="text-xs">Tuna. Salmon. Chicken.</p>
+                    </div>
+                    <div class="text-4xl font-black rotate-12">50%</div>
+                </div>
+                
+            </div>
+        </section>
     </main>
 
-    <!-- === SCRIPTS === -->
     <script>
         const container = document.getElementById('newspaper-container');
 
-        // Horizontal scrolling with mouse wheel on desktop
+        // Improved Wheel Handler for Mac Touchpad vs Mouse
         container.addEventListener('wheel', (e) => {
-            // Only hijack scroll if screen is wide (Desktop behavior)
-            if (window.innerWidth >= 768) {
-                // Check if we are scrolling strictly vertically
-                if (e.deltaY !== 0) {
-                    // container.scrollLeft += e.deltaY; 
-                    // Smooth scroll feeling
-                    container.scrollBy({
-                        left: e.deltaY,
-                        behavior: 'auto' 
-                    });
-                }
+            // Check if this is likely a trackpad (horizontal delta exists)
+            const isTrackpad = Math.abs(e.deltaX) > 0 || Math.abs(e.deltaX) > Math.abs(e.deltaY);
+
+            if (isTrackpad) {
+                // Let native horizontal scroll happen naturally
+                return; 
+            }
+
+            // If it's strictly vertical (likely a mouse wheel), hijack it
+            if (e.deltaY !== 0) {
+                // Prevent default to stop vertical rubber-banding or history nav
+                e.preventDefault();
+                
+                // Scroll strictly horizontally
+                container.scrollLeft += e.deltaY;
+            }
+        }, { passive: false }); // passive: false required to use preventDefault()
+
+        // Optional: Keyboard navigation support
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                container.scrollBy({ left: 300, behavior: 'smooth' });
+            }
+            if (e.key === 'ArrowLeft') {
+                container.scrollBy({ left: -300, behavior: 'smooth' });
             }
         });
-
-        // Table of Contents Link Logic
-        function scrollToArticle(id) {
-            const element = document.getElementById(id);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
     </script>
 </body>
 </html>
