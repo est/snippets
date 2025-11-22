@@ -3,286 +3,424 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Daily Meow - Static Edition</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Oswald:wght@500&display=swap" rel="stylesheet">
+    <title>The Daily Meow - Global Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Chomsky&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        /* Hide scrollbar for Chrome, Safari and Opera */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        /* Hide scrollbar for IE, Edge and Firefox */
-        .no-scrollbar {
-            -ms-overflow-style: none;  /* IE and Edge */
-            scrollbar-width: none;  /* Firefox */
-        }
+        /* --- RESET & BASE --- */
+        * { box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #222; color: #1a1a1a; }
         
-        .font-headline { font-family: 'Playfair Display', serif; }
-        .font-body { font-family: 'Merriweather', serif; }
-        .font-condensed { font-family: 'Oswald', sans-serif; }
+        /* --- TYPOGRAPHY --- */
+        .font-masthead { font-family: 'Playfair Display', serif; font-weight: 900; letter-spacing: -2px; }
+        .font-headline { font-family: 'Playfair Display', serif; font-weight: 700; line-height: 0.95; }
+        .font-body { font-family: 'Merriweather', serif; line-height: 1.6; }
+        .font-sans { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Typography Tweaks */
+        h1, h2, h3, h4, p { margin-top: 0; }
+        
+        /* Drop Cap */
         .drop-cap::first-letter {
             float: left;
-            font-size: 3.5rem;
-            line-height: 3rem;
-            font-weight: 900;
-            margin-right: 0.5rem;
-            margin-top: -0.2rem;
+            font-size: 3.8em;
+            line-height: 0.8;
+            font-weight: bold;
+            margin-right: 8px;
             font-family: 'Playfair Display', serif;
         }
 
-        /* Image filters for newspaper look */
-        .news-img {
-            filter: grayscale(100%) contrast(120%) brightness(105%);
-            border: 1px solid #333;
+        /* --- LAYOUT CONTAINER --- */
+        /* The horizontal scrolling wrapper */
+        #paper-rail {
+            display: flex;
+            flex-direction: row;
+            height: 100%;
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            background: #111;
+            /* Hide Scrollbars */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE */
         }
+        #paper-rail::-webkit-scrollbar { display: none; }
 
-        /* Strict layout enforcement */
-        .page-container {
-            height: 100vh;
-            flex-shrink: 0;
-            overflow: hidden; /* Critical for "Strictly Horizontal" */
-            border-right: 1px solid #ccc;
-            background-color: #f4f1ea;
+        /* --- PAGE / SHEET STYLES --- */
+        .sheet {
+            flex: 0 0 auto;
+            height: 100%;
+            width: 100vw; /* Mobile default */
+            background-color: #f4f1ea; /* Newsprint color */
+            border-right: 1px solid #bbb;
+            scroll-snap-align: start;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden; /* Strict layout */
             display: flex;
             flex-direction: column;
         }
+
+        /* Desktop Sizing */
+        @media (min-width: 768px) {
+            .sheet { width: 600px; padding: 3rem; }
+            .sheet.wide { width: 900px; }
+            .sheet.narrow { width: 450px; }
+        }
+
+        /* --- COMMON COMPONENTS --- */
+        .divider-h { border-bottom: 2px solid #000; margin: 10px 0; }
+        .divider-thin { border-bottom: 1px solid #ccc; margin: 10px 0; }
+        .divider-double { border-bottom: 4px double #000; margin: 15px 0; }
+        
+        .img-box {
+            width: 100%;
+            filter: grayscale(100%) contrast(110%) sepia(10%);
+            border: 1px solid #333;
+            display: block;
+            object-fit: cover;
+        }
+        
+        .caption {
+            font-family: 'Oswald', sans-serif;
+            font-size: 0.65rem;
+            color: #666;
+            margin-top: 4px;
+            text-align: right;
+        }
+
+        /* --- PAGE SPECIFIC LAYOUTS --- */
+
+        /* Page 1: Front Page */
+        .masthead { text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+        .meta-bar { display: flex; justify-content: space-between; border-bottom: 1px solid #000; border-top: 1px solid #000; padding: 4px 0; margin-bottom: 10px; font-size: 0.7rem; font-weight: bold; }
+        .front-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: 100%; overflow: hidden; }
+        .main-story { display: flex; flex-direction: column; height: 100%; }
+        .sidebar { border-left: 1px solid #ccc; padding-left: 15px; display: flex; flex-direction: column; gap: 15px; }
+
+        /* Page 2: Business */
+        .ticker-tape { background: #000; color: #fff; padding: 5px; white-space: nowrap; overflow: hidden; font-family: 'Oswald'; font-size: 0.8rem; margin-bottom: 20px; }
+        .cols-3 { column-count: 2; column-gap: 2rem; height: 100%; text-align: justify; }
+        @media (min-width: 768px) { .cols-3 { column-count: 3; } }
+        
+        /* Page 3: Lifestyle (Visual) */
+        .lifestyle-layout { display: flex; height: 100%; gap: 0; position: absolute; top:0; left:0; width: 100%; }
+        .hero-img-col { width: 60%; height: 100%; position: relative; border-right: 1px solid #000; }
+        .hero-img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%); }
+        .hero-overlay { position: absolute; bottom: 20px; left: 20px; background: #fff; padding: 15px; border: 1px solid #000; max-width: 80%; }
+        .text-col { width: 40%; padding: 3rem; display: flex; flex-direction: column; justify-content: center; background: #e8e5dc; }
+
+        /* Page 4: Puzzles & Fun */
+        .puzzle-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: #000; border: 2px solid #000; width: 200px; margin: 0 auto 20px auto; }
+        .cell { background: #fff; aspect-ratio: 1; position: relative; }
+        .cell.black { background: #000; }
+        .cell-num { position: absolute; top: 1px; left: 2px; font-size: 8px; font-family: sans-serif; }
+        .comics-strip { display: flex; border: 2px solid #000; margin-top: auto; }
+        .comic-panel { flex: 1; border-right: 2px solid #000; padding: 10px; font-size: 0.8rem; min-height: 120px; position: relative; }
+        .comic-panel:last-child { border-right: none; }
+        .speech-bubble { background: #fff; border: 1px solid #000; border-radius: 50%; padding: 5px; position: absolute; top: 10px; left: 10px; font-size: 0.6rem; width: 60px; text-align: center; box-shadow: 2px 2px 0 #ccc; }
+
+        /* Page 5: Ad */
+        .full-ad { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; border: 10px double #000; padding: 20px; text-align: center; background: #f4f1ea; }
+        .ad-border { border: 2px dashed #666; padding: 40px; transform: rotate(-1deg); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
+        /* Utilities */
+        .text-sm { font-size: 0.85rem; }
+        .text-xs { font-size: 0.7rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .italic { font-style: italic; }
+        .center { text-align: center; }
+        .upper { text-transform: uppercase; }
+        .bold { font-weight: bold; }
+        .btn { background: #000; color: #fff; border: none; padding: 10px 20px; font-family: 'Oswald'; cursor: pointer; margin-top: 10px; }
+        .btn:hover { background: #333; }
+
     </style>
 </head>
-<body class="bg-[#222] h-screen w-screen overflow-hidden">
+<body>
 
-    <!-- Main Horizontal Container -->
-    <main id="newspaper-container" class="flex h-full w-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory no-scrollbar">
+    <main id="paper-rail">
 
-        <!-- === PAGE 1: THE FRONT PAGE (Complex Grid) === -->
-        <section class="page-container w-screen md:w-[800px] snap-start p-4 md:p-8">
-            <!-- Header Area -->
-            <header class="flex-none text-center border-b-4 border-black mb-4 pb-2">
-                <div class="flex justify-between border-b border-black mb-2 pb-1 text-[10px] uppercase font-bold tracking-widest text-gray-600 font-condensed">
-                    <span>Vol. 843</span>
-                    <span>New York • London • Kitchen</span>
-                    <span>$2.00</span>
+        <!-- ==========================
+             PAGE 1: THE FRONT PAGE
+        =========================== -->
+        <section class="sheet wide">
+            <header class="masthead">
+                <div class="meta-bar font-sans">
+                    <span>Vol. DCCCXLIII</span>
+                    <span>The World's Only Reliable News Source</span>
+                    <span>Price: One Dead Bird</span>
                 </div>
-                <h1 class="font-headline text-6xl md:text-8xl font-black tracking-tighter uppercase leading-none mb-2">
-                    The Daily Meow
-                </h1>
-                <p class="font-body italic text-sm text-gray-600">"All the news that's fit to scratch."</p>
+                <h1 class="font-masthead" style="font-size: 4.5rem; margin: 0;">The Daily Meow</h1>
+                <p class="font-body italic" style="margin-top: 5px;">"If it fits, we sits. If it breaks, we leave."</p>
             </header>
 
-            <!-- Front Page Content: 2 Columns -->
-            <div class="flex-1 flex gap-6 overflow-hidden">
-                
-                <!-- Left Column: Main Story -->
-                <div class="w-2/3 flex flex-col h-full">
-                    <div class="flex justify-between items-center border-t border-b border-black py-1 mb-3">
-                         <span class="font-condensed uppercase font-bold text-xs">Weather: Sunny</span>
-                         <span class="font-condensed uppercase font-bold text-xs">Breaking News</span>
+            <div class="front-grid">
+                <!-- Main Story Column -->
+                <article class="main-story">
+                    <div class="divider-h"></div>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                        <span class="font-sans text-xs bold">Breaking News</span>
+                        <span class="font-sans text-xs">Kitchen Sector</span>
                     </div>
+                    <h2 class="font-headline" style="font-size: 3rem; margin: 10px 0;">Treat Jar Left Unattended</h2>
+                    <h3 class="font-body italic" style="font-size: 1.2rem; color: #444; margin-bottom: 15px;">
+                        "Security Failure of the Century," Claims Lead Inspector.
+                    </h3>
                     
-                    <h2 class="font-headline text-4xl md:text-5xl font-bold leading-tight mb-2">
-                        Local Cat Discovers <br/> Perpetual Sunbeam
-                    </h2>
-                    
-                    <!-- Image takes available height but shrinks if text needs room -->
-                    <div class="flex-1 min-h-0 mb-4 relative overflow-hidden">
-                        <img src="https://placecats.com/500/400" class="news-img w-full h-full object-cover object-top">
-                        <div class="absolute bottom-0 right-0 bg-white px-2 py-1 text-[10px] border-t border-l border-black font-sans">Fig 1. The Miracle</div>
+                    <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                        <div style="flex: 0 0 auto; margin-bottom: 15px;">
+                            <img src="https://placecats.com/600/350" class="img-box" style="height: 250px;">
+                            <div class="caption">FIG 1. THE TARGET ACQUIRED AT 1400 HOURS.</div>
+                        </div>
+                        <div class="font-body text-sm" style="text-align: justify; column-count: 2; column-gap: 20px; flex: 1; overflow: hidden; position: relative;">
+                            <p class="drop-cap">It began as a routine patrol. Sergeant Mittens (3yo, Tabby) was circling the kitchen island when the anomaly was detected. The ceramic lid of the sacred jar was ajar. Not merely loose, but displaced by a full inch.</p>
+                            <p>Within seconds, the household alarm system (meowing) was disabled to maintain stealth. A strike team was assembled consisting of Mittens and the chaotic orange one, Cheddar.</p>
+                            <p>"We couldn't believe our eyes," Cheddar reported later, while licking crumbs from his whiskers. "Usually the Tall Ones guard this with their lives."</p>
+                            <p>Casualties were minimal: one shattered mug and a deeply regretful dog who was framed for the incident. The jar is now empty.</p>
+                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40px; background: linear-gradient(to top, #f4f1ea, transparent);"></div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Sidebar -->
+                <aside class="sidebar">
+                    <div class="weather-box" style="border: 2px solid #000; padding: 10px; text-align: center;">
+                        <h4 class="font-sans bold">Today's Forecast</h4>
+                        <p class="font-headline" style="font-size: 2rem; margin: 5px 0;">72°F</p>
+                        <p class="font-body text-xs">Sunbeams expected on the rug between 2 PM and 4 PM.</p>
                     </div>
 
-                    <div class="font-body text-sm leading-relaxed text-justify overflow-hidden relative">
-                        <p class="drop-cap">
-                            In a stunning turn of events, Whiskers (age 4) has located a sunbeam that allegedly "never moves." Physics experts are baffled. "It was roughly 2:00 PM," witnesses report. The household remains on high alert.
-                        </p>
-                        <p class="mt-2">
-                             If the sunbeam moves, Whiskers is expected to migrate, potentially disrupting foot traffic in the kitchen. Residents are advised to step carefully.
-                        </p>
-                        <!-- Gradient fade at bottom to imply text cutoff if screen is too short, preventing scroll -->
-                        <div class="absolute bottom-0 left-0 w-full h-8 bg-gradient-to-t from-[#f4f1ea] to-transparent"></div>
+                    <div class="short-news">
+                        <h4 class="font-headline bold" style="font-size: 1.3rem; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 5px;">Red Dot Update</h4>
+                        <p class="font-body text-xs">The elusive red dot was spotted on the ceiling. Physics professors are baffled. "It defies gravity," says Dr. Whiskers.</p>
+                    </div>
+
+                    <div class="short-news">
+                        <h4 class="font-headline bold" style="font-size: 1.3rem; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 5px;">Opinion: Vacuum</h4>
+                        <p class="font-body text-xs">Why must it scream? It eats nothing but dust, yet it roars like a lion. A petition to destroy it has reached 5 signatures.</p>
+                    </div>
+
+                    <div style="margin-top: auto; background: #e5e5e5; padding: 10px; border: 1px dashed #000;">
+                        <h5 class="font-sans center text-xs">Ad Space</h5>
+                        <p class="center font-headline bold">BUY BOXES</p>
+                    </div>
+                </aside>
+            </div>
+            <div class="font-sans center text-xs" style="margin-top: 10px;">Page 1 • National Edition</div>
+        </section>
+
+        <!-- ==========================
+             PAGE 2: BUSINESS
+        =========================== -->
+        <section class="sheet wide">
+            <header class="divider-double" style="display: flex; justify-content: space-between; align-items: flex-end;">
+                <h2 class="font-headline" style="font-size: 3rem;">Markets & Finance</h2>
+                <span class="font-sans bold">Section B</span>
+            </header>
+
+            <div class="ticker-tape">
+                TUNA ▲ 12.5%  |  CHICKEN ▼ 2.1%  |  MOUSE TOYS (PLASTIC) ▲ 0.5%  |  CATNIP (ORGANIC) ▲ 500%  |  DOG RESPECT ▼ 100%
+            </div>
+
+            <div class="cols-3 font-body text-sm">
+                <h3 class="font-sans bold upper" style="margin-bottom: 10px;">Market Analysis: The Wet Food Bubble</h3>
+                <p class="mb-2"><strong>By Felix The Fat Cat</strong></p>
+                <p>Analysts are warning of an impending "Kibble Correction" as household inventories of wet food (Paté variety) hit critical lows. The Strategic Tuna Reserve is reportedly down to three cans.</p>
+                <p>"If the humans don't go to the store by Friday," economist Mittens warns, "we are looking at a dry-food-only weekend. The riots will be unprecedented."</p>
+                <div style="border: 1px solid #000; padding: 10px; margin: 20px 0; break-inside: avoid;">
+                    <h4 class="font-sans center">Investment Tip</h4>
+                    <p class="center italic">Invest in cardboard. It retains value even when shredded.</p>
+                </div>
+                <p>Meanwhile, the Dog Bone market has crashed following the discovery that the "bone" was actually plastic. Investors are fleeing to high-yield sunbeams.</p>
+                
+                <h3 class="font-sans bold upper" style="margin-top: 30px; margin-bottom: 10px;">Workplace Productivity</h3>
+                <p>A new study shows that sleeping on the human's keyboard increases their typing speed by 0%, but increases overall cuteness by 100%. Management suggests this tradeoff is acceptable.</p>
+                
+                <img src="https://placecats.com/300/200" class="img-box" style="margin: 15px 0; height: 150px;">
+                <p class="caption">CHART A: CORRELATION BETWEEN NAPS AND HAPPINESS.</p>
+                
+                <p>The "Zoomies" sector saw a spike at 3 AM last night, causing significant noise pollution complaints from the downstairs neighbors. Shareholders are thrilled.</p>
+            </div>
+            <div class="font-sans center text-xs" style="border-top: 1px solid #ccc; padding-top: 5px; margin-top: 10px;">Page 2 • Financial Times</div>
+        </section>
+
+        <!-- ==========================
+             PAGE 3: LIFESTYLE (VISUAL)
+        =========================== -->
+        <section class="sheet" style="width: 100vw; padding: 0; border-right: 1px solid #999;">
+            <!-- Full layout logic handled by absolute positioning classes in CSS for this page -->
+            <div class="lifestyle-layout">
+                <div class="hero-img-col">
+                    <img src="https://placecats.com/500/800" class="hero-img">
+                    <div class="hero-overlay">
+                        <h2 class="font-headline" style="font-size: 2.5rem; margin-bottom: 10px;">The Art of The Nap</h2>
+                        <p class="font-body italic">Why 16 hours isn't enough.</p>
                     </div>
                 </div>
-
-                <!-- Right Column: Sidebar / Shorts -->
-                <div class="w-1/3 border-l border-gray-400 pl-4 flex flex-col gap-4 h-full">
-                    
-                    <!-- Short 1 -->
-                    <div class="flex-1 min-h-0 flex flex-col">
-                        <h3 class="font-headline text-xl font-bold mb-1">Red Dot Returns</h3>
-                        <p class="font-body text-xs leading-snug flex-1 overflow-hidden text-ellipsis">
-                            The elusive nemesis spotted on the wall. Authorities claim it is a laser pointer; local militia (The Cats) insists it is a ghost.
-                        </p>
-                    </div>
-                    
-                    <hr class="border-gray-300">
-
-                    <!-- Short 2 -->
-                    <div class="flex-1 min-h-0 flex flex-col">
-                        <h3 class="font-headline text-xl font-bold mb-1">Opinion: Dogs?</h3>
-                        <p class="font-body text-xs leading-snug flex-1 overflow-hidden text-ellipsis">
-                            Why do they run? Why do they pant? An in-depth look at our confusing roommates.
-                        </p>
-                    </div>
-
-                    <!-- Ad Box -->
-                    <div class="border-4 border-double border-black p-2 text-center mt-auto bg-white">
-                        <h4 class="font-condensed font-bold uppercase text-lg">Buy Catnip</h4>
-                        <p class="text-[10px] font-serif italic">Forget your troubles.</p>
+                <div class="text-col">
+                    <span class="font-sans bold text-xs" style="color: #666; letter-spacing: 2px;">EXCLUSIVE FEATURE</span>
+                    <h3 class="font-headline" style="font-size: 3rem; margin: 20px 0; line-height: 1;">Posture is Everything</h3>
+                    <div style="width: 50px; height: 4px; background: #000; margin-bottom: 20px;"></div>
+                    <p class="font-body text-sm" style="margin-bottom: 20px;">
+                        The "Liquid Cat" theory posits that cats are technically fluids. We fit in bowls, boxes, and vases. This article explores the physics of comfort.
+                    </p>
+                    <ul class="font-body text-sm" style="padding-left: 20px; list-style-type: square;">
+                        <li>The Loaf (Classic)</li>
+                        <li>The Shrimp (Curled)</li>
+                        <li>The Sploot (Legs out)</li>
+                    </ul>
+                    <div style="margin-top: auto; text-align: center; border: 1px solid #000; padding: 20px;">
+                        <span class="font-masthead" style="font-size: 3rem; display: block;">5/5</span>
+                        <span class="font-sans text-xs">RATING FOR CARDBOARD</span>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- === PAGE 2: THE FEATURE (Wide columns, horizontal text flow) === -->
-        <section class="page-container w-screen md:w-[900px] snap-start p-6 md:p-10">
-            <div class="h-full flex flex-col">
-                <div class="border-b-2 border-black pb-2 mb-4 flex items-end justify-between">
-                    <h2 class="font-headline text-6xl font-black uppercase tracking-tighter">The Empty Bowl</h2>
-                    <span class="font-condensed font-bold text-xl bg-black text-white px-2 mb-1">INVESTIGATION</span>
-                </div>
+        <!-- ==========================
+             PAGE 4: PUZZLES & COMICS
+        =========================== -->
+        <section class="sheet">
+            <header style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px;">
+                <h2 class="font-headline">Leisure & Games</h2>
+            </header>
 
-                <!-- CSS Columns allow text to flow horizontally into new columns instead of scrolling down -->
-                <div class="flex-1 columns-2 md:columns-3 gap-8 font-body text-sm md:text-base leading-relaxed text-justify tracking-wide" style="column-fill: auto;">
-                    
-                    <p class="mb-6 first-letter:text-5xl first-letter:font-bold first-letter:float-left first-letter:mr-2 first-letter:mt-[-8px] font-headline">
-                        A state of emergency was declared at 6:00 AM when the bottom of the ceramic food bowl became visible. Despite there being food around the edges, the center was clearly empty. This incident marks the third 'Famine' this week.
-                    </p>
-                    
-                    <div class="break-inside-avoid mb-6 border-t-2 border-b-2 border-gray-300 py-4">
-                        <h4 class="font-sans font-bold text-center uppercase text-xs mb-2 tracking-widest text-red-700">Timeline of Events</h4>
-                        <ul class="list-disc list-inside text-xs font-condensed space-y-1">
-                            <li><strong>05:55 AM</strong> - Subject wakes up.</li>
-                            <li><strong>06:00 AM</strong> - Bottom of bowl sighted.</li>
-                            <li><strong>06:02 AM</strong> - Song of Our People begins.</li>
-                            <li><strong>06:15 AM</strong> - Human wakes up (grumpy).</li>
-                        </ul>
+            <div style="display: flex; flex-direction: column; height: 100%;">
+                
+                <div style="display: flex; gap: 20px;">
+                    <div style="flex: 1;">
+                        <h4 class="font-sans center bold mb-2">Daily Crossword</h4>
+                        <div class="puzzle-grid">
+                            <!-- Row 1 -->
+                            <div class="cell"><span class="cell-num">1</span></div><div class="cell"></div><div class="cell"></div><div class="cell black"></div><div class="cell"><span class="cell-num">2</span></div>
+                            <!-- Row 2 -->
+                            <div class="cell"><span class="cell-num">3</span></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+                            <!-- Row 3 -->
+                            <div class="cell black"></div><div class="cell"></div><div class="cell black"></div><div class="cell"></div><div class="cell black"></div>
+                            <!-- Row 4 -->
+                            <div class="cell"><span class="cell-num">4</span></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+                            <!-- Row 5 -->
+                            <div class="cell"></div><div class="cell black"></div><div class="cell"></div><div class="cell black"></div><div class="cell"></div>
+                        </div>
+                        <div class="font-body text-xs" style="padding: 0 10px;">
+                            <strong>ACROSS:</strong><br>
+                            1. Sound made for food (4)<br>
+                            3. Enemy of the vacuum (4)<br>
+                            4. A caught mouse (4)
+                        </div>
                     </div>
 
-                    <p class="mb-6">
-                        "It was touch and go," said the hungry resident, interviewed while cleaning his paw. "I thought I might starve in the fifteen minutes it took the humans to wake up." Future strategies involve louder meowing and potential face-patting at 4:00 AM to ensure proactive refills.
-                    </p>
-
-                    <p class="mb-6">
-                        Experts suggest investing in an automatic feeder, though the resident union (The Cats) strictly opposes robotic interference, citing a lack of "soul" in the dispensing mechanism.
-                    </p>
-                    
-                    <figure class="break-inside-avoid mb-6 w-full">
-                        <img src="https://placecats.com/300/302" class="news-img w-full h-32 object-cover">
-                        <figcaption class="text-[9px] uppercase font-sans mt-1 text-gray-500">Exhibit A: The Void</figcaption>
-                    </figure>
-
-                    <p>
-                        The council has decided to implement "Operation Trip Hazard" starting next Tuesday if demands are not met. The humans have offered treats as a temporary peace offering. Negotiations are ongoing.
-                    </p>
+                    <div style="flex: 1; border-left: 1px solid #ccc; padding-left: 15px;">
+                        <h4 class="font-sans center bold mb-2">Horoscope</h4>
+                        <p class="font-body text-xs mb-2"><strong>Aries:</strong> You will stare at a wall for 20 minutes. It will be profound.</p>
+                        <p class="font-body text-xs mb-2"><strong>Leo:</strong> You are the king. Act like it. Knock over a glass.</p>
+                        <p class="font-body text-xs mb-2"><strong>Pisces:</strong> The fish tank looks delicious today. Resist.</p>
+                    </div>
                 </div>
-                
-                <!-- Page Footer -->
-                <div class="mt-2 pt-2 border-t border-gray-300 text-center text-[10px] font-sans uppercase text-gray-400">
-                    Page 2 • International Affairs
+
+                <div class="divider-double"></div>
+
+                <h4 class="font-sans bold text-xs">The Daily Strip: "Garfield's Cousin"</h4>
+                <div class="comics-strip">
+                    <div class="comic-panel">
+                        <div class="speech-bubble">I'm hungry.</div>
+                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🐱</div>
+                    </div>
+                    <div class="comic-panel">
+                        <div class="speech-bubble">Still hungry.</div>
+                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🐱</div>
+                    </div>
+                    <div class="comic-panel">
+                        <div class="speech-bubble">I just ate.</div>
+                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🥣</div>
+                    </div>
+                    <div class="comic-panel">
+                        <div class="speech-bubble">Hungry again.</div>
+                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🙀</div>
+                    </div>
                 </div>
+                <div class="font-sans center text-xs" style="margin-top: 10px;">Page 4 • Funnies</div>
             </div>
         </section>
 
-        <!-- === PAGE 3: THE VISUAL (Split Screen, Strict Bounds) === -->
-        <section class="page-container w-screen md:w-[800px] snap-start">
-            <div class="h-full flex flex-row">
-                <!-- Full Height Image -->
-                <div class="w-3/5 h-full relative border-r border-black bg-gray-200">
-                    <img src="https://placecats.com/400/800" class="w-full h-full object-cover grayscale contrast-125 brightness-90">
-                    <div class="absolute bottom-8 left-8 bg-black text-white p-4 max-w-xs">
-                        <h3 class="font-headline text-2xl italic">"The Box is Better"</h3>
-                        <p class="font-sans text-xs mt-2 text-gray-300">Why we reject the $50 bed for garbage.</p>
-                    </div>
-                </div>
-                
-                <!-- Content Column -->
-                <div class="w-2/5 p-8 flex flex-col justify-center bg-[#e8e5dc]">
-                    <span class="font-condensed font-bold uppercase tracking-widest text-xs text-gray-500 mb-2">Lifestyle</span>
-                    <h2 class="font-headline text-4xl font-black mb-4 leading-none">Amazon Delivery Day</h2>
-                    <div class="w-12 h-1 bg-black mb-6"></div>
-                    <p class="font-body text-sm leading-loose text-gray-800 mb-4">
-                        It arrived in a brown chariot. It smelled of cardboard and warehouses. It was perfect.
-                    </p>
-                    <p class="font-body text-sm leading-loose text-gray-800">
-                        While the humans focused on the "contents", we focused on the fortress. 5 stars. Would sit again.
-                    </p>
-                    <div class="mt-auto border border-black p-4 text-center">
-                         <span class="block text-3xl mb-2">📦</span>
-                         <span class="font-condensed uppercase font-bold text-sm">Box Rating: 10/10</span>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- === PAGE 4: THE CLASSIFIEDS (Masonry / Grid) === -->
-        <section class="page-container w-screen md:w-[600px] snap-start p-6 bg-[#eae8e0]">
-            <h2 class="font-condensed font-bold uppercase text-3xl border-b-4 border-black mb-4">Classifieds & Shorts</h2>
+        <!-- ==========================
+             PAGE 5: CLASSIFIEDS
+        =========================== -->
+        <section class="sheet narrow">
+            <h2 class="font-headline center upper" style="border-bottom: 4px solid #000;">Classifieds</h2>
             
-            <!-- Grid Layout for small blocks -->
-            <div class="h-full grid grid-cols-2 grid-rows-3 gap-4 pb-12">
-                
-                <!-- Block 1 -->
-                <div class="border border-gray-400 p-3 bg-white flex flex-col">
-                    <h4 class="font-bold font-sans text-xs uppercase mb-1">Lost & Found</h4>
-                    <p class="font-body text-xs">MISSING: One toy mouse. Last seen under the fridge. Reward: Dead spider.</p>
+            <div style="column-count: 1; gap: 1rem; font-size: 0.75rem; margin-top: 10px;">
+                <div style="border-bottom: 1px dotted #000; padding-bottom: 5px; margin-bottom: 5px;">
+                    <strong>HELP WANTED:</strong> Lap warmer needed. Must not move for 3 hours. Pay: Purrs.
                 </div>
-
-                <!-- Block 2: Image -->
-                <div class="border border-black p-1 bg-black row-span-2">
-                    <img src="https://placecats.com/200/300" class="w-full h-full object-cover grayscale opacity-80">
-                    <div class="text-white text-center text-xs font-bold mt-[-20px] relative z-10">WANTED</div>
+                <div style="border-bottom: 1px dotted #000; padding-bottom: 5px; margin-bottom: 5px;">
+                    <strong>FOR SALE:</strong> Dead bird. Slightly chewed. Fresh from the yard. Make offer.
                 </div>
-
-                <!-- Block 3 -->
-                <div class="border border-gray-400 p-3 bg-white">
-                    <h4 class="font-bold font-sans text-xs uppercase mb-1">Personals</h4>
-                    <p class="font-body text-xs">SWM (Single White Meower) seeks warm lap. Must tolerate kneading.</p>
+                <div style="border-bottom: 1px dotted #000; padding-bottom: 5px; margin-bottom: 5px;">
+                    <strong>LOST:</strong> Dignity. Last seen when I fell off the couch while grooming.
                 </div>
-
-                <!-- Block 4 -->
-                <div class="col-span-2 border-4 border-dotted border-gray-600 p-4 flex items-center justify-between bg-[#ddd]">
-                    <div>
-                        <h3 class="font-headline font-bold text-xl">Big Sale!</h3>
-                        <p class="text-xs">Tuna. Salmon. Chicken.</p>
-                    </div>
-                    <div class="text-4xl font-black rotate-12">50%</div>
+                <div style="border-bottom: 1px dotted #000; padding-bottom: 5px; margin-bottom: 5px;">
+                    <strong>MISSED CONNECTION:</strong> You were the stray outside the window. I was the indoor cat hissing. Call me.
                 </div>
                 
+                <div style="border: 2px solid #000; padding: 10px; margin-top: 20px; text-align: center; background: #fff;">
+                    <h4 class="font-sans bold">OBITUARIES</h4>
+                    <p class="italic">In Loving Memory of</p>
+                    <p class="bold" style="font-size: 1rem;">MR. SQUEAKS</p>
+                    <p>2024-2025</p>
+                    <p>Tragically unstuffed during a midnight frenzy. He leaves behind a plastic shell and some catnip dust.</p>
+                </div>
+            </div>
+             <div class="font-sans center text-xs" style="margin-top: auto;">Page 5 • Notices</div>
+        </section>
+
+         <!-- ==========================
+             PAGE 6: BACK PAGE AD
+        =========================== -->
+        <section class="sheet">
+            <div class="full-ad">
+                <div class="ad-border">
+                    <p class="font-sans upper bold text-sm">Advertisement</p>
+                    <h2 class="font-headline" style="font-size: 4rem; line-height: 1; margin: 20px 0;">DR. PURR'S<br>MAGIC TONIC</h2>
+                    <img src="https://placecats.com/200/200" style="border-radius: 50%; border: 4px solid #000; width: 150px; height: 150px; object-fit: cover; margin: 20px 0;">
+                    <p class="font-body italic" style="font-size: 1.2rem;">"Cures Lethargy!*<br>Induces Zoomies!"</p>
+                    <p class="text-xs" style="margin-top: 20px;">*Side effects may include staring at ghosts and attacking ankles.</p>
+                    <button class="btn">ORDER NOW</button>
+                </div>
             </div>
         </section>
+
     </main>
 
     <script>
-        const container = document.getElementById('newspaper-container');
+        const rail = document.getElementById('paper-rail');
 
-        // Improved Wheel Handler for Mac Touchpad vs Mouse
-        container.addEventListener('wheel', (e) => {
-            // Check if this is likely a trackpad (horizontal delta exists)
+        // Smooth Horizontal Scroll for Mouse Wheel
+        rail.addEventListener('wheel', (e) => {
+            // Detect if the user is using a trackpad (which has horizontal delta)
             const isTrackpad = Math.abs(e.deltaX) > 0 || Math.abs(e.deltaX) > Math.abs(e.deltaY);
 
             if (isTrackpad) {
-                // Let native horizontal scroll happen naturally
-                return; 
+                return; // Let native trackpad panning work
             }
 
-            // If it's strictly vertical (likely a mouse wheel), hijack it
+            // If it's a vertical mouse wheel, convert to horizontal scroll
             if (e.deltaY !== 0) {
-                // Prevent default to stop vertical rubber-banding or history nav
                 e.preventDefault();
-                
-                // Scroll strictly horizontally
-                container.scrollLeft += e.deltaY;
+                rail.scrollBy({
+                    left: e.deltaY,
+                    behavior: 'auto' // 'smooth' can cause lag on rapid wheel
+                });
             }
-        }, { passive: false }); // passive: false required to use preventDefault()
+        }, { passive: false });
 
-        // Optional: Keyboard navigation support
+        // Optional: Keyboard Nav
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') {
-                container.scrollBy({ left: 300, behavior: 'smooth' });
-            }
-            if (e.key === 'ArrowLeft') {
-                container.scrollBy({ left: -300, behavior: 'smooth' });
-            }
+            if (e.key === 'ArrowRight') rail.scrollBy({ left: 400, behavior: 'smooth' });
+            if (e.key === 'ArrowLeft') rail.scrollBy({ left: -400, behavior: 'smooth' });
         });
     </script>
+
 </body>
 </html>
