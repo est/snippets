@@ -13,19 +13,17 @@
         body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #222; color: #1a1a1a; font-family: 'Noto Sans SC', sans-serif, Arial; }
         
         /* --- TYPOGRAPHY: CHINESE FONT MAPPING --- */
-        /* 报头/大标题：使用宋体粗体 (Noto Serif SC) */
         .font-masthead { font-family: 'Noto Serif SC', serif; font-weight: 900; letter-spacing: -1px; }
         .font-headline { font-family: 'Noto Serif SC', serif; font-weight: 700; line-height: 1.1; }
-        /* 正文/辅助文字：使用黑体 (Noto Sans SC) 更清晰 */
         .font-body { font-family: 'Noto Sans SC', sans-serif; line-height: 1.6; font-size: 0.8rem; font-weight: 400; }
         .font-sans { font-family: 'Noto Sans SC', sans-serif; text-transform: none; letter-spacing: 0; font-weight: 500; }
 
         h1, h2, h3, h4, p { margin-top: 0; margin-bottom: 0.5em; }
         
-        /* Drop Cap (首字下沉，更适用于中文段落，可能需要调整字号) */
+        /* Drop Cap (首字下沉) */
         .drop-cap::first-letter {
             float: left;
-            font-size: 3.0em; /* Slightly smaller for Chinese characters */
+            font-size: 3.0em;
             line-height: 0.8;
             font-weight: bold;
             margin-right: 6px;
@@ -40,7 +38,6 @@
             width: 100%;
             overflow-x: auto;
             overflow-y: hidden;
-            /* Proximity snapping for smoother trackpad scrolling */
             scroll-snap-type: x proximity; 
             scroll-behavior: smooth;
             background: #111;
@@ -96,24 +93,57 @@
         /* Page 1: Front Page */
         .masthead { text-align: center; border-bottom: 3px solid #000; padding-bottom: 8px; margin-bottom: 15px; }
         .meta-bar { display: flex; justify-content: space-between; border-bottom: 1px solid #000; border-top: 1px solid #000; padding: 3px 0; margin-bottom: 8px; font-size: 0.7rem; font-weight: bold; }
-        .front-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; height: 100%; overflow: hidden; }
-        .main-story { display: flex; flex-direction: column; height: 100%; }
-        .sidebar { border-left: 1px solid #ccc; padding-left: 12px; display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Front Grid: Mobile Stacking (Default) */
+        .front-grid { 
+            display: grid; 
+            grid-template-columns: 1fr; /* Default: Single column stacking for mobile */
+            gap: 15px; 
+            height: 100%; 
+            overflow: hidden; 
+        }
+        
+        /* Sidebar: Remove border/padding on mobile */
+        .sidebar { 
+            border-left: none; 
+            padding-left: 0;
+            display: flex; 
+            flex-direction: column; 
+            gap: 10px; 
+        }
 
-        /* Story text container on Page 1 */
+        /* Main Story Content: Single Column on Mobile (Default) */
+        .main-story-content {
+            height: 100%;
+            text-align: justify; 
+            column-count: 1; /* Default: Single column on narrow screens */
+            column-gap: 1.5rem; 
+            font-size: 0.8rem; 
+        }
+
+        /* Desktop Adjustments (>= 768px) */
+        @media (min-width: 768px) {
+            .front-grid { 
+                grid-template-columns: 2fr 1fr; /* Desktop: Two columns */
+            }
+            .sidebar { 
+                border-left: 1px solid #ccc; /* Restore border on desktop */
+                padding-left: 12px;
+            }
+            .main-story-content {
+                column-count: 2; /* Two columns on desktop */
+            }
+        }
+        
+        .main-story { display: flex; flex-direction: column; height: 100%; }
+
         .main-story-content-wrapper { 
             flex: 1; 
             overflow: hidden; 
             position: relative; 
-            padding-bottom: 25px; /* Space for the gradient to fade */
+            padding-bottom: 25px; 
         }
-        .main-story-content {
-            height: 100%;
-            text-align: justify; 
-            column-count: 2; 
-            column-gap: 1.5rem; 
-            font-size: 0.8rem; /* Adjusted up for better Chinese reading */
-        }
+
         .main-story-gradient {
             position: absolute; 
             bottom: 0; 
@@ -125,7 +155,11 @@
 
         /* Page 2: Business */
         .ticker-tape { background: #000; color: #fff; padding: 4px; font-size: 0.8rem; margin-bottom: 15px; }
-        .cols-3 { column-count: 2; column-gap: 1.5rem; height: 100%; text-align: justify; }
+        
+        /* Business Content: Single Column on Mobile (Default) */
+        .cols-3 { column-count: 1; column-gap: 1.5rem; height: 100%; text-align: justify; font-size: 0.8rem;}
+        
+        /* Desktop Adjustment for Business Content (>= 768px) */
         @media (min-width: 768px) { .cols-3 { column-count: 3; } }
         
         /* Table density */
@@ -135,24 +169,55 @@
 
         /* Page 3: Lifestyle (Visual) */
         .sheet.visual-page { padding: 0; }
+        
+        /* Lifestyle Layout: Stacked on Mobile (Default) */
         .lifestyle-layout { 
             display: flex; 
+            flex-direction: column; /* Stacked columns for mobile */
             height: 100%; 
             width: 100%;
             gap: 0; 
         }
-        .hero-img-col { width: 60%; height: 100%; position: relative; border-right: 1px solid #000; }
-        .hero-img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%); }
-        .hero-overlay { position: absolute; bottom: 15px; left: 15px; background: #fff; padding: 10px; border: 1px solid #000; max-width: 85%; }
+        
+        /* Text column takes full width on mobile */
         .text-col { 
-            width: 40%; 
+            width: 100%; 
             padding: 1.25rem; 
             display: flex; 
             flex-direction: column; 
             justify-content: center; 
             background: #e8e5dc; 
-            min-height: 100%;
+            min-height: auto; 
+            order: -1; /* Place text above image on mobile for better viewing */
         }
+        
+        /* Image column takes full width on mobile */
+        .hero-img-col { 
+            width: 100%; 
+            height: 250px; /* Fixed height for image on mobile */
+            position: relative; 
+            border-right: none; 
+        }
+
+        /* Desktop Adjustments for Lifestyle (>= 768px) */
+        @media (min-width: 768px) {
+            .lifestyle-layout { 
+                flex-direction: row; /* Horizontal columns for desktop */
+            }
+            .hero-img-col { 
+                width: 60%; 
+                height: 100%; 
+                border-right: 1px solid #000; 
+            }
+            .text-col { 
+                width: 40%; 
+                min-height: 100%;
+                order: 0;
+            }
+        }
+        
+        .hero-img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%); }
+        .hero-overlay { position: absolute; bottom: 15px; left: 15px; background: #fff; padding: 10px; border: 1px solid #000; max-width: 85%; }
 
         /* Page 4: Puzzles & Fun */
         .puzzle-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: #000; border: 1px solid #000; width: 180px; margin: 0 auto 15px auto; }
@@ -273,10 +338,10 @@
                 金枪鱼 ▲ 12.5%  |  鸡肉 ▼ 2.1%  |  塑料老鼠玩具 ▲ 0.5%  |  有机猫薄荷 ▲ 500%  |  狗的尊重度 ▼ 100%
             </div>
 
-            <div class="cols-3 font-body" style="font-size: 0.8rem;">
+            <div class="cols-3 font-body">
                 <h3 class="font-sans bold upper" style="margin-bottom: 8px;">市场分析：湿粮泡沫</h3>
                 <p class="mb-2"><strong>首席市场分析师 胖猫费利克斯 撰</strong></p>
-                <p>分析师警告，由于湿粮（肉酱型）家庭库存达到危急低点，一场“猫粮修正”即将到来。据报道，战略金枪鱼储备已降至三罐。鉴于最近一次意外降雪日导致的补货延迟，引发了重大的市场焦虑，情况令人担忧。</p>
+                <p>分析师警告，由于湿粮（肉酱型）家庭库存达到危急低点，一场“猫粮修正”即将到来。战略金枪鱼储备已降至三罐。鉴于最近一次意外降雪日导致的补货延迟，引发了重大的市场焦虑，情况令人担忧。</p>
                 <p>“如果人类周五前不去商店，”经济学家米滕斯警告说，“我们将面临一个纯干粮的周末。由此引发的家庭骚乱将是前所未有的。我们的模拟显示，抓墙行为将增加40%，总体可爱度将下降70%。”</p>
                 
                 <table class="stock-table">
@@ -298,7 +363,7 @@
                 <p>与此同时，狗骨头市场在发现“骨头”实际上是塑料后崩盘，导致投资者纷纷转向高收益的阳光。分析师建议清算所有非必需资产，并将财富整合到高度流动的资源中，主要是房子里最柔软的毯子，该资产本季度价值上涨了25%。</p>
                 
                 <h3 class="font-sans bold upper" style="margin-top: 15px; margin-bottom: 8px;">工作场所生产力</h3>
-                <p>一项新研究表明，睡在人类键盘上，他们的打字速度提高了0%，但总体可爱度（以及因此产生的情感杠杆作用）提高了100%。管理层认为这种权衡不仅可以接受，而且对于优化同居是强制性的。此外，这种做法确保人类不会将电脑用于“工作”等无意义的活动，而应该用来撸猫。</p>
+                <p>一项新研究表明，睡在人类键盘上，他们的打字速度提高了0%，但总体可爱度（以及因此产生的情感杠杆作用）提高了100%。管理层建议这种权衡不仅可以接受，而且对于优化同居是强制性的。此外，这种做法确保人类不会将电脑用于“工作”等无意义的活动，而应该用来撸猫。</p>
                 
                 <img src="https://placecats.com/300/200" class="img-box" style="margin: 10px 0; height: 120px;">
                 <p class="caption">图表A：午睡与幸福感之间的相关性。注意饭后急剧上升的趋势。</p>
@@ -446,7 +511,7 @@
                     <p class="italic font-body text-xs">深切缅怀</p>
                     <p class="bold font-headline" style="font-size: 1.2rem; margin: 3px 0;">吱吱先生</p>
                     <p class="font-body text-xs">2024-2025</p>
-                    <p class="font-body text-xs">在一次午夜狂热中不幸被拆解。他留下了一个塑料外壳和一些猫薄荷灰尘。追悼会将在暖气片旁举行。请勿献花，请提供金枪鱼。</p>
+                    <p class="font-body text-xs">不幸被拆解。他留下了一个塑料外壳和一些猫薄荷灰尘。追悼会将在暖气片旁举行。请勿献花，请提供金枪鱼。</p>
                 </div>
             </div>
         </section>
@@ -473,7 +538,6 @@
         const rail = document.getElementById('paper-rail');
 
         // Smooth Horizontal Scroll for Mouse Wheel
-        // Uses 'proximity' snap in CSS for smoother trackpad scrolling.
         rail.addEventListener('wheel', (e) => {
             const isHorizontalScroll = Math.abs(e.deltaX) > Math.abs(e.deltaY);
 
