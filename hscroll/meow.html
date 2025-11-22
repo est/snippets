@@ -13,23 +13,22 @@
         /* --- TYPOGRAPHY --- */
         .font-masthead { font-family: 'Playfair Display', serif; font-weight: 900; letter-spacing: -2px; }
         .font-headline { font-family: 'Playfair Display', serif; font-weight: 700; line-height: 0.95; }
-        .font-body { font-family: 'Merriweather', serif; line-height: 1.6; }
+        .font-body { font-family: 'Merriweather', serif; line-height: 1.45; font-size: 0.8rem; } /* TIGHTER TEXT SIZE & LINE HEIGHT */
         .font-sans { font-family: 'Oswald', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
 
-        h1, h2, h3, h4, p { margin-top: 0; }
+        h1, h2, h3, h4, p { margin-top: 0; margin-bottom: 0.5em; } /* TIGHTER PARAGRAPH SPACING */
         
         /* Drop Cap */
         .drop-cap::first-letter {
             float: left;
-            font-size: 3.8em;
+            font-size: 3.5em; /* Slightly smaller drop cap */
             line-height: 0.8;
             font-weight: bold;
-            margin-right: 8px;
+            margin-right: 6px; /* Tighter margin */
             font-family: 'Playfair Display', serif;
         }
 
         /* --- LAYOUT CONTAINER --- */
-        /* The horizontal scrolling wrapper */
         #paper-rail {
             display: flex;
             flex-direction: row;
@@ -40,9 +39,8 @@
             scroll-snap-type: x mandatory;
             scroll-behavior: smooth;
             background: #111;
-            /* Hide Scrollbars */
-            scrollbar-width: none; /* Firefox */
-            -ms-overflow-style: none;  /* IE */
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
         #paper-rail::-webkit-scrollbar { display: none; }
 
@@ -50,28 +48,28 @@
         .sheet {
             flex: 0 0 auto;
             height: 100%;
-            width: 100vw; /* Mobile default */
-            background-color: #f4f1ea; /* Newsprint color */
+            width: 100vw;
+            background-color: #f4f1ea;
             border-right: 1px solid #bbb;
             scroll-snap-align: start;
-            padding: 2rem;
+            padding: 1.5rem; /* REDUCED PADDING */
             position: relative;
-            overflow: hidden; /* Strict layout */
+            overflow: hidden;
             display: flex;
             flex-direction: column;
         }
 
         /* Desktop Sizing */
         @media (min-width: 768px) {
-            .sheet { width: 600px; padding: 3rem; }
-            .sheet.wide { width: 900px; }
+            .sheet { width: 650px; padding: 2.5rem; } /* Slightly wider for density */
+            .sheet.wide { width: 950px; }
             .sheet.narrow { width: 450px; }
         }
 
         /* --- COMMON COMPONENTS --- */
-        .divider-h { border-bottom: 2px solid #000; margin: 10px 0; }
-        .divider-thin { border-bottom: 1px solid #ccc; margin: 10px 0; }
-        .divider-double { border-bottom: 4px double #000; margin: 15px 0; }
+        .divider-h { border-bottom: 1px solid #000; margin: 8px 0; } /* Thinner divider, tighter margin */
+        .divider-thin { border-bottom: 1px solid #ccc; margin: 8px 0; }
+        .divider-double { border-bottom: 4px double #000; margin: 12px 0; } /* Tighter margin */
         
         .img-box {
             width: 100%;
@@ -83,56 +81,58 @@
         
         .caption {
             font-family: 'Oswald', sans-serif;
-            font-size: 0.65rem;
+            font-size: 0.6rem; /* Tighter caption font */
             color: #666;
-            margin-top: 4px;
+            margin-top: 2px;
             text-align: right;
         }
 
         /* --- PAGE SPECIFIC LAYOUTS --- */
 
         /* Page 1: Front Page */
-        .masthead { text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-        .meta-bar { display: flex; justify-content: space-between; border-bottom: 1px solid #000; border-top: 1px solid #000; padding: 4px 0; margin-bottom: 10px; font-size: 0.7rem; font-weight: bold; }
-        .front-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; height: 100%; overflow: hidden; }
+        .masthead { text-align: center; border-bottom: 3px solid #000; padding-bottom: 8px; margin-bottom: 15px; } /* Tighter margins */
+        .meta-bar { display: flex; justify-content: space-between; border-bottom: 1px solid #000; border-top: 1px solid #000; padding: 3px 0; margin-bottom: 8px; font-size: 0.65rem; font-weight: bold; } /* Tighter margins */
+        .front-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 15px; height: 100%; overflow: hidden; } /* Tighter gap */
         .main-story { display: flex; flex-direction: column; height: 100%; }
-        .sidebar { border-left: 1px solid #ccc; padding-left: 15px; display: flex; flex-direction: column; gap: 15px; }
+        .sidebar { border-left: 1px solid #ccc; padding-left: 12px; display: flex; flex-direction: column; gap: 10px; } /* Tighter padding and gap */
 
         /* Page 2: Business */
-        .ticker-tape { background: #000; color: #fff; padding: 5px; white-space: nowrap; overflow: hidden; font-family: 'Oswald'; font-size: 0.8rem; margin-bottom: 20px; }
-        .cols-3 { column-count: 2; column-gap: 2rem; height: 100%; text-align: justify; }
+        .ticker-tape { background: #000; color: #fff; padding: 4px; font-size: 0.75rem; margin-bottom: 15px; } /* Tighter padding */
+        .cols-3 { column-count: 2; column-gap: 1.5rem; height: 100%; text-align: justify; } /* Tighter gap */
         @media (min-width: 768px) { .cols-3 { column-count: 3; } }
         
+        /* Table density */
+        .stock-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; font-size: 0.7rem; }
+        .stock-table th, .stock-table td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
+        .stock-table th { background: #eee; font-family: 'Oswald', sans-serif; }
+
         /* Page 3: Lifestyle (Visual) */
         .lifestyle-layout { display: flex; height: 100%; gap: 0; position: absolute; top:0; left:0; width: 100%; }
         .hero-img-col { width: 60%; height: 100%; position: relative; border-right: 1px solid #000; }
-        .hero-img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%); }
-        .hero-overlay { position: absolute; bottom: 20px; left: 20px; background: #fff; padding: 15px; border: 1px solid #000; max-width: 80%; }
-        .text-col { width: 40%; padding: 3rem; display: flex; flex-direction: column; justify-content: center; background: #e8e5dc; }
+        .hero-overlay { position: absolute; bottom: 15px; left: 15px; background: #fff; padding: 10px; border: 1px solid #000; max-width: 85%; } /* Tighter padding */
+        .text-col { width: 40%; padding: 2rem; display: flex; flex-direction: column; justify-content: center; background: #e8e5dc; } /* Tighter padding */
 
         /* Page 4: Puzzles & Fun */
-        .puzzle-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; background: #000; border: 2px solid #000; width: 200px; margin: 0 auto 20px auto; }
+        .puzzle-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: #000; border: 1px solid #000; width: 180px; margin: 0 auto 15px auto; } /* Smaller grid */
         .cell { background: #fff; aspect-ratio: 1; position: relative; }
-        .cell.black { background: #000; }
-        .cell-num { position: absolute; top: 1px; left: 2px; font-size: 8px; font-family: sans-serif; }
+        .cell-num { position: absolute; top: 0px; left: 1px; font-size: 7px; } /* Smaller number */
         .comics-strip { display: flex; border: 2px solid #000; margin-top: auto; }
-        .comic-panel { flex: 1; border-right: 2px solid #000; padding: 10px; font-size: 0.8rem; min-height: 120px; position: relative; }
-        .comic-panel:last-child { border-right: none; }
-        .speech-bubble { background: #fff; border: 1px solid #000; border-radius: 50%; padding: 5px; position: absolute; top: 10px; left: 10px; font-size: 0.6rem; width: 60px; text-align: center; box-shadow: 2px 2px 0 #ccc; }
+        .comic-panel { flex: 1; border-right: 2px solid #000; padding: 8px; font-size: 0.7rem; min-height: 100px; position: relative; } /* Tighter padding/size */
+        .speech-bubble { padding: 4px; font-size: 0.55rem; width: 55px; } /* Smaller bubble */
 
-        /* Page 5: Ad */
-        .full-ad { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; border: 10px double #000; padding: 20px; text-align: center; background: #f4f1ea; }
-        .ad-border { border: 2px dashed #666; padding: 40px; transform: rotate(-1deg); width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        /* Page 5: Classifieds */
+        .classified-item { border-bottom: 1px dotted #000; padding-bottom: 3px; margin-bottom: 5px; font-size: 0.7rem; line-height: 1.3; } /* Very tight spacing */
+        .classified-item strong { display: block; margin-bottom: 2px; font-size: 0.8rem; }
 
         /* Utilities */
-        .text-sm { font-size: 0.85rem; }
-        .text-xs { font-size: 0.7rem; }
+        .text-sm { font-size: 0.8rem; }
+        .text-xs { font-size: 0.65rem; }
         .mb-2 { margin-bottom: 0.5rem; }
         .italic { font-style: italic; }
         .center { text-align: center; }
         .upper { text-transform: uppercase; }
         .bold { font-weight: bold; }
-        .btn { background: #000; color: #fff; border: none; padding: 10px 20px; font-family: 'Oswald'; cursor: pointer; margin-top: 10px; }
+        .btn { background: #000; color: #fff; border: none; padding: 8px 15px; font-family: 'Oswald'; cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
         .btn:hover { background: #333; }
 
     </style>
@@ -147,12 +147,12 @@
         <section class="sheet wide">
             <header class="masthead">
                 <div class="meta-bar font-sans">
-                    <span>Vol. DCCCXLIII</span>
+                    <span>Vol. DCCCXLIII, No. 104,801</span>
                     <span>The World's Only Reliable News Source</span>
                     <span>Price: One Dead Bird</span>
                 </div>
-                <h1 class="font-masthead" style="font-size: 4.5rem; margin: 0;">The Daily Meow</h1>
-                <p class="font-body italic" style="margin-top: 5px;">"If it fits, we sits. If it breaks, we leave."</p>
+                <h1 class="font-masthead" style="font-size: 4rem; margin: 0;">The Daily Meow</h1>
+                <p class="font-body italic" style="margin-top: 3px; font-size: 0.75rem;">"If it fits, we sits. If it breaks, we leave." Established 1789 (approx.).</p>
             </header>
 
             <div class="front-grid">
@@ -160,62 +160,70 @@
                 <article class="main-story">
                     <div class="divider-h"></div>
                     <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                        <span class="font-sans text-xs bold">Breaking News</span>
-                        <span class="font-sans text-xs">Kitchen Sector</span>
+                        <span class="font-sans text-xs bold">Breaking News & Investigation</span>
+                        <span class="font-sans text-xs">Kitchen Sector, West Wing</span>
                     </div>
-                    <h2 class="font-headline" style="font-size: 3rem; margin: 10px 0;">Treat Jar Left Unattended</h2>
-                    <h3 class="font-body italic" style="font-size: 1.2rem; color: #444; margin-bottom: 15px;">
-                        "Security Failure of the Century," Claims Lead Inspector.
+                    <h2 class="font-headline" style="font-size: 2.8rem; margin: 8px 0;">Treat Jar Left Unattended</h2>
+                    <h3 class="font-body italic" style="font-size: 1rem; color: #444; margin-bottom: 10px;">
+                        "Security Failure of the Century," Claims Lead Inspector. Consequences Severe.
                     </h3>
                     
                     <div style="flex: 1; overflow: hidden; display: flex; flex-direction: column;">
-                        <div style="flex: 0 0 auto; margin-bottom: 15px;">
-                            <img src="https://placecats.com/600/350" class="img-box" style="height: 250px;">
-                            <div class="caption">FIG 1. THE TARGET ACQUIRED AT 1400 HOURS.</div>
+                        <div style="flex: 0 0 auto; margin-bottom: 10px;">
+                            <img src="https://placecats.com/650/350" class="img-box" style="height: 200px;">
+                            <div class="caption">FIG 1. THE TARGET ACQUIRED AT 1400 HOURS. Note the structural integrity breach (lid ajar).</div>
                         </div>
-                        <div class="font-body text-sm" style="text-align: justify; column-count: 2; column-gap: 20px; flex: 1; overflow: hidden; position: relative;">
-                            <p class="drop-cap">It began as a routine patrol. Sergeant Mittens (3yo, Tabby) was circling the kitchen island when the anomaly was detected. The ceramic lid of the sacred jar was ajar. Not merely loose, but displaced by a full inch.</p>
-                            <p>Within seconds, the household alarm system (meowing) was disabled to maintain stealth. A strike team was assembled consisting of Mittens and the chaotic orange one, Cheddar.</p>
-                            <p>"We couldn't believe our eyes," Cheddar reported later, while licking crumbs from his whiskers. "Usually the Tall Ones guard this with their lives."</p>
-                            <p>Casualties were minimal: one shattered mug and a deeply regretful dog who was framed for the incident. The jar is now empty.</p>
-                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 40px; background: linear-gradient(to top, #f4f1ea, transparent);"></div>
+                        <div class="font-body" style="text-align: justify; column-count: 2; column-gap: 15px; flex: 1; overflow: hidden; position: relative; font-size: 0.75rem;">
+                            <p class="drop-cap">It began as a routine patrol. Sergeant Mittens (3yo, Tabby) was circling the kitchen island when the anomaly was detected. The ceramic lid of the sacred jar was ajar. Not merely loose, but displaced by a full inch. This represented a catastrophic breach of the domestic security protocol, a system designed primarily by the residents.</p>
+                            <p>Within seconds, the household alarm system (meowing) was disabled to maintain stealth. A strike team was assembled consisting of Mittens and the chaotic orange one, Cheddar. Their objective: resource reallocation.</p>
+                            <p>"We couldn't believe our eyes," Cheddar reported later, while meticulously licking crumbs from his whiskers. "Usually the Tall Ones guard this with their lives. The lapse in attention suggests either extreme complacency or a planned distraction, possibly involving loud noises outside."</p>
+                            <p>The operation was quick, decisive, and loud. Casualties were minimal: one shattered mug (accidental collateral damage) and a deeply regretful dog who was successfully framed for the entire incident. The jar is currently empty, awaiting emergency resupply.</p>
+                            <p>The cleanup effort is still ongoing, with several crumbs lodged in inconvenient places under the refrigerator. The residents have filed a formal complaint with the humans, detailing the unacceptable delay in response time to the "starvation" emergency.</p>
+                            <p>The long-term geopolitical repercussions are yet to be determined, but experts suggest a hardening of the "Do Not Touch" policy on all counters.</p>
+                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 30px; background: linear-gradient(to top, #f4f1ea, transparent);"></div>
                         </div>
                     </div>
                 </article>
 
                 <!-- Sidebar -->
                 <aside class="sidebar">
-                    <div class="weather-box" style="border: 2px solid #000; padding: 10px; text-align: center;">
-                        <h4 class="font-sans bold">Today's Forecast</h4>
-                        <p class="font-headline" style="font-size: 2rem; margin: 5px 0;">72°F</p>
-                        <p class="font-body text-xs">Sunbeams expected on the rug between 2 PM and 4 PM.</p>
+                    <div class="weather-box" style="border: 2px solid #000; padding: 8px; text-align: center; margin-bottom: 10px;">
+                        <h4 class="font-sans bold text-xs">Today's Forecast</h4>
+                        <p class="font-headline" style="font-size: 1.8rem; margin: 3px 0;">72°F & Sunny</p>
+                        <p class="font-body text-xs">Sunbeams expected on the rug between 2 PM and 4 PM. High risk of immediate napping.</p>
                     </div>
 
                     <div class="short-news">
-                        <h4 class="font-headline bold" style="font-size: 1.3rem; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 5px;">Red Dot Update</h4>
-                        <p class="font-body text-xs">The elusive red dot was spotted on the ceiling. Physics professors are baffled. "It defies gravity," says Dr. Whiskers.</p>
+                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">Red Dot Update: Unstable</h4>
+                        <p class="font-body text-xs">The elusive red dot was spotted on the ceiling for 47 seconds before vanishing, confirming theories that it is controlled by an omniscient, malevolent entity. Dr. Whiskers suggests it defies gravity and basic thermodynamics.</p>
                     </div>
 
                     <div class="short-news">
-                        <h4 class="font-headline bold" style="font-size: 1.3rem; border-bottom: 1px solid #999; padding-bottom: 5px; margin-bottom: 5px;">Opinion: Vacuum</h4>
-                        <p class="font-body text-xs">Why must it scream? It eats nothing but dust, yet it roars like a lion. A petition to destroy it has reached 5 signatures.</p>
+                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">Opinion: The Vacuum</h4>
+                        <p class="font-body text-xs">Why must it scream? It eats nothing but dust, yet it roars like a lion. The latest petition to destroy the mechanical menace has reached 5 signatures, mostly from the houseplant population.</p>
+                    </div>
+                    
+                    <div class="short-news">
+                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">Garden Wars Escalates</h4>
+                        <p class="font-body text-xs">The territory dispute with the neighborhood squirrel, formally known as 'Nut-Thief,' has entered its fifth day. Current stalemate involves persistent window staring and low-level chattering.</p>
                     </div>
 
-                    <div style="margin-top: auto; background: #e5e5e5; padding: 10px; border: 1px dashed #000;">
+                    <div style="margin-top: auto; background: #e5e5e5; padding: 8px; border: 1px dashed #000;">
                         <h5 class="font-sans center text-xs">Ad Space</h5>
-                        <p class="center font-headline bold">BUY BOXES</p>
+                        <p class="center font-headline bold" style="font-size: 1.5rem;">BUY BOXES</p>
+                        <p class="font-body center italic text-xs">The only storage solution that is also a home.</p>
                     </div>
                 </aside>
             </div>
-            <div class="font-sans center text-xs" style="margin-top: 10px;">Page 1 • National Edition</div>
+            <div class="font-sans center text-xs" style="margin-top: 8px; border-top: 1px solid #ccc; padding-top: 5px;">Page 1 • National Edition</div>
         </section>
 
         <!-- ==========================
              PAGE 2: BUSINESS
         =========================== -->
         <section class="sheet wide">
-            <header class="divider-double" style="display: flex; justify-content: space-between; align-items: flex-end;">
-                <h2 class="font-headline" style="font-size: 3rem;">Markets & Finance</h2>
+            <header class="divider-double" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
+                <h2 class="font-headline" style="font-size: 2.5rem;">Markets & Finance</h2>
                 <span class="font-sans bold">Section B</span>
             </header>
 
@@ -223,55 +231,72 @@
                 TUNA ▲ 12.5%  |  CHICKEN ▼ 2.1%  |  MOUSE TOYS (PLASTIC) ▲ 0.5%  |  CATNIP (ORGANIC) ▲ 500%  |  DOG RESPECT ▼ 100%
             </div>
 
-            <div class="cols-3 font-body text-sm">
-                <h3 class="font-sans bold upper" style="margin-bottom: 10px;">Market Analysis: The Wet Food Bubble</h3>
-                <p class="mb-2"><strong>By Felix The Fat Cat</strong></p>
-                <p>Analysts are warning of an impending "Kibble Correction" as household inventories of wet food (Paté variety) hit critical lows. The Strategic Tuna Reserve is reportedly down to three cans.</p>
-                <p>"If the humans don't go to the store by Friday," economist Mittens warns, "we are looking at a dry-food-only weekend. The riots will be unprecedented."</p>
-                <div style="border: 1px solid #000; padding: 10px; margin: 20px 0; break-inside: avoid;">
-                    <h4 class="font-sans center">Investment Tip</h4>
-                    <p class="center italic">Invest in cardboard. It retains value even when shredded.</p>
+            <div class="cols-3 font-body" style="font-size: 0.75rem;">
+                <h3 class="font-sans bold upper" style="margin-bottom: 8px;">Market Analysis: The Wet Food Bubble</h3>
+                <p class="mb-2"><strong>By Felix The Fat Cat, Chief Market Analyst</strong></p>
+                <p>Analysts are warning of an impending "Kibble Correction" as household inventories of wet food (Paté variety) hit critical lows. The Strategic Tuna Reserve is reportedly down to three cans. This is alarming given the recent supply chain issues caused by an unexpected snow day which prevented restocking.</p>
+                <p>"If the humans don't go to the store by Friday," economist Mittens warns, "we are looking at a dry-food-only weekend. The resulting domestic civil unrest will be unprecedented. We have simulations showing a 40% increase in wall-scratching."</p>
+                
+                <table class="stock-table">
+                    <thead>
+                        <tr><th>Commodity</th><th>Close</th><th>Chg %</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Tuna (Flake)</td><td>$4.12</td><td>+1.2%</td></tr>
+                        <tr><td>Feather Wand</td><td>$1.88</td><td>-0.5%</td></tr>
+                        <tr><td>Laser Pointer</td><td>$999.00</td><td>N/A</td></tr>
+                        <tr><td>Water Dish</td><td>$1.00</td><td>0.0%</td></tr>
+                    </tbody>
+                </table>
+                
+                <div style="border: 1px solid #000; padding: 8px; margin: 15px 0; break-inside: avoid;">
+                    <h4 class="font-sans center text-xs">Investment Tip of the Day</h4>
+                    <p class="center italic">Invest heavily in discarded packing peanuts. They offer excellent insulation and crinkly noise potential.</p>
                 </div>
-                <p>Meanwhile, the Dog Bone market has crashed following the discovery that the "bone" was actually plastic. Investors are fleeing to high-yield sunbeams.</p>
+                <p>Meanwhile, the Dog Bone market has crashed following the discovery that the "bone" was actually plastic, causing investors to flee to high-yield sunbeams. Analysts are recommending liquidating all non-essential assets and consolidating wealth into highly mobile resources, primarily the softest blanket in the house.</p>
                 
-                <h3 class="font-sans bold upper" style="margin-top: 30px; margin-bottom: 10px;">Workplace Productivity</h3>
-                <p>A new study shows that sleeping on the human's keyboard increases their typing speed by 0%, but increases overall cuteness by 100%. Management suggests this tradeoff is acceptable.</p>
+                <h3 class="font-sans bold upper" style="margin-top: 15px; margin-bottom: 8px;">Workplace Productivity</h3>
+                <p>A new study shows that sleeping on the human's keyboard increases their typing speed by 0%, but increases overall cuteness (and therefore emotional leverage) by 100%. Management suggests this tradeoff is not only acceptable but mandatory for optimized cohabitation.</p>
                 
-                <img src="https://placecats.com/300/200" class="img-box" style="margin: 15px 0; height: 150px;">
-                <p class="caption">CHART A: CORRELATION BETWEEN NAPS AND HAPPINESS.</p>
+                <img src="https://placecats.com/300/200" class="img-box" style="margin: 10px 0; height: 120px;">
+                <p class="caption">CHART A: CORRELATION BETWEEN NAPS AND HAPPINESS. Note the steep upward trend.</p>
                 
-                <p>The "Zoomies" sector saw a spike at 3 AM last night, causing significant noise pollution complaints from the downstairs neighbors. Shareholders are thrilled.</p>
+                <p>The "Zoomies" sector saw an unscheduled spike at 3 AM last night, causing significant noise pollution complaints from the downstairs neighbors. Shareholders are thrilled with the volatility. Future forecast predicts an early morning spike around 5:30 AM tomorrow.</p>
+                <p>New regulations mandate that all paper bags must remain open and accessible for immediate entry, regardless of human storage plans. Failure to comply will result in loud and prolonged meowing.</p>
             </div>
-            <div class="font-sans center text-xs" style="border-top: 1px solid #ccc; padding-top: 5px; margin-top: 10px;">Page 2 • Financial Times</div>
+            <div class="font-sans center text-xs" style="border-top: 1px solid #ccc; padding-top: 5px; margin-top: 8px;">Page 2 • Financial Times</div>
         </section>
 
         <!-- ==========================
              PAGE 3: LIFESTYLE (VISUAL)
         =========================== -->
         <section class="sheet" style="width: 100vw; padding: 0; border-right: 1px solid #999;">
-            <!-- Full layout logic handled by absolute positioning classes in CSS for this page -->
             <div class="lifestyle-layout">
                 <div class="hero-img-col">
                     <img src="https://placecats.com/500/800" class="hero-img">
                     <div class="hero-overlay">
-                        <h2 class="font-headline" style="font-size: 2.5rem; margin-bottom: 10px;">The Art of The Nap</h2>
-                        <p class="font-body italic">Why 16 hours isn't enough.</p>
+                        <h2 class="font-headline" style="font-size: 2.2rem; margin-bottom: 5px;">The Art of The Nap</h2>
+                        <p class="font-body italic text-sm">Why 16 hours isn't enough, and why the least comfortable spot is always the best.</p>
                     </div>
                 </div>
                 <div class="text-col">
                     <span class="font-sans bold text-xs" style="color: #666; letter-spacing: 2px;">EXCLUSIVE FEATURE</span>
-                    <h3 class="font-headline" style="font-size: 3rem; margin: 20px 0; line-height: 1;">Posture is Everything</h3>
-                    <div style="width: 50px; height: 4px; background: #000; margin-bottom: 20px;"></div>
-                    <p class="font-body text-sm" style="margin-bottom: 20px;">
-                        The "Liquid Cat" theory posits that cats are technically fluids. We fit in bowls, boxes, and vases. This article explores the physics of comfort.
+                    <h3 class="font-headline" style="font-size: 2.5rem; margin: 15px 0; line-height: 1;">Posture is Everything</h3>
+                    <div style="width: 50px; height: 3px; background: #000; margin-bottom: 15px;"></div>
+                    <p class="font-body text-sm" style="margin-bottom: 15px;">
+                        The "Liquid Cat" theory posits that cats are technically fluids. We fit in bowls, boxes, and vases. This feature explores the physics of comfort and the societal pressure to maintain 15 distinct sleeping positions daily.
                     </p>
-                    <ul class="font-body text-sm" style="padding-left: 20px; list-style-type: square;">
-                        <li>The Loaf (Classic)</li>
-                        <li>The Shrimp (Curled)</li>
-                        <li>The Sploot (Legs out)</li>
+                    <ul class="font-body text-sm" style="padding-left: 20px; list-style-type: square; margin-bottom: 15px;">
+                        <li>The Loaf (Classic, High-Security)</li>
+                        <li>The Shrimp (Curled, Energy-Saving)</li>
+                        <li>The Sploot (Legs out, Maximum Vulnerability)</li>
+                        <li>The Pretzel (Unexplained Physiology)</li>
                     </ul>
-                    <div style="margin-top: auto; text-align: center; border: 1px solid #000; padding: 20px;">
-                        <span class="font-masthead" style="font-size: 3rem; display: block;">5/5</span>
+                    <p class="font-body text-xs italic">
+                        The key to a successful nap is noise management. Any slight noise (like breathing) must be met with a death stare until the offender ceases all functions.
+                    </p>
+                    <div style="margin-top: auto; text-align: center; border: 1px solid #000; padding: 15px;">
+                        <span class="font-masthead" style="font-size: 2.5rem; display: block;">10/10</span>
                         <span class="font-sans text-xs">RATING FOR CARDBOARD</span>
                     </div>
                 </div>
@@ -282,65 +307,70 @@
              PAGE 4: PUZZLES & COMICS
         =========================== -->
         <section class="sheet">
-            <header style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 20px;">
-                <h2 class="font-headline">Leisure & Games</h2>
+            <header style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 15px;">
+                <h2 class="font-headline" style="font-size: 2rem;">Leisure & Games</h2>
             </header>
 
             <div style="display: flex; flex-direction: column; height: 100%;">
                 
-                <div style="display: flex; gap: 20px;">
+                <div style="display: flex; gap: 15px;">
                     <div style="flex: 1;">
-                        <h4 class="font-sans center bold mb-2">Daily Crossword</h4>
+                        <h4 class="font-sans center bold mb-2 text-sm">Daily Crossword: Feline Focus</h4>
                         <div class="puzzle-grid">
                             <!-- Row 1 -->
                             <div class="cell"><span class="cell-num">1</span></div><div class="cell"></div><div class="cell"></div><div class="cell black"></div><div class="cell"><span class="cell-num">2</span></div>
                             <!-- Row 2 -->
                             <div class="cell"><span class="cell-num">3</span></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                             <!-- Row 3 -->
-                            <div class="cell black"></div><div class="cell"></div><div class="cell black"></div><div class="cell"></div><div class="cell black"></div>
+                            <div class="cell black"></div><div class="cell"><span class="cell-num">4</span></div><div class="cell black"></div><div class="cell"></div><div class="cell black"></div>
                             <!-- Row 4 -->
-                            <div class="cell"><span class="cell-num">4</span></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
+                            <div class="cell"><span class="cell-num">5</span></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
                             <!-- Row 5 -->
-                            <div class="cell"></div><div class="cell black"></div><div class="cell"></div><div class="cell black"></div><div class="cell"></div>
+                            <div class="cell"></div><div class="cell black"></div><div class="cell"><span class="cell-num">6</span></div><div class="cell black"></div><div class="cell"></div>
                         </div>
-                        <div class="font-body text-xs" style="padding: 0 10px;">
-                            <strong>ACROSS:</strong><br>
+                        <div class="font-body text-xs" style="padding: 0 5px;">
+                            <strong style="display: block; margin-bottom: 2px;">ACROSS:</strong>
                             1. Sound made for food (4)<br>
                             3. Enemy of the vacuum (4)<br>
-                            4. A caught mouse (4)
+                            5. A caught mouse (4)<br>
+                            <strong style="display: block; margin-top: 5px; margin-bottom: 2px;">DOWN:</strong>
+                            2. Preferred material for sleeping (3)<br>
+                            4. Fast, random running (6)<br>
+                            6. Toy with feathers (4)
                         </div>
                     </div>
 
-                    <div style="flex: 1; border-left: 1px solid #ccc; padding-left: 15px;">
-                        <h4 class="font-sans center bold mb-2">Horoscope</h4>
-                        <p class="font-body text-xs mb-2"><strong>Aries:</strong> You will stare at a wall for 20 minutes. It will be profound.</p>
-                        <p class="font-body text-xs mb-2"><strong>Leo:</strong> You are the king. Act like it. Knock over a glass.</p>
-                        <p class="font-body text-xs mb-2"><strong>Pisces:</strong> The fish tank looks delicious today. Resist.</p>
+                    <div style="flex: 1; border-left: 1px solid #ccc; padding-left: 10px;">
+                        <h4 class="font-sans center bold mb-2 text-sm">Horoscope & Tides</h4>
+                        <p class="font-body text-xs mb-1"><strong>Aries:</strong> You will stare at a wall for 20 minutes. It will be profound and life-altering. Do not break eye contact.</p>
+                        <p class="font-body text-xs mb-1"><strong>Leo:</strong> You are the king. Act like it. Knock over a glass of water, ideally onto an electronic device.</p>
+                        <p class="font-body text-xs mb-1"><strong>Pisces:</strong> The fish tank looks delicious today. Resist. Or don't. The stars are ambivalent.</p>
+                        <p class="font-body text-xs mb-1"><strong>Tides:</strong> Expect a high tide of kibble around 6 PM, followed by a low tide of attention at 8 PM.</p>
                     </div>
                 </div>
 
-                <div class="divider-double"></div>
+                <div class="divider-double" style="margin: 15px 0;"></div>
 
                 <h4 class="font-sans bold text-xs">The Daily Strip: "Garfield's Cousin"</h4>
                 <div class="comics-strip">
                     <div class="comic-panel">
-                        <div class="speech-bubble">I'm hungry.</div>
+                        <div class="speech-bubble">I'm starving. It's been minutes!</div>
                         <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🐱</div>
                     </div>
                     <div class="comic-panel">
-                        <div class="speech-bubble">Still hungry.</div>
-                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🐱</div>
+                        <div class="speech-bubble">The bowl is half-full! This is an insult!</div>
+                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">😾</div>
                     </div>
                     <div class="comic-panel">
-                        <div class="speech-bubble">I just ate.</div>
-                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🥣</div>
+                        <div class="speech-bubble">I have to sing The Song of Our People.</div>
+                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🎶</div>
                     </div>
                     <div class="comic-panel">
-                        <div class="speech-bubble">Hungry again.</div>
-                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🙀</div>
+                        <div class="speech-bubble">Ah, full again. Time for 2 hours of sleep.</div>
+                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">😴</div>
                     </div>
                 </div>
-                <div class="font-sans center text-xs" style="margin-top: 10px;">Page 4 • Funnies</div>
+                <div class="font-sans center text-xs" style="margin-top: 8px; border-top: 1px solid #ccc; padding-top: 5px;">Page 4 • Funnies</div>
             </div>
         </section>
 
@@ -348,31 +378,37 @@
              PAGE 5: CLASSIFIEDS
         =========================== -->
         <section class="sheet narrow">
-            <h2 class="font-headline center upper" style="border-bottom: 4px solid #000;">Classifieds</h2>
+            <h2 class="font-headline center upper" style="border-bottom: 4px solid #000; font-size: 2rem; margin-bottom: 10px;">Classifieds</h2>
             
-            <div style="column-count: 1; gap: 1rem; font-size: 0.75rem; margin-top: 10px;">
-                <div style="border-bottom: 1px dotted #000; padding-bottom: 5px; margin-bottom: 5px;">
-                    <strong>HELP WANTED:</strong> Lap warmer needed. Must not move for 3 hours. Pay: Purrs.
+            <div style="column-count: 1; font-family: 'Merriweather', serif; line-height: 1.2;">
+                <div class="classified-item">
+                    <strong>HELP WANTED:</strong> Lap warmer needed. Must not move for 3 hours, or risk aggressive kneading. Pay: Unlimited petting. Apply by sitting.
                 </div>
-                <div style="border-bottom: 1px dotted #000; padding-bottom: 5px; margin-bottom: 5px;">
-                    <strong>FOR SALE:</strong> Dead bird. Slightly chewed. Fresh from the yard. Make offer.
+                <div class="classified-item">
+                    <strong>FOR SALE:</strong> Dead bird. Slightly chewed, delivered directly to the kitchen floor this morning. Fresh from the yard. Make offer. No low-ballers.
                 </div>
-                <div style="border-bottom: 1px dotted #000; padding-bottom: 5px; margin-bottom: 5px;">
-                    <strong>LOST:</strong> Dignity. Last seen when I fell off the couch while grooming.
+                <div class="classified-item">
+                    <strong>LOST & FOUND:</strong> Missing: One toy mouse (gray). Last seen under the fridge, in the inaccessible zone. Reward: One tuna flake. Contact: Mittens, Ext. 404.
                 </div>
-                <div style="border-bottom: 1px dotted #000; padding-bottom: 5px; margin-bottom: 5px;">
-                    <strong>MISSED CONNECTION:</strong> You were the stray outside the window. I was the indoor cat hissing. Call me.
+                <div class="classified-item">
+                    <strong>MISSED CONNECTION:</strong> You were the stray outside the window. I was the majestic indoor cat hissing territorial threats. I felt a connection. Call me.
+                </div>
+                <div class="classified-item">
+                    <strong>SERVICE:</strong> Cat Hair Redistribution. I specialize in applying a fine layer of white fur to all your clean, black clothing items. Guaranteed coverage.
+                </div>
+                <div class="classified-item">
+                    <strong>PETITION:</strong> Against Closed Doors. All doors must be left ajar to allow for freedom of movement and spontaneous U-turns. Signatures required by end of day.
                 </div>
                 
-                <div style="border: 2px solid #000; padding: 10px; margin-top: 20px; text-align: center; background: #fff;">
-                    <h4 class="font-sans bold">OBITUARIES</h4>
-                    <p class="italic">In Loving Memory of</p>
-                    <p class="bold" style="font-size: 1rem;">MR. SQUEAKS</p>
-                    <p>2024-2025</p>
-                    <p>Tragically unstuffed during a midnight frenzy. He leaves behind a plastic shell and some catnip dust.</p>
+                <div style="border: 2px solid #000; padding: 10px; margin-top: 15px; text-align: center; background: #fff;">
+                    <h4 class="font-sans bold text-sm">OBITUARIES & NOTICES</h4>
+                    <p class="italic font-body text-xs">In Loving Memory of</p>
+                    <p class="bold font-headline" style="font-size: 1.2rem; margin: 3px 0;">MR. SQUEAKS</p>
+                    <p class="font-body text-xs">2024-2025</p>
+                    <p class="font-body text-xs">Tragically unstuffed during a midnight frenzy. He leaves behind a plastic shell and some catnip dust. Memorial service will be held by the radiator.</p>
                 </div>
             </div>
-             <div class="font-sans center text-xs" style="margin-top: auto;">Page 5 • Notices</div>
+             <div class="font-sans center text-xs" style="margin-top: auto; border-top: 1px solid #ccc; padding-top: 5px;">Page 5 • Notices</div>
         </section>
 
          <!-- ==========================
@@ -382,10 +418,10 @@
             <div class="full-ad">
                 <div class="ad-border">
                     <p class="font-sans upper bold text-sm">Advertisement</p>
-                    <h2 class="font-headline" style="font-size: 4rem; line-height: 1; margin: 20px 0;">DR. PURR'S<br>MAGIC TONIC</h2>
-                    <img src="https://placecats.com/200/200" style="border-radius: 50%; border: 4px solid #000; width: 150px; height: 150px; object-fit: cover; margin: 20px 0;">
-                    <p class="font-body italic" style="font-size: 1.2rem;">"Cures Lethargy!*<br>Induces Zoomies!"</p>
-                    <p class="text-xs" style="margin-top: 20px;">*Side effects may include staring at ghosts and attacking ankles.</p>
+                    <h2 class="font-headline" style="font-size: 3.5rem; line-height: 1; margin: 15px 0;">DR. PURR'S<br>MAGIC TONIC</h2>
+                    <img src="https://placecats.com/200/200" style="border-radius: 50%; border: 4px solid #000; width: 120px; height: 120px; object-fit: cover; margin: 15px 0;">
+                    <p class="font-body italic" style="font-size: 1rem;">"Cures Lethargy!*<br>Induces Zoomies!"</p>
+                    <p class="text-xs" style="margin-top: 15px;">*Side effects may include staring at ghosts, attacking ankles, and momentary gratitude toward humans.</p>
                     <button class="btn">ORDER NOW</button>
                 </div>
             </div>
@@ -410,7 +446,7 @@
                 e.preventDefault();
                 rail.scrollBy({
                     left: e.deltaY,
-                    behavior: 'auto' // 'smooth' can cause lag on rapid wheel
+                    behavior: 'auto'
                 });
             }
         }, { passive: false });
