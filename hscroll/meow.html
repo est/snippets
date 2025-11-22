@@ -36,7 +36,8 @@
             width: 100%;
             overflow-x: auto;
             overflow-y: hidden;
-            scroll-snap-type: x mandatory;
+            /* CHANGED from mandatory to proximity to reduce over-scrolling/snapping sensitivity */
+            scroll-snap-type: x proximity; 
             scroll-behavior: smooth;
             background: #111;
             scrollbar-width: none;
@@ -52,7 +53,7 @@
             background-color: #f4f1ea;
             border-right: 1px solid #bbb;
             scroll-snap-align: start;
-            padding: 1rem; /* Reduced mobile padding */
+            padding: 1rem; /* Mobile padding */
             position: relative;
             display: flex;
             flex-direction: column;
@@ -60,7 +61,7 @@
 
         /* Desktop Sizing */
         @media (min-width: 768px) {
-            .sheet { width: 650px; padding: 1.5rem; } /* Reduced desktop padding */
+            .sheet { width: 650px; padding: 1.5rem; } /* Desktop padding */
             .sheet.wide { width: 950px; }
             .sheet.narrow { width: 450px; }
         }
@@ -468,15 +469,18 @@
         const rail = document.getElementById('paper-rail');
 
         // Smooth Horizontal Scroll for Mouse Wheel
+        // This is primarily for vertical mouse wheels to scroll horizontally,
+        // and it allows native trackpad behavior (deltaX/Y) to pass through, 
+        // which now benefits from the 'proximity' snapping rule.
         rail.addEventListener('wheel', (e) => {
-            // Detect if the user is using a trackpad (which has horizontal delta)
-            const isTrackpad = Math.abs(e.deltaX) > 0 || Math.abs(e.deltaX) > Math.abs(e.deltaY);
+            // Detect if the user is scrolling horizontally (typical trackpad behavior)
+            const isHorizontalScroll = Math.abs(e.deltaX) > Math.abs(e.deltaY);
 
-            if (isTrackpad) {
-                return; // Let native trackpad panning work
+            if (isHorizontalScroll) {
+                return; // Let native horizontal scrolling and momentum (with proximity snap) work
             }
 
-            // If it's a vertical mouse wheel, convert to horizontal scroll
+            // If it's a vertical mouse wheel scroll, convert to horizontal scroll
             if (e.deltaY !== 0) {
                 e.preventDefault();
                 rail.scrollBy({
