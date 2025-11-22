@@ -4,19 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>每日喵报 - 环球版</title>
-    <!-- 加载思源宋体 (Serif for Headlines) 和 思源黑体 (Sans for Body) -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <!-- 删除了外部字体加载，使用系统默认字体堆栈 -->
     <style>
+        /* --- SYSTEM FONT STACK FOR OPTIMAL CROSS-PLATFORM COMPATIBILITY (确保中文字体优先) --- */
+        /*
+          -apple-system, BlinkMacSystemFont: macOS, iOS
+          Segoe UI: Windows
+          Roboto: Android, most Linux/ChromeOS
+          Helvetica Neue, Arial, sans-serif: Fallbacks
+        */
+        :root {
+            /* 主体和无衬线 (Sans-serif) 字体栈 */
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            /* 报头和标题 (Serif) 字体栈：由于中文系统衬线字体差异大，使用系统默认 sans-serif，但通过粗体和 letter-spacing 模仿报纸感。 */
+            --font-serif: var(--font-sans);
+        }
+
         /* --- RESET & BASE --- */
         * { box-sizing: border-box; }
-        /* 确保中文字体优先 */
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; background-color: #222; color: #1a1a1a; font-family: 'Noto Sans SC', sans-serif, Arial; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            height: 100%; 
+            width: 100%; 
+            overflow: hidden; 
+            background-color: #222; 
+            color: #1a1a1a; 
+            font-family: var(--font-sans); /* 使用系统无衬线字体 */
+        }
         
-        /* --- TYPOGRAPHY: CHINESE FONT MAPPING --- */
-        .font-masthead { font-family: 'Noto Serif SC', serif; font-weight: 900; letter-spacing: -1px; }
-        .font-headline { font-family: 'Noto Serif SC', serif; font-weight: 700; line-height: 1.1; }
-        .font-body { font-family: 'Noto Sans SC', sans-serif; line-height: 1.6; font-size: 0.8rem; font-weight: 400; }
-        .font-sans { font-family: 'Noto Sans SC', sans-serif; text-transform: none; letter-spacing: 0; font-weight: 500; }
+        /* --- TYPOGRAPHY: CHINESE FONT MAPPING (基于系统字体堆栈) --- */
+        .font-masthead { font-family: var(--font-serif); font-weight: 900; letter-spacing: -0.5px; }
+        .font-headline { font-family: var(--font-serif); font-weight: 700; line-height: 1.1; }
+        .font-body { font-family: var(--font-sans); line-height: 1.6; font-size: 0.8rem; font-weight: 400; }
+        .font-sans { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-weight: 500; }
 
         h1, h2, h3, h4, p { margin-top: 0; margin-bottom: 0.5em; }
         
@@ -27,7 +48,7 @@
             line-height: 0.8;
             font-weight: bold;
             margin-right: 6px;
-            font-family: 'Noto Serif SC', serif;
+            font-family: var(--font-serif);
         }
 
         /* --- LAYOUT CONTAINER --- */
@@ -81,7 +102,7 @@
         }
         
         .caption {
-            font-family: 'Noto Sans SC', sans-serif;
+            font-family: var(--font-sans);
             font-size: 0.6rem;
             color: #666;
             margin-top: 2px;
@@ -137,13 +158,18 @@
         
         .main-story { display: flex; flex-direction: column; height: 100%; }
 
+        /* --- FIX: Main Story Content Wrapper now allows vertical scrolling --- */
         .main-story-content-wrapper { 
             flex: 1; 
-            overflow: hidden; 
+            overflow-y: auto; /* Allow scrolling for long text */
+            overflow-x: hidden;
             position: relative; 
             padding-bottom: 25px; 
+            scrollbar-width: none; /* Hide scrollbar for aesthetics */
+            -ms-overflow-style: none;
         }
-
+        .main-story-content-wrapper::-webkit-scrollbar { display: none; }
+        
         .main-story-gradient {
             position: absolute; 
             bottom: 0; 
@@ -151,6 +177,7 @@
             width: 100%; 
             height: 25px; 
             background: linear-gradient(to top, #f4f1ea, transparent);
+            /* The gradient is now fixed to the bottom of the visible area */
         }
 
         /* Page 2: Business */
@@ -165,7 +192,7 @@
         /* Table density */
         .stock-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; font-size: 0.75rem; }
         .stock-table th, .stock-table td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
-        .stock-table th { background: #eee; font-family: 'Noto Sans SC', sans-serif; }
+        .stock-table th { background: #eee; font-family: var(--font-sans); }
 
         /* Page 3: Lifestyle (Visual) */
         .sheet.visual-page { padding: 0; }
@@ -239,7 +266,7 @@
         .center { text-align: center; }
         .upper { text-transform: none; }
         .bold { font-weight: bold; }
-        .btn { background: #000; color: #fff; border: none; padding: 8px 15px; font-family: 'Noto Sans SC'; cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
+        .btn { background: #000; color: #fff; border: none; padding: 8px 15px; font-family: var(--font-sans); cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
         .btn:hover { background: #333; }
 
     </style>
@@ -288,6 +315,7 @@
                             <p>这次行动快速、果断且吵闹。伤亡极小：一个碎裂的马克杯（意外的附带损害）和一只深感懊悔的狗，它被成功陷害为整个事件的替罪羊。该罐目前已空，等待紧急补给。（接第5版）</p>
                             <p>清理工作仍在进行中，几块碎屑卡在了冰箱下的不便之处。居民们已向人类提出了正式投诉，详细说明了对“饥饿”紧急情况反应时间不可接受的延迟。</p>
                             <p>长期的地缘政治影响尚待确定，但专家建议应加强对所有柜台“禁止触摸”政策的执行力度。未能执行此政策被视为对进一步入侵的直接邀请。</p>
+                            <p>额外内容用于测试滚动：在撰写本文时，米滕斯中士已被发现躺在客厅地板上的阳光斑块上，显然正在进行“战后恢复”阶段。切达则被观察到正在试图将一根羽毛棒塞进烤面包机里，大概是为了寻求战略优势，或者仅仅是为了好玩。人类尚未对零食罐补给危机做出明确回应。分析师们正在计算人类何时才能注意到这一紧急情况。预计延迟可能在3小时到47年之间。</p>
                         </div>
                         <div class="main-story-gradient"></div>
                     </div>
@@ -366,7 +394,7 @@
                 <p>一项新研究表明，睡在人类键盘上，他们的打字速度提高了0%，但总体可爱度（以及因此产生的情感杠杆作用）提高了100%。管理层建议这种权衡不仅可以接受，而且对于优化同居是强制性的。此外，这种做法确保人类不会将电脑用于“工作”等无意义的活动，而应该用来撸猫。</p>
                 
                 <img src="https://placecats.com/300/200" class="img-box" style="margin: 10px 0; height: 120px;">
-                <p class="caption">图表A：午睡与幸福感之间的相关性。注意饭后急剧上升的趋势。</p>
+                <div class="caption">图表A：午睡与幸福感之间的相关性。注意饭后急剧上升的趋势。</div>
                 
                 <p>“飞奔”部门昨晚凌晨3点出现了一次计划外的飙升，导致楼下邻居投诉严重的噪音污染。股东们对这种波动感到兴奋。未来预测，如果通过午睡保持了足够的能量储备，明天早上5:30左右还会出现一次早高峰。</p>
                 <p>新规定要求所有纸袋必须保持打开和可进入的状态，以便立即进入，无论人类的存储计划如何。不遵守规定将导致响亮而持久的喵叫声，这是一种公认的行业行动形式。</p>
@@ -486,7 +514,7 @@
         <section class="sheet narrow">
             <h2 class="font-headline center upper" style="border-bottom: 4px solid #000; font-size: 2rem; margin-bottom: 10px;">分类广告</h2>
             
-            <div style="column-count: 1; font-family: 'Noto Sans SC', sans-serif; line-height: 1.4;">
+            <div style="column-count: 1; font-family: var(--font-sans); line-height: 1.4;">
                 <div class="classified-item">
                     <strong>招聘：</strong> 腿部取暖器。要求：3小时内不得移动，否则会受到攻击性踩奶惩罚。报酬：无限撸毛。申请方式：悄悄坐在目标人物身上。
                 </div>
