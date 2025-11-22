@@ -534,33 +534,5 @@
 
     </main>
 
-    <script>
-        const rail = document.getElementById('paper-rail');
-
-        // Smooth Horizontal Scroll for Mouse Wheel
-        rail.addEventListener('wheel', (e) => {
-            const isHorizontalScroll = Math.abs(e.deltaX) > Math.abs(e.deltaY);
-
-            if (isHorizontalScroll) {
-                return; 
-            }
-
-            // Vertical mouse wheel scroll is converted to horizontal scroll
-            if (e.deltaY !== 0) {
-                e.preventDefault();
-                rail.scrollBy({
-                    left: e.deltaY,
-                    behavior: 'auto'
-                });
-            }
-        }, { passive: false });
-
-        // Optional: Keyboard Nav
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') rail.scrollBy({ left: 400, behavior: 'smooth' });
-            if (e.key === 'ArrowLeft') rail.scrollBy({ left: -400, behavior: 'smooth' });
-        });
-    </script>
-
 </body>
 </html>
