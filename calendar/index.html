@@ -3,171 +3,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infinite Calendar</title>
-    <!-- Inline Favicon with Calendar Emoji -->
+    <title>Infinite Flow Calendar</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
-
     <style>
         :root {
-            /* Palette - Restrained & Aesthetic */
-            --bg-odd: #ffffff;
-            --bg-even: #f4f6f8; /* Very subtle blue-grey */
-            --text-main: #2c3e50;
-            --text-muted: #95a5a6;
-            --accent: #e74c3c; /* Soft Red/Coral for Today */
-            --bg-number: rgba(0, 0, 0, 0.04); /* Watermark opacity */
-            
-            --cell-size: 44px;
-            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+            --bg-body: #f8fafc;
+            --bg-container: #ffffff;
+            --text-main: #334155;
+            --text-muted: #94a3b8;
+            --accent-color: #3b82f6;
+            --bg-month-odd: #f1f5f9;
+            --bg-month-even: #e2e8f0;
+            --cell-size: 50px;
+            --font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
 
         body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-body);
             font-family: var(--font-family);
-            background-color: #e0e5ec;
-            height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
+            min-height: 100vh;
+            color: var(--text-main);
         }
 
-        /* The Component Wrapper */
+        /* Container mimicking a widget/component */
         .calendar-widget {
             width: 100%;
-            max-width: 380px;
-            height: 600px; /* Fixed height for the scrollable area */
-            background: #fff;
+            max-width: 400px;
+            height: 600px;
+            background: var(--bg-container);
             border-radius: 24px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
             position: relative;
         }
 
-        /* Fixed Header for Weekdays */
-        .weekdays-header {
+        /* Header (Days of week) */
+        .week-header {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            background: #fff;
-            border-bottom: 1px solid #eee;
-            padding: 10px 0;
+            padding: 16px 0 8px 0;
+            background: var(--bg-container);
+            border-bottom: 1px solid #e2e8f0;
             z-index: 10;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
-        .weekday {
+        .week-day {
             text-align: center;
             font-size: 0.75rem;
             font-weight: 600;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.05em;
         }
 
         /* Scrollable Area */
-        .calendar-scroll-area {
+        .scroll-container {
             flex: 1;
             overflow-y: auto;
-            overflow-x: hidden;
             position: relative;
-            /* Hide scrollbar for cleaner aesthetic */
-            scrollbar-width: none; 
-            -ms-overflow-style: none;
+            scroll-behavior: auto; /* JS handles smooth scrolling manually if needed, auto for infinite */
         }
         
-        .calendar-scroll-area::-webkit-scrollbar {
-            display: none;
+        /* Hide scrollbar for clean look */
+        .scroll-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scroll-container::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .scroll-container::-webkit-scrollbar-thumb {
+            background-color: rgba(0,0,0,0.1);
+            border-radius: 3px;
         }
 
-        /* Month Group Container */
+        /* The Grid */
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            /* No gap ensures continuous background colors */
+            gap: 0; 
+        }
+
+        /* Month Group Wrapper - Phantom Element */
         .month-group {
+            display: contents;
+        }
+
+        /* Day Cell */
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             position: relative;
-            padding-bottom: 0; /* Continuous flow */
-            /* Snake effect logic handles bg color via classes */
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            /* Border radius is 0 to make snake seamless */
         }
 
-        .month-group.odd {
-            background-color: var(--bg-odd);
+        /* Snake Colors */
+        .bg-odd .day {
+            background-color: var(--bg-month-odd);
+        }
+        .bg-even .day {
+            background-color: var(--bg-month-even);
         }
 
-        .month-group.even {
-            background-color: var(--bg-even);
+        /* Today Highlight */
+        .day.is-today {
+            color: var(--accent-color);
+            font-weight: 800;
+        }
+        .day.is-today::after {
+            content: '';
+            position: absolute;
+            bottom: 8px;
+            width: 4px;
+            height: 4px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
         }
 
-        /* The Big Background Number */
-        .month-watermark {
+        /* Hover Effect */
+        .day:hover {
+            filter: brightness(0.95);
+        }
+
+        /* The Big Watermark */
+        /* We place it inside a specific day cell but position it relative to the flow */
+        .watermark-container {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 10rem;
-            font-weight: 800;
-            color: var(--text-main);
-            opacity: 0.05;
             pointer-events: none;
             z-index: 0;
-            line-height: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .year-prefix {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: -20px;
-            opacity: 0.6;
-        }
-
-        /* Days Grid */
-        .days-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            position: relative;
-            z-index: 1; /* Above watermark */
-        }
-
-        .day-cell {
-            height: var(--cell-size);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.95rem;
-            color: var(--text-main);
-            cursor: default;
+            width: 0; /* Don't affect layout */
+            height: 0;
+            overflow: visible;
+        }
+
+        .watermark-text {
+            font-size: 10rem;
+            font-weight: 900;
+            color: rgba(0, 0, 0, 0.04); /* Very subtle */
+            white-space: nowrap;
+            user-select: none;
+            line-height: 0;
+        }
+
+        .watermark-year {
+            font-size: 0.3em; /* Relative to parent font size */
+            display: block;
+            text-align: center;
+            margin-bottom: 0.2em;
+            letter-spacing: -0.05em;
+        }
+
+        /* Ensure text sits above watermark */
+        .day span {
             position: relative;
+            z-index: 1;
         }
 
-        /* Today Marker */
-        .day-cell.is-today {
-            color: white;
-            font-weight: bold;
-        }
-
-        .day-cell.is-today::before {
-            content: '';
-            position: absolute;
-            width: 32px;
-            height: 32px;
-            background-color: var(--accent);
-            border-radius: 50%;
-            z-index: -1;
-            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
-        }
-
-        .day-cell.weekend {
-            color: var(--text-muted);
-        }
-
-        /* Loading Sentinels */
+        /* Sentinels for Intersection Observer */
         .sentinel {
             height: 20px;
             width: 100%;
@@ -178,199 +190,243 @@
 <body>
 
     <div class="calendar-widget">
-        <!-- Static Header -->
-        <div class="weekdays-header">
-            <div class="weekday">S</div>
-            <div class="weekday">M</div>
-            <div class="weekday">T</div>
-            <div class="weekday">W</div>
-            <div class="weekday">T</div>
-            <div class="weekday">F</div>
-            <div class="weekday">S</div>
+        <div class="week-header">
+            <div class="week-day">Sun</div>
+            <div class="week-day">Mon</div>
+            <div class="week-day">Tue</div>
+            <div class="week-day">Wed</div>
+            <div class="week-day">Thu</div>
+            <div class="week-day">Fri</div>
+            <div class="week-day">Sat</div>
         </div>
-
-        <!-- Infinite Scroll Container -->
-        <div class="calendar-scroll-area" id="scrollContainer">
+        
+        <div class="scroll-container" id="scrollContainer">
             <div class="sentinel" id="topSentinel"></div>
-            <div id="calendarContent"></div>
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Days will be injected here -->
+            </div>
             <div class="sentinel" id="bottomSentinel"></div>
         </div>
     </div>
 
     <script>
+        const grid = document.getElementById('calendarGrid');
         const scrollContainer = document.getElementById('scrollContainer');
-        const calendarContent = document.getElementById('calendarContent');
         const topSentinel = document.getElementById('topSentinel');
         const bottomSentinel = document.getElementById('bottomSentinel');
-
-        // State management
-        let startDate = new Date(); // Tracks the top-most loaded month
-        let endDate = new Date();   // Tracks the bottom-most loaded month
         
-        // Config
-        const MONTHS_TO_BUFFER = 3;
-        let isScrolling = false;
+        let startDate = new Date(); // Tracks the earliest loaded date
+        let endDate = new Date();   // Tracks the latest loaded date
+        
+        // Set to start of current month
+        startDate.setDate(1);
+        endDate.setDate(1);
+        
+        const MONTH_NAMES = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
-        // Helper to get days in month
-        function getDaysInMonth(year, month) {
-            return new Date(year, month + 1, 0).getDate();
-        }
-
-        // Helper to get day of week for first day (0-6)
-        function getFirstDayOfMonth(year, month) {
-            return new Date(year, month, 1).getDay();
-        }
-
-        function createMonthElement(year, month) {
-            const wrapper = document.createElement('div');
+        function createMonthHTML(year, month) {
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            const startingDayOfWeek = firstDay.getDay(); // 0 (Sun) to 6 (Sat)
             
-            // Determine Odd/Even for "Snake" background
-            // We use a combination of year and month to ensure continuity across years
-            const absoluteMonthIndex = year * 12 + month;
-            const isEven = absoluteMonthIndex % 2 === 0;
-            wrapper.className = `month-group ${isEven ? 'even' : 'odd'}`;
+            // Create Wrapper
+            const wrapper = document.createElement('div');
+            wrapper.className = 'month-group';
+            // Even-Odd Logic: Use (year * 12 + month) to get a consistent absolute index
+            const monthIndex = year * 12 + month;
+            wrapper.classList.add(monthIndex % 2 === 0 ? 'bg-even' : 'bg-odd');
             wrapper.dataset.year = year;
             wrapper.dataset.month = month;
 
-            // Background Watermark
-            const watermark = document.createElement('div');
-            watermark.className = 'month-watermark';
-            
-            // If January, add Year prefix
-            if (month === 0) {
-                const yearSpan = document.createElement('div');
-                yearSpan.className = 'year-prefix';
-                yearSpan.textContent = year;
-                watermark.appendChild(yearSpan);
-            }
-            
-            const monthNumSpan = document.createElement('span');
-            monthNumSpan.textContent = month + 1; // Display 1-12
-            watermark.appendChild(monthNumSpan);
-            wrapper.appendChild(watermark);
+            // Offset Calculation:
+            // We need to inject empty cells ONLY if this is the very first block loaded 
+            // and it doesn't start on Sunday. 
+            // HOWEVER, the prompt asks for "continuous, no separation".
+            // This means if Jan ends on Tues, Feb starts Wed. 
+            // Since we are using a CSS Grid, we don't need empty spacers *between* months.
+            // The grid items just flow.
+            // But for the VERY FIRST month loaded, we need to push it to the correct column.
+            // We handle that by adding `grid-column-start` to the first day of that specific month wrapper.
 
-            // Days Grid
-            const grid = document.createElement('div');
-            grid.className = 'days-grid';
+            const fragment = document.createDocumentFragment();
 
-            const daysInMonth = getDaysInMonth(year, month);
-            const firstDayIndex = getFirstDayOfMonth(year, month);
+            // Determine where to put the watermark (Middle of the month)
+            const watermarkIndex = Math.floor(daysInMonth / 2);
 
-            // Empty slots for start of month
-            for (let i = 0; i < firstDayIndex; i++) {
-                const empty = document.createElement('div');
-                empty.className = 'day-cell';
-                grid.appendChild(empty);
-            }
-
-            // Actual Days
-            const today = new Date();
-            for (let d = 1; d <= daysInMonth; d++) {
-                const dayCell = document.createElement('div');
-                dayCell.className = 'day-cell';
-                dayCell.textContent = d;
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'day';
                 
                 // Check if today
-                if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
-                    dayCell.classList.add('is-today');
-                    dayCell.id = 'today-anchor'; // ID for scrolling
+                const currentCheck = new Date(year, month, i);
+                const now = new Date();
+                if (currentCheck.toDateString() === now.toDateString()) {
+                    dayEl.classList.add('is-today');
+                    // Store reference to scroll to later
+                    dayEl.id = "target-today";
                 }
 
-                // Weekend styling logic (based on grid position)
-                const dayOfWeek = (firstDayIndex + d - 1) % 7;
-                if (dayOfWeek === 0 || dayOfWeek === 6) {
-                    dayCell.classList.add('weekend');
+                // First day positioning logic
+                if (i === 1) {
+                    // grid-column-start is 1-based. 
+                    // startingDayOfWeek is 0-6. So we need startingDayOfWeek + 1.
+                    // BUT, this only applies if the previous element didn't fill the row.
+                    // Since we are rendering month groups, the CSS Grid `display: contents` 
+                    // flattens them. The browser handles the flow automatically.
+                    // The ONLY time we need to force position is the very first item 
+                    // in the entire grid (which JS handles separately) OR just let grid auto-flow.
+                    
+                    // Actually, for the logic to work perfectly "continuously", 
+                    // we rely on the Grid's auto-placement.
+                    // If we load a month in isolation, we might need spacers.
+                    // But here we are appending/prepending.
+                    // When PREPENDING, we must ensure the previous month ends exactly where this one starts.
+                    // CSS Grid auto-flow doesn't work backwards easily.
+                    // Simplified approach: 
+                    // Just render the days. For the *very first* rendered month in the list, 
+                    // set style="grid-column-start: X".
                 }
 
-                grid.appendChild(dayCell);
+                // Content
+                const span = document.createElement('span');
+                span.textContent = i;
+                dayEl.appendChild(span);
+
+                // Watermark Injection
+                if (i === watermarkIndex) {
+                    const wmContainer = document.createElement('div');
+                    wmContainer.className = 'watermark-container';
+                    
+                    const wmText = document.createElement('div');
+                    wmText.className = 'watermark-text';
+                    
+                    // If Jan, add Year
+                    if (month === 0) {
+                        wmText.innerHTML = `<span class="watermark-year">${year}</span>${MONTH_NAMES[month]}`;
+                    } else {
+                        wmText.textContent = MONTH_NAMES[month];
+                    }
+                    
+                    wmContainer.appendChild(wmText);
+                    dayEl.appendChild(wmContainer);
+                }
+
+                fragment.appendChild(dayEl);
             }
 
-            wrapper.appendChild(grid);
-            return wrapper;
+            wrapper.appendChild(fragment);
+            return { element: wrapper, startDayIndex: startingDayOfWeek };
         }
 
-        function addMonths(direction) {
-            // direction: 'future' or 'past'
-            
-            if (direction === 'future') {
-                const currentY = endDate.getFullYear();
-                const currentM = endDate.getMonth();
-                
-                // Advance one month
-                let targetDate = new Date(currentY, currentM + 1, 1);
-                const el = createMonthElement(targetDate.getFullYear(), targetDate.getMonth());
-                calendarContent.appendChild(el);
-                
-                // Update State
-                endDate = targetDate;
+        function renderMonth(dateOffset, position = 'append') {
+            const year = dateOffset.getFullYear();
+            const month = dateOffset.getMonth(); // 0-11
+
+            const { element, startDayIndex } = createMonthHTML(year, month);
+
+            if (position === 'append') {
+                grid.appendChild(element);
             } else {
-                const currentY = startDate.getFullYear();
-                const currentM = startDate.getMonth();
+                // When prepending, we need to be careful.
+                // CSS Grid Auto-placement flows LTR. 
+                // If we prepend a div with 30 days, it pushes everything right/down.
+                // We need to ensure the first day of this new month starts at the correct column.
+                // `createMonthHTML` calculates `startDayIndex`.
+                // We apply grid-column-start to the FIRST child of the wrapper.
                 
-                // Go back one month
-                let targetDate = new Date(currentY, currentM - 1, 1);
-                const el = createMonthElement(targetDate.getFullYear(), targetDate.getMonth());
-                
-                // Maintain scroll position trick
-                const previousHeight = scrollContainer.scrollHeight;
-                calendarContent.prepend(el);
-                const newHeight = scrollContainer.scrollHeight;
-                scrollContainer.scrollTop += (newHeight - previousHeight);
-
-                // Update State
-                startDate = targetDate;
-            }
-        }
-
-        function initCalendar() {
-            const today = new Date();
-            startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Copy
-            endDate = new Date(today.getFullYear(), today.getMonth(), 1);   // Copy
-
-            // 1. Render Current Month
-            calendarContent.appendChild(createMonthElement(today.getFullYear(), today.getMonth()));
-
-            // 2. Buffer Past
-            for(let i=0; i<MONTHS_TO_BUFFER; i++) {
-                addMonths('past');
-            }
-
-            // 3. Buffer Future
-            for(let i=0; i<MONTHS_TO_BUFFER; i++) {
-                addMonths('future');
-            }
-
-            // 4. Scroll to Today
-            // We need to wait a tiny bit for DOM painting or use scrollIntoView
-            setTimeout(() => {
-                const todayEl = document.getElementById('today-anchor');
-                if (todayEl) {
-                    todayEl.scrollIntoView({ block: 'center', behavior: 'auto' });
+                const firstDay = element.firstElementChild;
+                if (firstDay) {
+                   firstDay.style.gridColumnStart = startDayIndex + 1;
                 }
-            }, 10);
+                
+                // We also need to remove the grid-column-start from the *previous* first element
+                // to let it flow naturally after the new content?
+                // No, the old first element is now in the middle of the flow. 
+                // It should lose its forced start style to flow after the newly prepended month.
+                const oldFirst = grid.firstElementChild?.firstElementChild;
+                if (oldFirst) {
+                    oldFirst.style.gridColumnStart = 'auto';
+                }
+
+                grid.prepend(element);
+            }
         }
 
-        // Intersection Observer setup
+        function loadNextMonth() {
+            // Move endDate forward by 1 month
+            endDate.setMonth(endDate.getMonth() + 1);
+            renderMonth(endDate, 'append');
+        }
+
+        function loadPrevMonth() {
+            // Capture scroll height before adding content
+            const previousHeight = scrollContainer.scrollHeight;
+
+            // Move startDate back by 1 month
+            startDate.setMonth(startDate.getMonth() - 1);
+            renderMonth(startDate, 'prepend');
+
+            // Adjust scroll to prevent jump
+            const currentHeight = scrollContainer.scrollHeight;
+            scrollContainer.scrollTop += (currentHeight - previousHeight);
+        }
+
+        // Initial Load
+        // Load previous month, current month, next month, and month after next
+        // to ensure scrollbar exists and context is visible.
+        
+        // 1. Load Current Month
+        const now = new Date();
+        
+        // We need to set the 'startDate' to the month BEFORE current initially
+        // so the loop works nicely.
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        
+        // Fix visual Start for the initial block
+        const initialWrapper = createMonthHTML(startDate.getFullYear(), startDate.getMonth());
+        initialWrapper.element.firstElementChild.style.gridColumnStart = initialWrapper.startDayIndex + 1;
+        grid.appendChild(initialWrapper.element);
+
+        // 2. Load Previous Month (Prepending)
+        loadPrevMonth();
+
+        // 3. Load Next few months (Appending)
+        loadNextMonth();
+        loadNextMonth();
+        loadNextMonth();
+
+        // Scroll to today
+        setTimeout(() => {
+            const todayEl = document.getElementById('target-today');
+            if (todayEl) {
+                // Center the day in the view
+                todayEl.scrollIntoView({ block: "center", behavior: "smooth" });
+            }
+        }, 100);
+
+        // Intersection Observer for Infinite Scroll
         const observerOptions = {
             root: scrollContainer,
             rootMargin: '200px', // Preload before hitting edge
-            threshold: 0
+            threshold: 0.1
         };
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     if (entry.target.id === 'bottomSentinel') {
-                        addMonths('future');
+                        loadNextMonth();
                     } else if (entry.target.id === 'topSentinel') {
-                        addMonths('past');
+                        // Debounce slightly top scrolling to avoid rapid firing
+                        // which can mess up scroll position calculation
+                        loadPrevMonth();
                     }
                 }
             });
         }, observerOptions);
 
-        // Start
-        initCalendar();
         observer.observe(topSentinel);
         observer.observe(bottomSentinel);
 

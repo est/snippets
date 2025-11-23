@@ -3,10 +3,11 @@ make an html5 calendar  demo
 - good looking, aethestic pleasing, but restrain with colors.
 - all-in-one html, no external deps. No react nor tailwind.
 - inline svg favicon with a calendar emoji
-- the month should go vertically,  one week per line goes on one by one.
+- each month should be contained by an html element with class="month-group"
+- the calendar goes vertically, one week per line
 - no breaks between months, days should be displayed continuously, NO separation between months
-- each month should be contained by an element as a group
-- show a big 1-12 month number in the background at the center of each month group. Prefix a small year before the month, only for January.
-- Distinguish month by even-odd background color. The color applies from the first day of the month to the last, like a snake. remember Choose your html element wisely.
-- infinite scroll 
+- Distinguish month by even-odd background color. The color applies from the first day of the month to the last, like a snake
+- watermark a big 1-12 month number in the background at the center of each month group. Prefix a smaller year before the month, only for January.
+- default land at the current day using browser's local clock
+- infinite scroll, can go backwards and forwards.
 - displayed as a compact block to be used as part of page elsewhere.
