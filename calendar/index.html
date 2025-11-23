@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infinite Calendar</title>
+    <!-- Inline Favicon with Calendar Emoji -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
+
+    <style>
+        :root {
+            /* Palette - Restrained & Aesthetic */
+            --bg-odd: #ffffff;
+            --bg-even: #f4f6f8; /* Very subtle blue-grey */
+            --text-main: #2c3e50;
+            --text-muted: #95a5a6;
+            --accent: #e74c3c; /* Soft Red/Coral for Today */
+            --bg-number: rgba(0, 0, 0, 0.04); /* Watermark opacity */
+            
+            --cell-size: 44px;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: #e0e5ec;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* The Component Wrapper */
+        .calendar-widget {
+            width: 100%;
+            max-width: 380px;
+            height: 600px; /* Fixed height for the scrollable area */
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Fixed Header for Weekdays */
+        .weekdays-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+
+        .weekday {
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Scrollable Area */
+        .calendar-scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            position: relative;
+            /* Hide scrollbar for cleaner aesthetic */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
+        
+        .calendar-scroll-area::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Month Group Container */
+        .month-group {
+            position: relative;
+            padding-bottom: 0; /* Continuous flow */
+            /* Snake effect logic handles bg color via classes */
+        }
+
+        .month-group.odd {
+            background-color: var(--bg-odd);
+        }
+
+        .month-group.even {
+            background-color: var(--bg-even);
+        }
+
+        /* The Big Background Number */
+        .month-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10rem;
+            font-weight: 800;
+            color: var(--text-main);
+            opacity: 0.05;
+            pointer-events: none;
+            z-index: 0;
+            line-height: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .year-prefix {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: -20px;
+            opacity: 0.6;
+        }
+
+        /* Days Grid */
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            position: relative;
+            z-index: 1; /* Above watermark */
+        }
+
+        .day-cell {
+            height: var(--cell-size);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            cursor: default;
+            position: relative;
+        }
+
+        /* Today Marker */
+        .day-cell.is-today {
+            color: white;
+            font-weight: bold;
+        }
+
+        .day-cell.is-today::before {
+            content: '';
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            z-index: -1;
+            box-shadow: 0 4px 10px rgba(231, 76, 60, 0.3);
+        }
+
+        .day-cell.weekend {
+            color: var(--text-muted);
+        }
+
+        /* Loading Sentinels */
+        .sentinel {
+            height: 20px;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="calendar-widget">
+        <!-- Static Header -->
+        <div class="weekdays-header">
+            <div class="weekday">S</div>
+            <div class="weekday">M</div>
+            <div class="weekday">T</div>
+            <div class="weekday">W</div>
+            <div class="weekday">T</div>
+            <div class="weekday">F</div>
+            <div class="weekday">S</div>
+        </div>
+
+        <!-- Infinite Scroll Container -->
+        <div class="calendar-scroll-area" id="scrollContainer">
+            <div class="sentinel" id="topSentinel"></div>
+            <div id="calendarContent"></div>
+            <div class="sentinel" id="bottomSentinel"></div>
+        </div>
+    </div>
+
+    <script>
+        const scrollContainer = document.getElementById('scrollContainer');
+        const calendarContent = document.getElementById('calendarContent');
+        const topSentinel = document.getElementById('topSentinel');
+        const bottomSentinel = document.getElementById('bottomSentinel');
+
+        // State management
+        let startDate = new Date(); // Tracks the top-most loaded month
+        let endDate = new Date();   // Tracks the bottom-most loaded month
+        
+        // Config
+        const MONTHS_TO_BUFFER = 3;
+        let isScrolling = false;
+
+        // Helper to get days in month
+        function getDaysInMonth(year, month) {
+            return new Date(year, month + 1, 0).getDate();
+        }
+
+        // Helper to get day of week for first day (0-6)
+        function getFirstDayOfMonth(year, month) {
+            return new Date(year, month, 1).getDay();
+        }
+
+        function createMonthElement(year, month) {
+            const wrapper = document.createElement('div');
+            
+            // Determine Odd/Even for "Snake" background
+            // We use a combination of year and month to ensure continuity across years
+            const absoluteMonthIndex = year * 12 + month;
+            const isEven = absoluteMonthIndex % 2 === 0;
+            wrapper.className = `month-group ${isEven ? 'even' : 'odd'}`;
+            wrapper.dataset.year = year;
+            wrapper.dataset.month = month;
+
+            // Background Watermark
+            const watermark = document.createElement('div');
+            watermark.className = 'month-watermark';
+            
+            // If January, add Year prefix
+            if (month === 0) {
+                const yearSpan = document.createElement('div');
+                yearSpan.className = 'year-prefix';
+                yearSpan.textContent = year;
+                watermark.appendChild(yearSpan);
+            }
+            
+            const monthNumSpan = document.createElement('span');
+            monthNumSpan.textContent = month + 1; // Display 1-12
+            watermark.appendChild(monthNumSpan);
+            wrapper.appendChild(watermark);
+
+            // Days Grid
+            const grid = document.createElement('div');
+            grid.className = 'days-grid';
+
+            const daysInMonth = getDaysInMonth(year, month);
+            const firstDayIndex = getFirstDayOfMonth(year, month);
+
+            // Empty slots for start of month
+            for (let i = 0; i < firstDayIndex; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'day-cell';
+                grid.appendChild(empty);
+            }
+
+            // Actual Days
+            const today = new Date();
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'day-cell';
+                dayCell.textContent = d;
+                
+                // Check if today
+                if (year === today.getFullYear() && month === today.getMonth() && d === today.getDate()) {
+                    dayCell.classList.add('is-today');
+                    dayCell.id = 'today-anchor'; // ID for scrolling
+                }
+
+                // Weekend styling logic (based on grid position)
+                const dayOfWeek = (firstDayIndex + d - 1) % 7;
+                if (dayOfWeek === 0 || dayOfWeek === 6) {
+                    dayCell.classList.add('weekend');
+                }
+
+                grid.appendChild(dayCell);
+            }
+
+            wrapper.appendChild(grid);
+            return wrapper;
+        }
+
+        function addMonths(direction) {
+            // direction: 'future' or 'past'
+            
+            if (direction === 'future') {
+                const currentY = endDate.getFullYear();
+                const currentM = endDate.getMonth();
+                
+                // Advance one month
+                let targetDate = new Date(currentY, currentM + 1, 1);
+                const el = createMonthElement(targetDate.getFullYear(), targetDate.getMonth());
+                calendarContent.appendChild(el);
+                
+                // Update State
+                endDate = targetDate;
+            } else {
+                const currentY = startDate.getFullYear();
+                const currentM = startDate.getMonth();
+                
+                // Go back one month
+                let targetDate = new Date(currentY, currentM - 1, 1);
+                const el = createMonthElement(targetDate.getFullYear(), targetDate.getMonth());
+                
+                // Maintain scroll position trick
+                const previousHeight = scrollContainer.scrollHeight;
+                calendarContent.prepend(el);
+                const newHeight = scrollContainer.scrollHeight;
+                scrollContainer.scrollTop += (newHeight - previousHeight);
+
+                // Update State
+                startDate = targetDate;
+            }
+        }
+
+        function initCalendar() {
+            const today = new Date();
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1); // Copy
+            endDate = new Date(today.getFullYear(), today.getMonth(), 1);   // Copy
+
+            // 1. Render Current Month
+            calendarContent.appendChild(createMonthElement(today.getFullYear(), today.getMonth()));
+
+            // 2. Buffer Past
+            for(let i=0; i<MONTHS_TO_BUFFER; i++) {
+                addMonths('past');
+            }
+
+            // 3. Buffer Future
+            for(let i=0; i<MONTHS_TO_BUFFER; i++) {
+                addMonths('future');
+            }
+
+            // 4. Scroll to Today
+            // We need to wait a tiny bit for DOM painting or use scrollIntoView
+            setTimeout(() => {
+                const todayEl = document.getElementById('today-anchor');
+                if (todayEl) {
+                    todayEl.scrollIntoView({ block: 'center', behavior: 'auto' });
+                }
+            }, 10);
+        }
+
+        // Intersection Observer setup
+        const observerOptions = {
+            root: scrollContainer,
+            rootMargin: '200px', // Preload before hitting edge
+            threshold: 0
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    if (entry.target.id === 'bottomSentinel') {
+                        addMonths('future');
+                    } else if (entry.target.id === 'topSentinel') {
+                        addMonths('past');
+                    }
+                }
+            });
+        }, observerOptions);
+
+        // Start
+        initCalendar();
+        observer.observe(topSentinel);
+        observer.observe(bottomSentinel);
+
+    </script>
+</body>
+</html>
