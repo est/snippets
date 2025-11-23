@@ -11,3 +11,17 @@ make an html5 calendar  demo
 - default land at the current day using browser's local clock
 - infinite scroll, can go backwards and forwards.
 - displayed as a compact block to be used as part of page elsewhere.
+
+
+现在市面上绝大多数日历都是左右翻的。每页 一月
+但是 “月” 这个概念是人为的，自然日 是连续的。
+以2025-11-23 开始为例，能不能做成这种：
+
+23 24 25 26 27 28 29
+30 01 02 03 04 05 06
+
+主要特色：日期是连续的。
+用处：一个紧凑的日历组件。垂直无限滚动，方便用于其他web页面
+年、月 作为背景水印居中就行。
+
+写个html 

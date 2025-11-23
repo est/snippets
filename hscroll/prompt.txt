@@ -1,0 +1,12 @@
+write me all-in-one html
+
+- layout mimic newspapers, with horizontal scroll only
+- news paper had various size block. e.g. small chunks of short text, as well as big, long text. Be creative with the layout.
+- multiple columns for desktop screen, one column for mobile
+- for mobile it's just long vertical article but allows horizontal scroll for next article.
+- include some long & short placeholder text, for many pages, add pics like https://placecats.com/300/200
+- every page takes full screen, each column consists around 80em for good readability
+- no tailwind nor react, no javascript, just content-heavy. Dence information.
+- might be used as an astro template runnable on CF worker in the future
+- no external font, consider good compatibility with ios/android/win/mac/linux
+- 
