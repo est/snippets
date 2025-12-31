@@ -8,10 +8,10 @@ Be warned many of the scripts are incomplete or cringy.
 
 ## Table of H5+JS shit
 
-- 2011-03-12 [3d Parallax](/3d_parallax_barrier) |  [blog](https://blog.est.im/archives/3762)
-- 2022-10-30 [dtmf](/dtmf) | [blog](https://blog.est.im/2022/stdout-10)
-- [metronome](/metronome) | [blog](https://blog.est.im/2024/stdout-19)
-- [HTML5 greyscale animation](/grayscale_animation)
+- 2011-03-12 [3d Parallax](/3d_parallax_barrier)  [blog](https://blog.est.im/archives/3762)
+- 2022-10-30 [dtmf](/dtmf) [blog](https://blog.est.im/2022/stdout-10)
+- [metronome](/metronome) [blog](https://blog.est.im/2024/stdout-19)
+- [HTML5 greyscale animation](/grayscale_animation) muck like Red Dead Redemption cutscene
 - [addictive color](/addictive_color)
 - [Harp MIDI with room echo](/audio/midi)
 - [logo parallax](/bg_parallax) with `deviceorientation`
@@ -50,6 +50,8 @@ Be warned many of the scripts are incomplete or cringy.
 ## By others
 
 - [Color Wheel](/html5_color_wheel)
+
+
 ## License
 
 <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="license noopener noreferrer" style="display:inline-block;">CC BY-NC 4.0<img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/by.svg"><img style="height:22px!important;margin-left:3px;vertical-align:text-bottom;" src="https://mirrors.creativecommons.org/presskit/icons/nc.svg"></a>
