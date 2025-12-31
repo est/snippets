@@ -38,7 +38,8 @@ Be warned many of the scripts are incomplete or cringy.
    - [circle-anim](/svg/circle-anim.svg)
    - [text](/svg/text.svg)
    - [entity](/svg/entity.xhtml)
-- [MicroMsg Moments](/mmm) 风格模仿。
+- [MicroMsg Moments](/mmm) 风格模仿
+- [ECG](/ECG) 模拟心电图声音
 
 ## Useful toolz
 

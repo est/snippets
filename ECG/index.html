@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedPro ECG Monitor</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏥</text></svg>">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap');
+
+        :root {
+            --bg-color: #05070a;
+            --accent-green: #00ff41;
+            --dim-green: rgba(0, 255, 65, 0.2);
+            --panel-bg: rgba(20, 25, 30, 0.8);
+            --text-color: #e0e0e0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .monitor-container {
+            width: 90%;
+            max-width: 900px;
+            background: var(--panel-bg);
+            border: 2px solid #222;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 1), 0 0 20px rgba(0, 255, 65, 0.05);
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 20px;
+        }
+
+        .title-group h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.5rem;
+            color: var(--accent-green);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+        }
+
+        .status {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        .heart-rate-display {
+            text-align: right;
+        }
+
+        .bpm-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3.5rem;
+            color: var(--accent-green);
+            line-height: 1;
+        }
+
+        .bpm-label {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #888;
+        }
+
+        canvas {
+            width: 100%;
+            height: 250px;
+            background: #080a0d;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border: 1px solid #1a1e23;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #aaa;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-green);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(0, 255, 65, 0.5);
+            transition: transform 0.1s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:active {
+            transform: scale(1.2);
+        }
+
+        .power-btn {
+            background: transparent;
+            border: 2px solid var(--accent-green);
+            color: var(--accent-green);
+            padding: 12px 24px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            height: fit-content;
+            align-self: center;
+        }
+
+        .power-btn:hover {
+            background: var(--accent-green);
+            color: var(--bg-color);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);
+        }
+
+        .power-btn.active {
+            background: #ff3e3e;
+            border-color: #ff3e3e;
+            color: white;
+            box-shadow: 0 0 20px rgba(255, 62, 62, 0.4);
+        }
+
+        .grid-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background-image:
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="monitor-container">
+        <div class="grid-overlay"></div>
+
+        <header class="header">
+            <div class="title-group">
+                <h1>ECG Monitor</h1>
+                <p class="status">SYSTEM READY // SIMULATION MODE</p>
+            </div>
+            <div class="heart-rate-display">
+                <span class="bpm-value" id="bpm-display">60</span>
+                <span class="bpm-label">BPM</span>
+            </div>
+        </header>
+
+        <canvas id="ecgCanvas"></canvas>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="bpm-slider">Heart Rate (BPM)</label>
+                <input type="range" id="bpm-slider" min="40" max="180" value="60">
+            </div>
+            <div class="control-group">
+                <label for="volume-slider">Volume</label>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.3">
+            </div>
+            <button id="power-toggle" class="power-btn">Start Monitor</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Audio Logic ---
+        let audioCtx = null;
+        let isStarted = false;
+        let bpm = 60;
+        let volume = 0.3;
+        let nextNoteTime = 0;
+
+        const bpmSlider = document.getElementById('bpm-slider');
+        const volSlider = document.getElementById('volume-slider');
+        const bpmDisplay = document.getElementById('bpm-display');
+        const powerBtn = document.getElementById('power-toggle');
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playBeep(time) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1000, time);
+
+            // ECG Beep Envelope: Quick attack, quick decay
+            gain.gain.setValueAtTime(0, time);
+            gain.gain.linearRampToValueAtTime(volume, time + 0.02);
+            gain.gain.exponentialRampToValueAtTime(0.0001, time + 0.15);
+
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            osc.start(time);
+            osc.stop(time + 0.2);
+
+            // Trigger visual pulse
+            triggerPulse();
+        }
+
+        function scheduler() {
+            while (nextNoteTime < audioCtx.currentTime + 0.1) {
+                playBeep(nextNoteTime);
+                const secondsPerBeat = 60.0 / bpm;
+                nextNoteTime += secondsPerBeat;
+            }
+            if (isStarted) {
+                requestAnimationFrame(scheduler);
+            }
+        }
+
+        // --- Visual Logic ---
+        const canvas = document.getElementById('ecgCanvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let points = [];
+        let xPos = 0;
+        let pulsePhase = 0;
+        let pulseActive = false;
+
+        function resize() {
+            width = canvas.offsetWidth;
+            height = canvas.offsetHeight;
+            canvas.width = width;
+            canvas.height = height;
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+
+        // ECG Waveform function (simulating P-QRS-T)
+        function getECGValue(phase) {
+            // phase is 0 to 1
+            if (phase < 0.1) return 0; // Baseline
+            if (phase < 0.2) return Math.sin((phase - 0.1) * Math.PI * 10) * 10; // P wave
+            if (phase < 0.25) return 0; // PR interval
+            if (phase < 0.28) return -(phase - 0.25) * 400; // Q wave
+            if (phase < 0.32) return 80 - (phase - 0.28) * 800; // R wave (spike)
+            if (phase < 0.35) return -40 + (phase - 0.32) * 1000; // S wave
+            if (phase < 0.45) return 0; // ST segment
+            if (phase < 0.6) return Math.sin((phase - 0.45) * Math.PI * 6.6) * 20; // T wave
+            return 0; // Baseline
+        }
+
+        function triggerPulse() {
+            pulseActive = true;
+            pulsePhase = 0;
+        }
+
+        function draw() {
+            // Draw gradient background
+            ctx.fillStyle = '#080a0d';
+            ctx.fillRect(0, 0, width, height);
+
+            // Update points
+            let val = 0;
+            if (pulseActive) {
+                val = getECGValue(pulsePhase);
+                pulsePhase += (0.02 * (bpm / 60)); // Adjust pulse speed by BPM
+                if (pulsePhase >= 1) {
+                    pulsePhase = 0;
+                    pulseActive = false;
+                }
+            }
+
+            points.push({ x: xPos, y: height / 2 - val });
+            if (points.length > width / 2) points.shift();
+
+            // Draw line
+            ctx.beginPath();
+            ctx.strokeStyle = '#00ff41';
+            ctx.lineWidth = 2;
+            ctx.lineJoin = 'round';
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#00ff41';
+
+            for (let i = 0; i < points.length; i++) {
+                const p = points[i];
+                // Map logical x to canvas x
+                const drawX = width - (points.length - i) * 2;
+                if (i === 0) ctx.moveTo(drawX, p.y);
+                else ctx.lineTo(drawX, p.y);
+            }
+            ctx.stroke();
+
+            requestAnimationFrame(draw);
+        }
+
+        // --- Event Listeners ---
+        bpmSlider.addEventListener('input', (e) => {
+            bpm = parseInt(e.target.value);
+            bpmDisplay.textContent = bpm;
+        });
+
+        volSlider.addEventListener('input', (e) => {
+            volume = parseFloat(e.target.value);
+        });
+
+        powerBtn.addEventListener('click', () => {
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            isStarted = !isStarted;
+            if (isStarted) {
+                powerBtn.textContent = 'Stop Monitor';
+                powerBtn.classList.add('active');
+                nextNoteTime = audioCtx.currentTime;
+                scheduler();
+            } else {
+                powerBtn.textContent = 'Start Monitor';
+                powerBtn.classList.remove('active');
+            }
+        });
+
+        draw();
+    </script>
+</body>
+
+</html>
