@@ -17,9 +17,9 @@ from Quartz import (
     CGPathApply,
     kCGPathElementMoveToPoint, kCGPathElementAddLineToPoint, 
     kCGPathElementAddQuadCurveToPoint, kCGPathElementAddCurveToPoint, 
-    kCGPathElementCloseSubpath,
-    CTFontCreateWithName, CTFontGetGlyphsForCharacters, CTFontCreatePathForGlyph
+    kCGPathElementCloseSubpath
 )
+import CoreText
 import objc
 
 
@@ -209,13 +209,13 @@ def get_glyph_outline(font: object, char: str, size: float, font_name: str = Non
             font_name = "Helvetica"
         
         # Create CoreText font with the same size (use font name string directly)
-        ct_font = CTFontCreateWithName(font_name, size, None)
+        ct_font = CoreText.CTFontCreateWithName(font_name, size, None)
         if ct_font is None:
             # Try with family name if PostScript name failed
             try:
                 family_name = font.familyName()
                 if family_name:
-                    ct_font = CTFontCreateWithName(family_name, size, None)
+                    ct_font = CoreText.CTFontCreateWithName(family_name, size, None)
             except:
                 pass
         
@@ -224,7 +224,7 @@ def get_glyph_outline(font: object, char: str, size: float, font_name: str = Non
         
         # Get glyph for character using CoreText (matches 3d_text.py pattern)
         # Pass the character string directly - CoreText handles the conversion
-        success, glyphs = CTFontGetGlyphsForCharacters(ct_font, char, None, 1)
+        success, glyphs = CoreText.CTFontGetGlyphsForCharacters(ct_font, char, None, 1)
         if not success:
             return []
         
@@ -236,7 +236,7 @@ def get_glyph_outline(font: object, char: str, size: float, font_name: str = Non
         glyph_id = glyphs[0]
         
         # Create path for glyph
-        cg_path = CTFontCreatePathForGlyph(ct_font, glyph_id, None)
+        cg_path = CoreText.CTFontCreatePathForGlyph(ct_font, glyph_id, None)
         if cg_path is None:
             return []
         
