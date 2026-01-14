@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env /Users/lambdaq/miniconda3/envs/py3/bin/python
 """
 3D Rotating Text Renderer for macOS Terminal
 Renders 3D rotating text similar to the "20th Century Fox" logo style.
@@ -11,18 +11,17 @@ import argparse
 import signal
 from typing import List, Tuple, Optional
 
-try:
-    from AppKit import NSFont, NSBezierPath, NSString
-    from Quartz import (
-        CGPathApply,
-        kCGPathElementMoveToPoint, kCGPathElementAddLineToPoint, 
-        kCGPathElementAddQuadCurveToPoint, kCGPathElementAddCurveToPoint, 
-        kCGPathElementCloseSubpath
-    )
-    import objc
-except ImportError:
-    print("Error: pyobjc is required. Install with: pip install pyobjc")
-    sys.exit(1)
+
+from AppKit import NSFont, NSBezierPath, NSString
+from Quartz import (
+    CGPathApply,
+    kCGPathElementMoveToPoint, kCGPathElementAddLineToPoint, 
+    kCGPathElementAddQuadCurveToPoint, kCGPathElementAddCurveToPoint, 
+    kCGPathElementCloseSubpath,
+    CTFontCreateWithName, CTFontGetGlyphsForCharacters, CTFontCreatePathForGlyph
+)
+import objc
+
 
 # Terminal control codes
 CLEAR_SCREEN = "\033[2J"
@@ -193,41 +192,51 @@ class PathExtractor:
             pass
 
 
-def get_glyph_outline(font: object, char: str, size: float) -> List[Tuple[float, float]]:
-    """Extract glyph outline points from font using NSLayoutManager and NSBezierPath"""
+def get_glyph_outline(font: object, char: str, size: float, font_name: str = None) -> List[Tuple[float, float]]:
+    """Extract glyph outline points from font using CoreText"""
     try:
-        from AppKit import NSLayoutManager, NSTextContainer, NSTextStorage
+        # Use provided font_name, or extract from NSFont
+        if not font_name:
+            try:
+                # Try to get PostScript name (most reliable for CoreText)
+                font_name = font.fontName()
+                if not font_name:
+                    font_name = font.familyName()
+            except:
+                pass
         
-        # Create NSString from character
-        ns_string = NSString.stringWithString_(char)
+        if not font_name:
+            font_name = "Helvetica"
         
-        # Use NSLayoutManager to get the glyph index for the character
-        layout_manager = NSLayoutManager.alloc().init()
-        text_container = NSTextContainer.alloc().init()
-        text_storage = NSTextStorage.alloc().initWithString_(ns_string)
+        # Create CoreText font with the same size (use font name string directly)
+        ct_font = CTFontCreateWithName(font_name, size, None)
+        if ct_font is None:
+            # Try with family name if PostScript name failed
+            try:
+                family_name = font.familyName()
+                if family_name:
+                    ct_font = CTFontCreateWithName(family_name, size, None)
+            except:
+                pass
         
-        text_storage.addLayoutManager_(layout_manager)
-        layout_manager.addTextContainer_(text_container)
-        
-        # Set font attribute (use string key 'NSFont' instead of constant)
-        text_storage.addAttribute_value_range_('NSFont', font, (0, 1))
-        
-        # Get glyph range
-        glyph_range = layout_manager.glyphRangeForTextContainer_(text_container)
-        if glyph_range.length == 0:
+        if ct_font is None:
             return []
         
-        # Get the glyph index
-        glyph_index = glyph_range.location
+        # Get glyph for character using CoreText (matches 3d_text.py pattern)
+        # Pass the character string directly - CoreText handles the conversion
+        success, glyphs = CTFontGetGlyphsForCharacters(ct_font, char, None, 1)
+        if not success:
+            return []
         
-        # Create NSBezierPath and append the glyph
-        bezier_path = NSBezierPath.bezierPath()
-        bezier_path.moveToPoint_((0, 0))  # Set a starting point (required)
-        bezier_path.appendBezierPathWithGlyph_inFont_(glyph_index, font)
+        # glyphs is a tuple/array - get first element
+        # Note: glyph 0 can be valid, so we only check if glyphs exists and has elements
+        if not glyphs or len(glyphs) == 0:
+            return []
         
-        # Convert NSBezierPath to CGPath
-        cg_path = bezier_path.CGPath()
+        glyph_id = glyphs[0]
         
+        # Create path for glyph
+        cg_path = CTFontCreatePathForGlyph(ct_font, glyph_id, None)
         if cg_path is None:
             return []
         
@@ -241,8 +250,9 @@ def get_glyph_outline(font: object, char: str, size: float) -> List[Tuple[float,
         CGPathApply(cg_path, None, path_callback)
         
         return extractor.points if extractor.points else []
-    except Exception:
-        # Return empty on error
+    except Exception as e:
+        # Return empty on error - uncomment for debugging
+        # print(f"Error in get_glyph_outline for '{char}': {e}")
         return []
 
 
@@ -625,7 +635,7 @@ def main():
             current_x += char_spacing * 0.5
             continue
         
-        points_2d = get_glyph_outline(font, char, args.size)
+        points_2d = get_glyph_outline(font, char, args.size, args.font)
         if points_2d:
             # Offset for character spacing
             offset_points = [(p[0] + current_x, p[1]) for p in points_2d]
