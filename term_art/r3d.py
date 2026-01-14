@@ -60,13 +60,9 @@ def cleanup_terminal():
 
 
 def get_terminal_size() -> Tuple[int, int]:
-    """Get terminal dimensions"""
-    try:
-        import shutil
-        size = shutil.get_terminal_size()
-        return size.columns, size.lines
-    except:
-        return 80, 24
+    """Get terminal dimensions - uses conservative 80x24 by default"""
+    # Use conservative dimensions (80x24) to avoid newline issues and ensure stable rendering
+    return 80, 24
 
 
 class Point3D:
@@ -578,6 +574,7 @@ def render_frame_to_string(buffer: DepthBuffer) -> str:
     for y in range(buffer.height):
         line = "".join(buffer.color[y])
         lines.append(line)
+    # Join without trailing newline to prevent scrolling
     return "\n".join(lines)
 
 
@@ -588,13 +585,21 @@ def main():
     parser.add_argument("--speed", type=float, default=1.0, help="Rotation speed multiplier")
     parser.add_argument("--depth", type=float, default=0.5, help="Extrusion depth")
     parser.add_argument("--size", type=float, default=100.0, help="Font size")
+    parser.add_argument("--width", type=int, default=80, help="Terminal width (default: 80)")
+    parser.add_argument("--height", type=int, default=24, help="Terminal height (default: 24)")
+    parser.add_argument("--fixed-size", action="store_true", help="Use fixed dimensions instead of terminal size")
     
     args = parser.parse_args()
     
     # Initialize terminal
     global terminal_size
-    terminal_size = get_terminal_size()
-    term_width, term_height = terminal_size
+    if args.fixed_size:
+        # Use fixed conservative dimensions
+        term_width, term_height = args.width, args.height
+        terminal_size = (term_width, term_height)
+    else:
+        terminal_size = get_terminal_size()
+        term_width, term_height = terminal_size
     
     # Terminal aspect ratio (typically 2:1 height:width)
     aspect_ratio = 2.0
@@ -668,8 +673,21 @@ def main():
             output = render_frame_to_string(buffer)
             
             # Anti-flicker: position cursor and output
+            # Output exactly term_height lines without trailing newline to prevent scrolling
             sys.stdout.write(RESET_CURSOR)
-            sys.stdout.write(output)
+            lines = output.split('\n')
+            # Ensure we output exactly term_height lines
+            for i in range(term_height):
+                if i < len(lines):
+                    sys.stdout.write(lines[i])
+                else:
+                    # Fill with empty lines if needed
+                    sys.stdout.write('')
+                # Clear to end of line
+                sys.stdout.write('\033[K')
+                # Add newline except for the last line to prevent scrolling
+                if i < term_height - 1:
+                    sys.stdout.write('\n')
             sys.stdout.flush()
             
             # Update angles (wrap to prevent overflow)
