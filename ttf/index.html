@@ -4,17 +4,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TTF demo</title>
+    <title>TTF demo - 0-width Characters</title>
+    <style>
+        body {
+            font-family: system-ui;
+            font-size: 50px;
+            text-align: center;
+            padding-top: 100px;
+        }
+    </style>
 </head>
 
 <body>
     <script>
+        // Utility functions for TTF construction
         function u16(v) { return [v >> 8, v & 255]; }
         function u32(v) { return [v >> 24, (v >> 16) & 255, (v >> 8) & 255, v & 255]; }
-
-        function table(tag, data) {
-            return { tag, data, checksum: 0 };
-        }
+        function bytesToString(bytes) { return String.fromCharCode(...bytes); }
+        function stringToBytes(str) { return Array.from(str).map(c => c.charCodeAt(0)); }
+        function pad4(arr) { while (arr.length % 4) arr.push(0); return arr; }
 
         function checksum(data) {
             let sum = 0;
@@ -29,209 +37,187 @@
             return sum;
         }
 
-        function pad4(arr) {
-            while (arr.length % 4) arr.push(0);
-        }
+        // Create minimal valid TTF with single glyph
+        function createZeroWidthTTF() {
+            const tables = [];
 
-        const tables = [];
+            // 1. glyf - single empty glyph
+            const glyfTable = [
+                0, 0,    // numberOfContours (0 for empty glyph)
+                0, 0,    // xMin
+                0, 0,    // yMin
+                0, 0,    // xMax
+                0, 0     // yMax
+            ];
+            tables.push({ tag: "glyf", data: pad4(glyfTable), checksum: 0 });
 
-        /* glyf: minimal empty glyph that takes no space */
-        const glyf = [
-            0, 0,  /* numberOfContours (0 for empty glyph) */
-            0, 0,  /* xMin */
-            0, 0,  /* yMin */
-            0, 0,  /* xMax */
-            0, 0   /* yMax */
-        ];
-        pad4(glyf);
-        tables.push(table("glyf", glyf));
+            // 2. loca - glyph location table
+            tables.push({ tag: "loca", data: pad4([0, 0]), checksum: 0 });
 
-        /* loca: single glyph offset */
-        tables.push(table("loca", [0, 0]));
+            // 3. hmtx - horizontal metrics
+            tables.push({ tag: "hmtx", data: pad4([0, 0, 0, 0]), checksum: 0 });
 
-        /* hmtx: horizontal metrics - zero width */
-        tables.push(table("hmtx", [
-            0, 0,  /* advanceWidth: 0 */
-            0, 0   /* lsb: 0 */
-        ]));
+            // 4. maxp - maximum profile
+            tables.push({ tag: "maxp", data: pad4([
+                ...u32(0x00010000),    // version 1.0
+                ...u16(1),             // numGlyphs
+                ...u16(0), ...u16(0),  // maxPoints, maxContours
+                ...u16(0), ...u16(0),  // maxCompositePoints, maxCompositeContours
+                ...u16(0), ...u16(0),  // maxZones, maxTwilightPoints
+                ...u16(0), ...u16(0),  // maxStorage, maxFunctionDefs
+                ...u16(0), ...u16(0),  // maxInstructionDefs, maxStackElements
+                ...u16(0), ...u16(0),  // maxSizeOfInstructions, maxComponentElements
+                ...u16(0)              // maxComponentDepth
+            ]), checksum: 0 });
 
-        /* maxp: maximum profile */
-        tables.push(table("maxp", [
-            ...u32(0x00010000),  /* version */
-            ...u16(1)            /* numGlyphs */
-        ]));
+            // 5. head - font header (36 bytes)
+            tables.push({ tag: "head", data: pad4([
+                ...u32(0x00010000),    // version 1.0
+                ...u32(0),             // checkSumAdjustment (will be calculated)
+                ...u32(0x5F0F3CF5),    // magicNumber
+                ...u16(0),             // flags
+                ...u16(1000),          // unitsPerEm
+                ...u32(0), ...u32(0),  // created, modified (placeholder)
+                ...u16(-200), ...u16(-200), // xMin, yMin
+                ...u16(1200), ...u16(1200), // xMax, yMax
+                ...u16(0), ...u16(10), // macStyle, lowestRecPPEM
+                ...u16(2), ...u16(0), ...u16(0) // fontDirectionHint, indexToLocFormat, glyphDataFormat
+            ]), checksum: 0 });
 
-        /* head: font header */
-        tables.push(table("head", [
-            ...u32(0x00010000),  /* version */
-            ...u32(0x10000000),  /* checkSumAdjustment */
-            ...u32(0x5F0F3CF5),  /* magicNumber */
-            ...u16(0x0000),      /* flags */
-            ...u16(1000),        /* unitsPerEm */
-            0, 0, 0, 0, 0, 0,    /* created (timestamp) */
-            0, 0, 0, 0, 0, 0,    /* modified (timestamp) */
-            ...u16(-200),        /* xMin */
-            ...u16(-200),        /* yMin */
-            ...u16(1200),        /* xMax */
-            ...u16(1200),        /* yMax */
-            ...u16(0x0001),      /* macStyle */
-            ...u16(10),          /* lowestRecPPEM */
-            ...u16(2),           /* fontDirectionHint */
-            ...u16(0),           /* indexToLocFormat */
-            ...u16(0)            /* glyphDataFormat */
-        ]));
+            // 6. hhea - horizontal header (36 bytes)
+            tables.push({ tag: "hhea", data: pad4([
+                ...u32(0x00010000),    // version 1.0
+                ...u16(-200), ...u16(-200), // ascent, descent
+                ...u16(0),             // lineGap
+                ...u16(1000),          // advanceWidthMax
+                ...u16(-200), ...u16(-200), // minLeftSideBearing, minRightSideBearing
+                ...u16(0),             // xMaxExtent
+                ...u16(1),             // caretSlopeRise
+                ...u16(0),             // caretSlopeRun
+                ...u32(0),             // caretOffset
+                ...u16(0), ...u16(1)   // metricDataFormat, numberOfHMetrics
+            ]), checksum: 0 });
 
-        /* hhea: horizontal header */
-        tables.push(table("hhea", [
-            ...u32(0x00010000),  /* version */
-            ...u16(-200),        /* ascender */
-            ...u16(-200),        /* descender */
-            ...u16(0),           /* lineGap */
-            ...u16(1000),        /* advanceWidthMax */
-            ...u16(-200),        /* minLeftSideBearing */
-            ...u16(-200),        /* minRightSideBearing */
-            ...u16(0),           /* xMaxExtent */
-            ...u16(1),           /* caretSlopeRise */
-            ...u16(0),           /* caretSlopeRun */
-            ...u16(0),           /* caretOffset */
-            0, 0,                /* reserved */
-            0, 0,                /* reserved */
-            ...u16(0),           /* metricDataFormat */
-            ...u16(1)            /* numberOfHMetrics */
-        ]));
+            // 7. cmap - character to glyph mapping (format 4, ~44 bytes)
+            tables.push({ tag: "cmap", data: pad4([
+                0, 0, 0, 1,            // version, number of tables
+                0, 3, 0, 1, 0, 0, 0, 12, // platformID, platformSpecificID, offset
+                ...u16(4), ...u16(44), ...u16(0), // format, length, language
+                ...u16(1), ...u16(8), ...u16(0), ...u16(0), // nGroups, searchRange, entrySelector, rangeShift
+                ...u16(0x2603), ...u16(0x2603), ...u16(0) // startCharCode, endCharCode, glyphID
+            ]), checksum: 0 });
 
-        /* cmap: character to glyph mapping - format 4 (segment mapping) */
-        tables.push(table("cmap", [
-            0, 0,                     /* version */
-            0, 1,                     /* number of subtables */
-            0, 3,                     /* platformID=0 (Unicode) */
-            0, 1,                     /* encodingID=1 */
-            ...u32(12),               /* offset to subtable */
-            ...u32(0x0004),           /* format=4 */
-            ...u16(28),               /* length */
-            ...u16(0),                /* language */
-            ...u16(1),                /* segCountX2 */
-            ...u16(0),                /* searchRange */
-            ...u16(0),                /* entrySelector */
-            ...u16(0),                /* rangeShift */
-            ...u16(0x2603),           /* endCode */
-            ...u16(0),                /* reserved */
-            ...u16(0x2603),           /* startCode */
-            ...u16(0),                /* idDelta */
-            ...u16(0)                 /* idRangeOffset */
-        ]));
+            // 8. name - font naming (6 bytes)
+            tables.push({ tag: "name", data: pad4([0, 0, 0, 0, 0, 0]), checksum: 0 });
 
-        /* name: naming table */
-        tables.push(table("name", [
-            0, 0,  /* format */
-            0, 0,  /* count */
-            0, 0   /* stringOffset */
-        ]));
+            // 9. post - PostScript info (32 bytes)
+            tables.push({ tag: "post", data: pad4([
+                ...u32(0x00010000), // version 1.0
+                ...u32(0),         // italicAngle
+                ...u16(0), ...u16(0), // underlinePosition, underlineThickness
+                ...u32(0),         // isFixedPitch
+                ...u32(0), ...u32(0), // minMemType42, maxMemType42
+                ...u32(0), ...u32(0)  // minMemType1, maxMemType1
+            ]), checksum: 0 });
 
-        /* post: PostScript information */
-        tables.push(table("post", [
-            ...u32(0x00030000),  /* version */
-            0, 0, 0, 0,         /* italicAngle */
-            ...u16(0),          /* underlinePosition */
-            ...u16(0),          /* underlineThickness */
-            0, 0, 0, 0,         /* isFixedPitch, minMemType42, maxMemType42, minMemType1, maxMemType1 */
-            ...u16(1),          /* numberOfGlyphs */
-            ...u16(0)           /* offset to glyph names */
-        ]));
+            // 10. OS/2 table (78 bytes minimum)
+            tables.push({ tag: "OS/2", data: pad4([
+                ...u16(0x0004), 0, 0,
+                ...u16(1000), ...u16(5), ...u16(0),
+                ...u16(1000), ...u16(1000), ...u16(0), ...u16(0),
+                ...u16(1200), ...u16(1200), ...u16(0), ...u16(0),
+                ...u16(200), ...u16(0), ...u16(0),
+                0, 0, 0, 0, 0, 0, 0, 0,
+                ...u32(0), ...u32(0), ...u32(0), ...u32(0),
+                ...u16(0x0409), ...u16(0),
+                ...u16(65535), ...u16(0),
+                ...u16(0), ...u16(0), ...u16(0),
+                ...u16(1200), ...u16(200),
+                ...new Array(78 - 60).fill(0) // 补全到最小长度
+            ].flat()), checksum: 0 });
 
-        /* OS/2 table (required for modern browsers) */
-        tables.push(table("OS/2", [
-            ...u16(0x0004),     /* version */
-            0, 0,                /* avgCharWidth */
-            ...u16(1000),        /* usWeightClass */
-            ...u16(5),           /* usWidthClass */
-            ...u16(0),           /* fsType */
-            ...u16(1000),        /* ySubscriptXSize */
-            ...u16(1000),        /* ySubscriptYSize */
-            ...u16(0),           /* ySubscriptXOffset */
-            ...u16(0),           /* ySubscriptYOffset */
-            ...u16(1200),        /* ySuperscriptXSize */
-            ...u16(1200),        /* ySuperscriptYSize */
-            ...u16(0),           /* ySuperscriptXOffset */
-            ...u16(0),           /* ySuperscriptYOffset */
-            ...u16(200),         /* yStrikeoutSize */
-            ...u16(0),           /* yStrikeoutPosition */
-            ...u16(0),           /* sFamilyClass */
-            0, 0, 0, 0, 0, 0, 0, 0, /* panose */
-            ...u32(0x00000000), /* ulUnicodeRange1 */
-            ...u32(0x00000000), /* ulUnicodeRange2 */
-            ...u32(0x00000000), /* ulUnicodeRange3 */
-            ...u32(0x00000000), /* ulUnicodeRange4 */
-            ...u16(0x0409),      /* achVendID */
-            ...u16(0),           /* fsSelection */
-            ...u16(65535),       /* usFirstCharIndex */
-            ...u16(0),           /* usLastCharIndex */
-            ...u16(0),           /* sTypoAscender */
-            ...u16(0),           /* sTypoDescender */
-            ...u16(0),           /* sTypoLineGap */
-            ...u16(1200),        /* usWinAscent */
-            ...u16(200)          /* usWinDescent */
-        ]));
+            // Sort tables alphabetically by tag
+            const sortedTables = [...tables].sort((a, b) => a.tag.localeCompare(b.tag));
 
-        /* build font */
-        tables.forEach(t => pad4(t.data));
-
-        let offset = 12 + tables.length * 16;
-        tables.forEach(t => {
-            t.offset = offset;
-            t.length = t.data.length;
-            t.checksum = checksum(t.data);
-            offset += t.length;
-        });
-
-        /* Calculate checkSumAdjustment */
-        const headTable = tables.find(t => t.tag === "head");
-        if (headTable) {
-            let totalChecksum = 0;
-            tables.forEach(t => {
-                totalChecksum += t.checksum;
-                totalChecksum &= 0xffffffff;
+            // Calculate offsets and lengths
+            let offset = 12 + sortedTables.length * 16;
+            sortedTables.forEach(t => {
+                t.offset = offset;
+                t.length = t.data.length;
+                t.checksum = checksum(t.data);
+                offset += t.length;
             });
-            const checkSumAdjustment = (0xB1B0AFBA - totalChecksum) & 0xffffffff;
-            headTable.data.splice(4, 4, ...u32(checkSumAdjustment));
-            headTable.checksum = checksum(headTable.data);
+
+            // Calculate checkSumAdjustment
+            const headTable = sortedTables.find(t => t.tag === "head");
+            if (headTable) {
+                let totalChecksum = 0;
+                sortedTables.forEach(t => {
+                    totalChecksum += t.checksum;
+                    totalChecksum &= 0xffffffff;
+                });
+                const checkSumAdjustment = (0xB1B0AFBA - totalChecksum) & 0xffffffff;
+                headTable.data.splice(4, 4, ...u32(checkSumAdjustment));
+                headTable.checksum = checksum(headTable.data);
+            }
+
+            // Build the TTF file
+            const out = [];
+            out.push(...u32(0x00010000));
+
+            // Calculate search parameters
+            const numTables = sortedTables.length;
+            let powerOf2 = 0;
+            while ((1 << (powerOf2 + 1)) <= numTables) powerOf2++;
+            const searchRange = (1 << powerOf2) * 16;
+            const entrySelector = powerOf2;
+            const rangeShift = numTables * 16 - searchRange;
+
+            out.push(...u16(numTables));
+            out.push(...u16(searchRange));
+            out.push(...u16(entrySelector));
+            out.push(...u16(rangeShift));
+
+            // Write table records
+            sortedTables.forEach(t => {
+                const tagBytes = [];
+                for (let i = 0; i < 4; i++) {
+                    tagBytes.push(t.tag.charCodeAt(i) || 0);
+                }
+                out.push(...tagBytes);
+                out.push(...u32(t.checksum), ...u32(t.offset), ...u32(t.length));
+            });
+
+            // Write table data
+            sortedTables.forEach(t => out.push(...t.data));
+
+            return new Uint8Array(out);
         }
 
-        const out = [];
-        out.push(...u32(0x00010000));
-        out.push(...u16(tables.length), 0, 0, 0);
+        // Create and apply the font
+        function applyFont() {
+            const ttfData = createZeroWidthTTF();
+            const blob = new Blob([ttfData], { type: "font/ttf" });
+            const url = URL.createObjectURL(blob);
 
-        tables.forEach(t => {
-            out.push(...t.tag.split("").map(c => c.charCodeAt(0)));
-            out.push(...u32(t.checksum), ...u32(t.offset), ...u32(t.length));
-        });
+            document.head.insertAdjacentHTML("beforeend", `
+                <style>
+                    @font-face {
+                        font-family: ZeroWidthFont;
+                        src: url(${url});
+                        unicode-range: U+2603;
+                    }
+                    body { 
+                        font-family: ZeroWidthFont, system-ui; 
+                    }
+                </style>
+            `);
 
-        tables.forEach(t => out.push(...t.data));
+            // Display test character
+            document.body.textContent = "☃";
+        }
 
-        const blob = new Blob([new Uint8Array(out)], { type: "font/ttf" });
-        const url = URL.createObjectURL(blob);
-
-        document.head.insertAdjacentHTML("beforeend", `
-<style>
-@font-face {
-  font-family: GhostRaw;
-  src: url(${url});
-  unicode-range: U+2603;
-}
-body { 
-  font-family: GhostRaw, system-ui; 
-  font-size: 100px;
-  text-align: center;
-  padding-top: 50px;
-}
-/* Ensure the specific character is completely hidden */
-body::after {
-  content: '';
-}
-</style>
-`);
-
-        document.body.textContent = "☃";
+        applyFont();
     </script>
 </body>
 
