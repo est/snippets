@@ -35,9 +35,9 @@
 
         const tables = [];
 
-        /* glyf: empty glyph (valid empty glyph structure) */
+        /* glyf: minimal empty glyph that takes no space */
         const glyf = [
-            0, 0,  /* numberOfContours (-1 for composite, 0 for empty) */
+            0, 0,  /* numberOfContours (0 for empty glyph) */
             0, 0,  /* xMin */
             0, 0,  /* yMin */
             0, 0,  /* xMax */
@@ -49,10 +49,10 @@
         /* loca: single glyph offset */
         tables.push(table("loca", [0, 0]));
 
-        /* hmtx: horizontal metrics */
+        /* hmtx: horizontal metrics - zero width */
         tables.push(table("hmtx", [
-            0, 0,  /* advanceWidth */
-            0, 0   /* lsb */
+            0, 0,  /* advanceWidth: 0 */
+            0, 0   /* lsb: 0 */
         ]));
 
         /* maxp: maximum profile */
@@ -100,13 +100,25 @@
             ...u16(1)            /* numberOfHMetrics */
         ]));
 
-        /* cmap: character to glyph mapping */
+        /* cmap: character to glyph mapping - format 4 (segment mapping) */
         tables.push(table("cmap", [
-            0, 0, 0, 1,              /* version, number of subtables */
-            0, 3, 0, 1, 0, 0, 0, 12, /* platformID=0, encodingID=3, offset=12 */
-            0, 4, 0, 20,             /* platformID=0, encodingID=4, offset=20 */
-            0, 0, 0, 2,              /* format=0, length=2, language=0 */
-            0x26, 0x03, 0, 0         /* glyph index for U+2603 */
+            0, 0,                     /* version */
+            0, 1,                     /* number of subtables */
+            0, 3,                     /* platformID=0 (Unicode) */
+            0, 1,                     /* encodingID=1 */
+            ...u32(12),               /* offset to subtable */
+            ...u32(0x0004),           /* format=4 */
+            ...u16(28),               /* length */
+            ...u16(0),                /* language */
+            ...u16(1),                /* segCountX2 */
+            ...u16(0),                /* searchRange */
+            ...u16(0),                /* entrySelector */
+            ...u16(0),                /* rangeShift */
+            ...u16(0x2603),           /* endCode */
+            ...u16(0),                /* reserved */
+            ...u16(0x2603),           /* startCode */
+            ...u16(0),                /* idDelta */
+            ...u16(0)                 /* idRangeOffset */
         ]));
 
         /* name: naming table */
@@ -211,6 +223,10 @@ body {
   font-size: 100px;
   text-align: center;
   padding-top: 50px;
+}
+/* Ensure the specific character is completely hidden */
+body::after {
+  content: '';
 }
 </style>
 `);
