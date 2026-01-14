@@ -432,15 +432,15 @@ def render_mesh_to_buffer(mesh: List[List[Point3D]], buffer: DepthBuffer,
                           angle_x: float, angle_y: float, angle_z: float,
                           term_width: int, term_height: int, aspect_ratio: float):
     """Render 3D mesh to depth buffer"""
-    # Character set for depth shading (9 levels)
-    depth_chars = ["█", "▇", "▆", "▅", "▄", "▃", "▂", "▁", " "]
+    # Use solid blocks for better readability
+    depth_chars = ["█", " "]
     
     for face in mesh:
         if len(face) < 3:
             continue
         
-        # Transform all points
-        transformed = [p.rotate(angle_x, angle_y, angle_z) for p in face]
+        # Transform all points - only rotate around Y-axis (horizontal spin)
+        transformed = [p.rotate_y(angle_y) for p in face]
         
         # Cull back faces (simple: check if face normal points away)
         # Calculate face normal (cross product of two edges)
@@ -473,15 +473,11 @@ def render_mesh_to_buffer(mesh: List[List[Point3D]], buffer: DepthBuffer,
         if len(projected) < 3:
             continue
         
-        # Calculate average depth for shading
+        # Calculate average depth for depth buffer testing
         avg_z = sum(p.z for p in transformed) / len(transformed)
         
-        # Choose character based on depth (normalize to -2 to 2 range)
-        depth_range = 4.0  # -2 to 2
-        normalized_z = (avg_z + 2.0) / depth_range  # 0 to 1
-        depth_index = int(normalized_z * 8)  # 0 to 8
-        depth_index = max(0, min(8, depth_index))
-        char = depth_chars[depth_index]
+        # Use solid blocks for all visible faces (no depth shading)
+        char = depth_chars[0]  # Always use solid block (█)
         
         # Convert to screen coordinates
         # Map from [-1, 1] to [0, term_width/height]
@@ -700,10 +696,10 @@ def main():
                     sys.stdout.write('\n')
             sys.stdout.flush()
             
-            # Update angles (wrap to prevent overflow)
-            angle_x = (angle_x + rotation_speed) % (2 * math.pi)
-            angle_y = (angle_y + rotation_speed * 1.1) % (2 * math.pi)
-            angle_z = (angle_z + rotation_speed * 0.9) % (2 * math.pi)
+            # Update angles - only rotate around Y-axis (horizontal spin, text stays upright)
+            angle_x = 0.0  # No X-axis rotation
+            angle_y = (angle_y + rotation_speed) % (2 * math.pi)  # Only Y-axis rotation
+            angle_z = 0.0  # No Z-axis rotation
             
             # Frame rate control
             elapsed = time.time() - start_time
