@@ -12,12 +12,9 @@ import signal
 from typing import List, Tuple, Optional
 
 try:
-    from CoreText import (
-        CTFontCreateWithName, CTFontGetGlyphsForCharacters, 
-        CTFontCreatePathForGlyph
-    )
+    from AppKit import NSFont, NSBezierPath, NSString
     from Quartz import (
-        CGPathApply, CGAffineTransformIdentity,
+        CGPathApply,
         kCGPathElementMoveToPoint, kCGPathElementAddLineToPoint, 
         kCGPathElementAddQuadCurveToPoint, kCGPathElementAddCurveToPoint, 
         kCGPathElementCloseSubpath
@@ -124,18 +121,18 @@ class Point3D:
 
 
 def get_font(font_name: str, size: float) -> Optional[object]:
-    """Get CTFont from font name"""
+    """Get NSFont from font name"""
     try:
-        # Try to create font with name (pyobjc handles string conversion)
-        font = CTFontCreateWithName(font_name, size, None)
+        # Try to create font with name
+        font = NSFont.fontWithName_size_(font_name, size)
         if font is None:
             # Fallback to system default
-            font = CTFontCreateWithName("Helvetica", size, None)
+            font = NSFont.systemFontOfSize_(size)
         return font
     except Exception:
         # Fallback to system default
         try:
-            font = CTFontCreateWithName("Helvetica", size, None)
+            font = NSFont.systemFontOfSize_(size)
             return font
         except:
             return None
@@ -201,50 +198,55 @@ class PathExtractor:
 
 
 def get_glyph_outline(font: object, char: str, size: float) -> List[Tuple[float, float]]:
-    """Extract glyph outline points from font"""
+    """Extract glyph outline points from font using NSLayoutManager and NSBezierPath"""
     try:
-        import ctypes
-        unichar = ord(char)
+        from AppKit import NSLayoutManager, NSTextContainer, NSTextStorage
         
-        # Create arrays using ctypes for proper C array types
-        # UniChar is unsigned short (ctypes.c_ushort)
-        unichar_array = (ctypes.c_ushort * 1)(unichar)
-        glyph_array = (ctypes.c_ushort * 1)(0)
+        # Create NSString from character
+        ns_string = NSString.stringWithString_(char)
         
-        # Get glyph for character
-        # CTFontGetGlyphsForCharacters expects pointers to arrays
-        result = CTFontGetGlyphsForCharacters(
-            font, 
-            ctypes.cast(unichar_array, ctypes.POINTER(ctypes.c_ushort)),
-            ctypes.cast(glyph_array, ctypes.POINTER(ctypes.c_ushort)),
-            1
-        )
-        if not result or glyph_array[0] == 0:
+        # Use NSLayoutManager to get the glyph index for the character
+        layout_manager = NSLayoutManager.alloc().init()
+        text_container = NSTextContainer.alloc().init()
+        text_storage = NSTextStorage.alloc().initWithString_(ns_string)
+        
+        text_storage.addLayoutManager_(layout_manager)
+        layout_manager.addTextContainer_(text_container)
+        
+        # Set font attribute (use string key 'NSFont' instead of constant)
+        text_storage.addAttribute_value_range_('NSFont', font, (0, 1))
+        
+        # Get glyph range
+        glyph_range = layout_manager.glyphRangeForTextContainer_(text_container)
+        if glyph_range.length == 0:
             return []
         
-        glyph = glyph_array[0]
-        # Create transform (identity)
-        path = CTFontCreatePathForGlyph(font, glyph, CGAffineTransformIdentity)
+        # Get the glyph index
+        glyph_index = glyph_range.location
         
-        if path is None:
+        # Create NSBezierPath and append the glyph
+        bezier_path = NSBezierPath.bezierPath()
+        bezier_path.moveToPoint_((0, 0))  # Set a starting point (required)
+        bezier_path.appendBezierPathWithGlyph_inFont_(glyph_index, font)
+        
+        # Convert NSBezierPath to CGPath
+        cg_path = bezier_path.CGPath()
+        
+        if cg_path is None:
             return []
         
         # Extract path points
         extractor = PathExtractor()
         
-        # Apply path extraction - CGPathApply signature: (path, info, callback)
-        # The callback receives (info, element)
+        # Apply path extraction
         def path_callback(info, element):
             extractor.callback(info, element)
         
-        CGPathApply(path, None, path_callback)
+        CGPathApply(cg_path, None, path_callback)
         
         return extractor.points if extractor.points else []
-    except Exception as e:
-        # Debug: print error for troubleshooting
-        import traceback
-        print(f"Error in get_glyph_outline for '{char}': {e}", file=sys.stderr)
-        traceback.print_exc()
+    except Exception:
+        # Return empty on error
         return []
 
 
