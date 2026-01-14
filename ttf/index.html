@@ -35,56 +35,131 @@
 
         const tables = [];
 
-        /* glyf: empty glyph */
-        const glyf = [];
+        /* glyf: empty glyph (valid empty glyph structure) */
+        const glyf = [
+            0, 0,  /* numberOfContours (-1 for composite, 0 for empty) */
+            0, 0,  /* xMin */
+            0, 0,  /* yMin */
+            0, 0,  /* xMax */
+            0, 0   /* yMax */
+        ];
         pad4(glyf);
         tables.push(table("glyf", glyf));
 
-        /* loca: single glyph */
+        /* loca: single glyph offset */
         tables.push(table("loca", [0, 0]));
 
-        /* hmtx */
-        tables.push(table("hmtx", [0, 0, 0, 0]));
+        /* hmtx: horizontal metrics */
+        tables.push(table("hmtx", [
+            0, 0,  /* advanceWidth */
+            0, 0   /* lsb */
+        ]));
 
-        /* maxp */
+        /* maxp: maximum profile */
         tables.push(table("maxp", [
-            ...u32(0x00010000),
-            ...u16(1)
+            ...u32(0x00010000),  /* version */
+            ...u16(1)            /* numGlyphs */
         ]));
 
-        /* head */
+        /* head: font header */
         tables.push(table("head", [
-            ...u32(0x00010000), ...u32(0x00010000),
-            0, 0, 0, 0, 0, 0, 0, 0,
-            ...u16(0), ...u16(1000),
-            ...u16(0), ...u16(0), ...u16(0), ...u16(0),
-            ...u16(0), ...u16(8),
-            ...u16(2), ...u16(0), ...u16(0)
+            ...u32(0x00010000),  /* version */
+            ...u32(0x10000000),  /* checkSumAdjustment */
+            ...u32(0x5F0F3CF5),  /* magicNumber */
+            ...u16(0x0000),      /* flags */
+            ...u16(1000),        /* unitsPerEm */
+            0, 0, 0, 0, 0, 0,    /* created (timestamp) */
+            0, 0, 0, 0, 0, 0,    /* modified (timestamp) */
+            ...u16(-200),        /* xMin */
+            ...u16(-200),        /* yMin */
+            ...u16(1200),        /* xMax */
+            ...u16(1200),        /* yMax */
+            ...u16(0x0001),      /* macStyle */
+            ...u16(10),          /* lowestRecPPEM */
+            ...u16(2),           /* fontDirectionHint */
+            ...u16(0),           /* indexToLocFormat */
+            ...u16(0)            /* glyphDataFormat */
         ]));
 
-        /* hhea */
+        /* hhea: horizontal header */
         tables.push(table("hhea", [
-            ...u32(0x00010000),
-            ...u16(0), ...u16(0), ...u16(0),
-            ...u16(0), ...u16(0), ...u16(0), ...u16(0),
-            ...u16(1), ...u16(0)
+            ...u32(0x00010000),  /* version */
+            ...u16(-200),        /* ascender */
+            ...u16(-200),        /* descender */
+            ...u16(0),           /* lineGap */
+            ...u16(1000),        /* advanceWidthMax */
+            ...u16(-200),        /* minLeftSideBearing */
+            ...u16(-200),        /* minRightSideBearing */
+            ...u16(0),           /* xMaxExtent */
+            ...u16(1),           /* caretSlopeRise */
+            ...u16(0),           /* caretSlopeRun */
+            ...u16(0),           /* caretOffset */
+            0, 0,                /* reserved */
+            0, 0,                /* reserved */
+            ...u16(0),           /* metricDataFormat */
+            ...u16(1)            /* numberOfHMetrics */
         ]));
 
-        /* cmap */
+        /* cmap: character to glyph mapping */
         tables.push(table("cmap", [
-            0, 0, 0, 1,
-            0, 3, 0, 1, 0, 0, 0, 12,
-            0, 4, 0, 20,
-            0, 0, 0, 2,
-            0, 1, 0, 0,
-            0x26, 0x03, 0, 0`
+            0, 0, 0, 1,              /* version, number of subtables */
+            0, 3, 0, 1, 0, 0, 0, 12, /* platformID=0, encodingID=3, offset=12 */
+            0, 4, 0, 20,             /* platformID=0, encodingID=4, offset=20 */
+            0, 0, 0, 2,              /* format=0, length=2, language=0 */
+            0x26, 0x03, 0, 0         /* glyph index for U+2603 */
         ]));
 
-        /* name */
-        tables.push(table("name", [0, 0, 0, 0]));
+        /* name: naming table */
+        tables.push(table("name", [
+            0, 0,  /* format */
+            0, 0,  /* count */
+            0, 0   /* stringOffset */
+        ]));
 
-        /* post */
-        tables.push(table("post", [...u32(0x00030000)]));
+        /* post: PostScript information */
+        tables.push(table("post", [
+            ...u32(0x00030000),  /* version */
+            0, 0, 0, 0,         /* italicAngle */
+            ...u16(0),          /* underlinePosition */
+            ...u16(0),          /* underlineThickness */
+            0, 0, 0, 0,         /* isFixedPitch, minMemType42, maxMemType42, minMemType1, maxMemType1 */
+            ...u16(1),          /* numberOfGlyphs */
+            ...u16(0)           /* offset to glyph names */
+        ]));
+
+        /* OS/2 table (required for modern browsers) */
+        tables.push(table("OS/2", [
+            ...u16(0x0004),     /* version */
+            0, 0,                /* avgCharWidth */
+            ...u16(1000),        /* usWeightClass */
+            ...u16(5),           /* usWidthClass */
+            ...u16(0),           /* fsType */
+            ...u16(1000),        /* ySubscriptXSize */
+            ...u16(1000),        /* ySubscriptYSize */
+            ...u16(0),           /* ySubscriptXOffset */
+            ...u16(0),           /* ySubscriptYOffset */
+            ...u16(1200),        /* ySuperscriptXSize */
+            ...u16(1200),        /* ySuperscriptYSize */
+            ...u16(0),           /* ySuperscriptXOffset */
+            ...u16(0),           /* ySuperscriptYOffset */
+            ...u16(200),         /* yStrikeoutSize */
+            ...u16(0),           /* yStrikeoutPosition */
+            ...u16(0),           /* sFamilyClass */
+            0, 0, 0, 0, 0, 0, 0, 0, /* panose */
+            ...u32(0x00000000), /* ulUnicodeRange1 */
+            ...u32(0x00000000), /* ulUnicodeRange2 */
+            ...u32(0x00000000), /* ulUnicodeRange3 */
+            ...u32(0x00000000), /* ulUnicodeRange4 */
+            ...u16(0x0409),      /* achVendID */
+            ...u16(0),           /* fsSelection */
+            ...u16(65535),       /* usFirstCharIndex */
+            ...u16(0),           /* usLastCharIndex */
+            ...u16(0),           /* sTypoAscender */
+            ...u16(0),           /* sTypoDescender */
+            ...u16(0),           /* sTypoLineGap */
+            ...u16(1200),        /* usWinAscent */
+            ...u16(200)          /* usWinDescent */
+        ]));
 
         /* build font */
         tables.forEach(t => pad4(t.data));
@@ -96,6 +171,19 @@
             t.checksum = checksum(t.data);
             offset += t.length;
         });
+
+        /* Calculate checkSumAdjustment */
+        const headTable = tables.find(t => t.tag === "head");
+        if (headTable) {
+            let totalChecksum = 0;
+            tables.forEach(t => {
+                totalChecksum += t.checksum;
+                totalChecksum &= 0xffffffff;
+            });
+            const checkSumAdjustment = (0xB1B0AFBA - totalChecksum) & 0xffffffff;
+            headTable.data.splice(4, 4, ...u32(checkSumAdjustment));
+            headTable.checksum = checksum(headTable.data);
+        }
 
         const out = [];
         out.push(...u32(0x00010000));
@@ -118,7 +206,12 @@
   src: url(${url});
   unicode-range: U+2603;
 }
-body { font-family: GhostRaw, system-ui; }
+body { 
+  font-family: GhostRaw, system-ui; 
+  font-size: 100px;
+  text-align: center;
+  padding-top: 50px;
+}
 </style>
 `);
 
