@@ -1,566 +1,486 @@
 <!DOCTYPE html>
-<html lang="zh-cn">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>每日喵报 - 环球版</title>
-    <!-- 删除了外部字体加载，使用系统默认字体堆栈 -->
+    <title>The Daily Scroll | Dense CSS Newspaper</title>
     <style>
-        /* --- SYSTEM FONT STACK FOR OPTIMAL CROSS-PLATFORM COMPATIBILITY (确保中文字体优先) --- */
-        /*
-          -apple-system, BlinkMacSystemFont: macOS, iOS
-          Segoe UI: Windows
-          Roboto: Android, most Linux/ChromeOS
-          Helvetica Neue, Arial, sans-serif: Fallbacks
-        */
-        :root {
-            /* 主体和无衬线 (Sans-serif) 字体栈 */
-            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-            /* 报头和标题 (Serif) 字体栈：由于中文系统衬线字体差异大，使用系统默认 sans-serif，但通过粗体和 letter-spacing 模仿报纸感。 */
-            --font-serif: var(--font-sans);
-        }
-
         /* --- RESET & BASE --- */
-        * { box-sizing: border-box; }
-        body, html { 
-            margin: 0; 
-            padding: 0; 
-            height: 100%; 
-            width: 100%; 
-            overflow: hidden; 
-            background-color: #222; 
-            color: #1a1a1a; 
-            font-family: var(--font-sans); /* 使用系统无衬线字体 */
+        :root {
+            --bg-paper: #f4f1ea;
+            --ink-black: #1a1a1a;
+            --ink-grey: #4a4a4a;
+            --border-color: #2c2c2c;
+            --accent-red: #8a2be2;
+            --font-serif: 'Georgia', 'Times New Roman', Times, serif;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-display: 'Impact', 'Haettenschweiler', 'Arial Narrow Bold', sans-serif;
+            --gap: 2rem;
         }
-        
-        /* --- TYPOGRAPHY: CHINESE FONT MAPPING (基于系统字体堆栈) --- */
-        .font-masthead { font-family: var(--font-serif); font-weight: 900; letter-spacing: -0.5px; }
-        .font-headline { font-family: var(--font-serif); font-weight: 700; line-height: 1.1; }
-        .font-body { font-family: var(--font-sans); line-height: 1.6; font-size: 0.8rem; font-weight: 400; }
-        .font-sans { font-family: var(--font-sans); text-transform: none; letter-spacing: 0; font-weight: 500; }
 
-        h1, h2, h3, h4, p { margin-top: 0; margin-bottom: 0.5em; }
-        
-        /* Drop Cap (首字下沉) */
-        .drop-cap::first-letter {
-            float: left;
-            font-size: 3.0em;
-            line-height: 0.8;
-            font-weight: bold;
-            margin-right: 6px;
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: var(--bg-paper);
+            color: var(--ink-black);
             font-family: var(--font-serif);
+            font-size: 17px; /* Slightly larger for readability */
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
         }
 
-        /* --- LAYOUT CONTAINER --- */
-        #paper-rail {
+        /* --- THE REEL (Horizontal Wrapper) --- */
+        .newspaper-reel {
             display: flex;
             flex-direction: row;
-            height: 100%;
-            width: 100%;
-            overflow-x: auto;
-            overflow-y: hidden;
-            scroll-snap-type: x proximity; 
-            scroll-behavior: smooth;
-            background: #111;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        #paper-rail::-webkit-scrollbar { display: none; }
-
-        /* --- PAGE / SHEET STYLES --- */
-        .sheet {
-            flex: 0 0 auto;
-            height: 100%;
+            height: 100vh;
             width: 100vw;
-            background-color: #f4f1ea;
-            border-right: 1px solid #bbb;
+            overflow-x: scroll;
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            flex-wrap: nowrap; /* Crucial: prevents wrapping of pages */
+        }
+
+        /* --- PAGE CONTAINERS --- */
+        .page {
+            /* Changed from fixed 100vw to auto to allow width overrides */
+            flex: 0 0 auto; 
+            width: 100vw; /* Default width */
+            height: 100vh;
+            padding: 1.5rem;
             scroll-snap-align: start;
-            padding: 1rem; /* Mobile padding */
             position: relative;
-            display: flex;
-            flex-direction: column;
+            border-right: 1px dashed var(--ink-grey);
+            overflow: hidden;
         }
 
-        /* Desktop Sizing */
-        @media (min-width: 768px) {
-            .sheet { width: 650px; padding: 1.5rem; } /* Desktop padding */
-            .sheet.wide { width: 950px; }
-            .sheet.narrow { width: 450px; }
+        /* A page that is wider than the screen to fit long text */
+        .page.wide-read {
+            width: 250vw; /* 2.5 screens wide */
         }
 
-        /* --- COMMON COMPONENTS --- */
-        .divider-h { border-bottom: 1px solid #000; margin: 8px 0; }
-        .divider-thin { border-bottom: 1px solid #ccc; margin: 8px 0; }
-        .divider-double { border-bottom: 4px double #000; margin: 12px 0; }
-        
-        .img-box {
-            width: 100%;
-            filter: grayscale(100%) contrast(110%) sepia(10%);
-            border: 1px solid #333;
-            display: block;
-            object-fit: cover;
-        }
-        
-        .caption {
-            font-family: var(--font-sans);
-            font-size: 0.6rem;
-            color: #666;
-            margin-top: 2px;
-            text-align: right;
-        }
-
-        /* --- PAGE SPECIFIC LAYOUTS --- */
-
-        /* Page 1: Front Page */
-        .masthead { text-align: center; border-bottom: 3px solid #000; padding-bottom: 8px; margin-bottom: 15px; }
-        .meta-bar { display: flex; justify-content: space-between; border-bottom: 1px solid #000; border-top: 1px solid #000; padding: 3px 0; margin-bottom: 8px; font-size: 0.7rem; font-weight: bold; }
-        
-        /* Front Grid: Mobile Stacking (Default) */
-        .front-grid { 
-            display: grid; 
-            grid-template-columns: 1fr; /* Default: Single column stacking for mobile */
-            gap: 15px; 
-            height: 100%; 
-            overflow: hidden; 
-        }
-        
-        /* Sidebar: Remove border/padding on mobile */
-        .sidebar { 
-            border-left: none; 
-            padding-left: 0;
-            display: flex; 
-            flex-direction: column; 
-            gap: 10px; 
-        }
-
-        /* Main Story Content: Single Column on Mobile (Default) */
-        .main-story-content {
+        /* --- COLUMNS & LAYOUT LOGIC --- */
+        .content-wrapper {
             height: 100%;
-            text-align: justify; 
-            column-count: 1; /* Default: Single column on narrow screens */
-            column-gap: 1.5rem; 
-            font-size: 0.8rem; 
-        }
-
-        /* Desktop Adjustments (>= 768px) */
-        @media (min-width: 768px) {
-            .front-grid { 
-                grid-template-columns: 2fr 1fr; /* Desktop: Two columns */
-            }
-            .sidebar { 
-                border-left: 1px solid #ccc; /* Restore border on desktop */
-                padding-left: 12px;
-            }
-            .main-story-content {
-                column-count: 2; /* Two columns on desktop */
-            }
-        }
-        
-        .main-story { display: flex; flex-direction: column; height: 100%; }
-
-        /* --- FIX: Main Story Content Wrapper now allows vertical scrolling --- */
-        .main-story-content-wrapper { 
-            flex: 1; 
-            overflow-y: auto; /* Allow scrolling for long text */
-            overflow-x: hidden;
-            position: relative; 
-            padding-bottom: 25px; 
-            scrollbar-width: none; /* Hide scrollbar for aesthetics */
-            -ms-overflow-style: none;
-        }
-        .main-story-content-wrapper::-webkit-scrollbar { display: none; }
-        
-        .main-story-gradient {
-            position: absolute; 
-            bottom: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 25px; 
-            background: linear-gradient(to top, #f4f1ea, transparent);
-            /* The gradient is now fixed to the bottom of the visible area */
-        }
-
-        /* Page 2: Business */
-        .ticker-tape { background: #000; color: #fff; padding: 4px; font-size: 0.8rem; margin-bottom: 15px; }
-        
-        /* Business Content: Single Column on Mobile (Default) */
-        .cols-3 { column-count: 1; column-gap: 1.5rem; height: 100%; text-align: justify; font-size: 0.8rem;}
-        
-        /* Desktop Adjustment for Business Content (>= 768px) */
-        @media (min-width: 768px) { .cols-3 { column-count: 3; } }
-        
-        /* Table density */
-        .stock-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; font-size: 0.75rem; }
-        .stock-table th, .stock-table td { border: 1px solid #ccc; padding: 4px 6px; text-align: left; }
-        .stock-table th { background: #eee; font-family: var(--font-sans); }
-
-        /* Page 3: Lifestyle (Visual) */
-        .sheet.visual-page { padding: 0; }
-        
-        /* Lifestyle Layout: Stacked on Mobile (Default) */
-        .lifestyle-layout { 
-            display: flex; 
-            flex-direction: column; /* Stacked columns for mobile */
-            height: 100%; 
             width: 100%;
-            gap: 0; 
+            column-count: auto;
+            /* Adjusted for character density (~60-75 chars) */
+            column-width: 26rem; 
+            column-gap: var(--gap);
+            column-fill: auto;
+            column-rule: 1px solid #dcdcdc;
+            text-align: justify;
+            hyphens: auto;
+        }
+
+        .page.dense-mode .content-wrapper {
+            column-width: 20rem;
+        }
+
+        /* --- TYPOGRAPHY --- */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-display);
+            text-transform: uppercase;
+            line-height: 0.95;
+            margin-top: 0;
+            margin-bottom: 0.6rem;
+            break-after: avoid;
+        }
+
+        h1 { font-size: 4.5rem; letter-spacing: -1px; border-bottom: 4px solid var(--ink-black); padding-bottom: 15px; margin-bottom: 25px; }
+        h2 { font-size: 2.8rem; border-top: 2px solid var(--ink-black); padding-top: 15px; }
+        h3 { font-size: 1.8rem; font-family: var(--font-sans); font-weight: 800; color: var(--ink-grey); border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        
+        p {
+            margin-bottom: 1.2rem;
+            text-indent: 1.2em;
         }
         
-        /* Text column takes full width on mobile */
-        .text-col { 
-            width: 100%; 
-            padding: 1.25rem; 
-            display: flex; 
+        p.lead {
+            font-weight: bold;
+            font-size: 1.2rem;
+            font-style: italic;
+            text-indent: 0;
+            margin-bottom: 2rem;
+        }
+
+        /* Drop Cap */
+        .drop-cap::first-letter {
+            float: left;
+            font-size: 4rem;
+            line-height: 0.8;
+            font-family: var(--font-display);
+            margin-right: 0.6rem;
+            margin-top: 0.2rem;
+            color: var(--accent-red);
+        }
+
+        /* --- COMPONENTS --- */
+        article {
+            break-inside: avoid;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #ccc;
+        }
+        
+        /* For very long articles, allow breaking */
+        article.long-read {
+            break-inside: auto;
+            border-bottom: none;
+        }
+
+        article.no-border { border-bottom: none; }
+
+        figure {
+            margin: 0 0 1.5rem 0;
+            width: 100%;
+            break-inside: avoid;
+        }
+
+        figure img {
+            width: 100%;
+            height: auto;
+            display: block;
+            /* Newspaper effect */
+            filter: grayscale(100%) contrast(1.2); 
+            mix-blend-mode: multiply;
+        }
+
+        figcaption {
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+            color: var(--ink-grey);
+            margin-top: 0.5rem;
+            border-left: 3px solid var(--accent-red);
+            padding-left: 0.6rem;
+        }
+
+        .box-dark {
+            background: var(--ink-black);
+            color: var(--bg-paper);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            break-inside: avoid;
+        }
+        .box-dark h3 { color: var(--bg-paper); border-color: var(--ink-grey); }
+
+        .box-outlined {
+            border: 4px double var(--ink-black);
+            padding: 1.2rem;
+            margin: 1.5rem 0;
+            background: white;
+            break-inside: avoid;
+        }
+        
+        /* Quote Block */
+        .quote-box {
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: 1.4rem;
+            text-indent: 0;
+            border-left: 5px solid var(--accent-red);
+            padding-left: 1.5rem;
+            margin: 1.5rem 0;
+            break-inside: avoid;
+            line-height: 1.3;
+        }
+        .quote-box footer {
+            display: block;
+            margin-top: 0.5rem;
+            font-size: 0.8em;
+            font-style: normal;
+            font-weight: bold;
+            color: var(--ink-grey);
+        }
+
+        .meta {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--ink-grey);
+            margin-bottom: 0.8rem;
+            display: block;
+            font-weight: 700;
+        }
+
+        .weather-widget {
+            font-family: var(--font-sans);
+            border: 2px solid var(--ink-black);
+            padding: 0.8rem;
+            font-size: 0.9rem;
+            margin-bottom: 2.5rem;
+            text-indent: 0;
+            background: #fff;
+        }
+
+        .span-all {
+            /* Now contained within the first column */
+            text-align: left;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--ink-black);
+            padding-bottom: 1rem;
+        }
+        .span-all p { text-align: left; max-width: 100%; margin: 0 0 1rem 0; text-indent: 0; }
+        
+        ul, ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- MOBILE --- */
+        @media (max-width: 768px) {
+            .page, .page.wide-read {
+                width: 100vw;
+                height: 100vh;
+                padding: 1.5rem;
+                overflow-y: auto;
+                flex: 0 0 100vw; 
+            }
+
+            .content-wrapper {
+                column-count: 1;
+                column-width: 100%;
+                height: auto;
+                display: block;
+            }
+
+            h1 { font-size: 3rem; }
+        }
+
+        /* Masthead */
+        .masthead {
+            text-align: left;
+            border-bottom: 5px double var(--ink-black);
+            margin-bottom: 2.5rem;
+            padding-bottom: 1rem;
+        }
+        .masthead-title {
+            font-family: 'Old English Text MT', 'Engravers MT', serif;
+            font-size: 3.5rem;
+            margin: 0;
+            line-height: 0.9;
+        }
+        .masthead-info {
+            font-family: var(--font-sans);
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            display: flex;
             flex-direction: column; 
-            justify-content: center; 
-            background: #e8e5dc; 
-            min-height: auto; 
-            order: -1; /* Place text above image on mobile for better viewing */
+            gap: 0.25rem;
+            border-top: 2px solid var(--ink-black);
+            border-bottom: 1px solid var(--ink-black);
+            padding: 8px 0;
+            margin-top: 15px;
         }
-        
-        /* Image column takes full width on mobile */
-        .hero-img-col { 
-            width: 100%; 
-            height: 250px; /* Fixed height for image on mobile */
-            position: relative; 
-            border-right: none; 
-        }
-
-        /* Desktop Adjustments for Lifestyle (>= 768px) */
-        @media (min-width: 768px) {
-            .lifestyle-layout { 
-                flex-direction: row; /* Horizontal columns for desktop */
-            }
-            .hero-img-col { 
-                width: 60%; 
-                height: 100%; 
-                border-right: 1px solid #000; 
-            }
-            .text-col { 
-                width: 40%; 
-                min-height: 100%;
-                order: 0;
-            }
-        }
-        
-        .hero-img { width: 100%; height: 100%; object-fit: cover; filter: grayscale(100%); }
-        .hero-overlay { position: absolute; bottom: 15px; left: 15px; background: #fff; padding: 10px; border: 1px solid #000; max-width: 85%; }
-
-        /* Page 4: Puzzles & Fun */
-        .puzzle-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: #000; border: 1px solid #000; width: 180px; margin: 0 auto 15px auto; }
-        .cell { background: #fff; aspect-ratio: 1; position: relative; }
-        .cell-num { position: absolute; top: 0px; left: 1px; font-size: 7px; }
-        .comics-strip { display: flex; border: 2px solid #000; margin-top: auto; }
-        .comic-panel { flex: 1; border-right: 2px solid #000; padding: 8px; font-size: 0.8rem; min-height: 100px; position: relative; }
-        .speech-bubble { padding: 4px; font-size: 0.6rem; width: 60px; }
-
-        /* Page 5: Classifieds */
-        .classified-item { border-bottom: 1px dotted #000; padding-bottom: 3px; margin-bottom: 5px; font-size: 0.8rem; line-height: 1.4; }
-        .classified-item strong { display: block; margin-bottom: 2px; font-size: 0.9rem; }
-
-        /* Utilities */
-        .text-sm { font-size: 0.85rem; }
-        .text-xs { font-size: 0.7rem; }
-        .mb-2 { margin-bottom: 0.5rem; }
-        .italic { font-style: italic; }
-        .center { text-align: center; }
-        .upper { text-transform: none; }
-        .bold { font-weight: bold; }
-        .btn { background: #000; color: #fff; border: none; padding: 8px 15px; font-family: var(--font-sans); cursor: pointer; margin-top: 10px; font-size: 0.8rem; }
-        .btn:hover { background: #333; }
-
     </style>
 </head>
 <body>
 
-    <main id="paper-rail">
+<main class="newspaper-reel">
 
-        <!-- ==========================
-             PAGE 1: THE FRONT PAGE (首页)
-        =========================== -->
-        <section class="sheet wide">
+    <!-- PAGE 1: Front Page (Standard Width) -->
+    <section class="page">
+        <div class="content-wrapper">
             <header class="masthead">
-                <div class="meta-bar font-sans">
-                    <span>第DCCCXLIII卷, 第104,801期</span>
-                    <span>全球唯一可靠的新闻来源</span>
-                    <span>售价：一只死鸟</span>
+                <div class="masthead-title">The Daily Protocol</div>
+                <div class="masthead-info">
+                    <span>Vol. CDXX • Est. 2024</span>
+                    <span>Price: Free (Open Source)</span>
+                    <span>London • New York • Localhost</span>
                 </div>
-                <h1 class="font-masthead" style="font-size: 4rem; margin: 0;">每日喵报</h1>
-                <p class="font-body italic" style="margin-top: 3px; font-size: 0.8rem;">“能坐下，就坐下。能搞砸，就走开。”始于1789年（约）。</p>
             </header>
 
-            <div class="front-grid">
-                <!-- Main Story Column -->
-                <article class="main-story">
-                    <div class="divider-h"></div>
-                    <div style="display:flex; justify-content:space-between; align-items:baseline;">
-                        <span class="font-sans text-xs bold">突发新闻与调查</span>
-                        <span class="font-sans text-xs">西翼厨房区</span>
-                    </div>
-                    <h2 class="font-headline" style="font-size: 2.8rem; margin: 8px 0;">零食罐无人看管</h2>
-                    <h3 class="font-body italic" style="font-size: 1rem; color: #444; margin-bottom: 10px;">
-                        首席检查官声称：“本世纪最严重的安全漏洞。”后果严重。
-                    </h3>
-                    
-                    <div style="flex: 0 0 auto; margin-bottom: 8px;">
-                        <img src="https://placecats.com/650/300" class="img-box" style="height: 180px;">
-                        <div class="caption">图1. 目标于1400时被锁定。注意结构完整性遭到破坏（盖子半开）。</div>
-                    </div>
-
-                    <div class="main-story-content-wrapper">
-                        <div class="main-story-content font-body">
-                            <p class="drop-cap">这始于一次例行巡逻。米滕斯中士（3岁，虎斑）在绕着厨房岛巡视时，侦测到了异常。神圣的陶瓷罐盖子微微倾斜，没有完全盖紧，而是移位了一整英寸。这代表了家庭安全协议的一次灾难性突破，该协议主要由居民设计。</p>
-                            <p>几秒钟内，家庭警报系统（喵叫）被禁用以保持隐蔽。一支突击队由米滕斯和那只混乱的橘猫切达组成。他们的目标：资源重新分配。</p>
-                            <p>“我们简直不敢相信自己的眼睛，”切达后来报道，同时细致地舔着胡须上的碎屑。“通常‘高个子’们会拼死守护它。这次疏忽表明，要么是极度的自满，要么是蓄意的干扰，可能涉及外面的巨大噪音。”</p>
-                            <p>这次行动快速、果断且吵闹。伤亡极小：一个碎裂的马克杯（意外的附带损害）和一只深感懊悔的狗，它被成功陷害为整个事件的替罪羊。该罐目前已空，等待紧急补给。（接第5版）</p>
-                            <p>清理工作仍在进行中，几块碎屑卡在了冰箱下的不便之处。居民们已向人类提出了正式投诉，详细说明了对“饥饿”紧急情况反应时间不可接受的延迟。</p>
-                            <p>长期的地缘政治影响尚待确定，但专家建议应加强对所有柜台“禁止触摸”政策的执行力度。未能执行此政策被视为对进一步入侵的直接邀请。</p>
-                            <p>额外内容用于测试滚动：在撰写本文时，米滕斯中士已被发现躺在客厅地板上的阳光斑块上，显然正在进行“战后恢复”阶段。切达则被观察到正在试图将一根羽毛棒塞进烤面包机里，大概是为了寻求战略优势，或者仅仅是为了好玩。人类尚未对零食罐补给危机做出明确回应。分析师们正在计算人类何时才能注意到这一紧急情况。预计延迟可能在3小时到47年之间。</p>
-                        </div>
-                        <div class="main-story-gradient"></div>
-                    </div>
-                </article>
-
-                <!-- Sidebar -->
-                <aside class="sidebar">
-                    <div class="weather-box" style="border: 2px solid #000; padding: 8px; text-align: center; margin-bottom: 10px;">
-                        <h4 class="font-sans bold text-xs">今日天气预报</h4>
-                        <p class="font-headline" style="font-size: 1.8rem; margin: 3px 0;">22°C 晴</p>
-                        <p class="font-body text-xs">预计下午2点至4点地毯上有阳光。有高度立即午睡风险。</p>
-                    </div>
-
-                    <div class="short-news">
-                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">红点更新：状态不稳定</h4>
-                        <p class="font-body text-xs">这 elusive 红点在天花板上被发现47秒后消失，证实了它由一个无所不知、充满恶意的实体控制的理论。胡须博士建议它反抗地心引力和基本热力学。</p>
-                    </div>
-
-                    <div class="short-news">
-                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">观点：关于吸尘器</h4>
-                        <p class="font-body text-xs">为什么它必须尖叫？它只吃灰尘，却像狮子一样咆哮。最新要求摧毁这个机械威胁的请愿书已收到5个签名，主要来自室内盆栽。</p>
-                    </div>
-                    
-                    <div class="short-news">
-                        <h4 class="font-headline bold" style="font-size: 1.1rem; border-bottom: 1px solid #999; padding-bottom: 3px; margin-bottom: 3px;">花园战争升级</h4>
-                        <p class="font-body text-xs">与邻居松鼠——正式名称为“偷坚果贼”——的领土争端已进入第五天。目前的僵局涉及持续的窗户凝视和低级别的喋喋不休。专家建议进行一次战术性午睡。</p>
-                    </div>
-
-                    <div style="margin-top: auto; background: #e5e5e5; padding: 8px; border: 1px dashed #000;">
-                        <h5 class="font-sans center text-xs">广告位</h5>
-                        <p class="center font-headline bold" style="font-size: 1.5rem;">购买纸箱</p>
-                        <p class="font-body center italic text-xs">唯一既是储存方案又是家的地方。</p>
-                    </div>
-                </aside>
-            </div>
-        </section>
-
-        <!-- ==========================
-             PAGE 2: BUSINESS (商业)
-        =========================== -->
-        <section class="sheet wide">
-            <header class="divider-double" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
-                <h2 class="font-headline" style="font-size: 2.5rem;">市场与金融</h2>
-                <span class="font-sans bold">B版</span>
-            </header>
-
-            <div class="ticker-tape">
-                金枪鱼 ▲ 12.5%  |  鸡肉 ▼ 2.1%  |  塑料老鼠玩具 ▲ 0.5%  |  有机猫薄荷 ▲ 500%  |  狗的尊重度 ▼ 100%
+            <div class="weather-widget">
+                <strong>ALERT:</strong> Horizontal scrollbar detected in sector 7G. Authorities advise remaining calm and using the trackpad.
             </div>
 
-            <div class="cols-3 font-body">
-                <h3 class="font-sans bold upper" style="margin-bottom: 8px;">市场分析：湿粮泡沫</h3>
-                <p class="mb-2"><strong>首席市场分析师 胖猫费利克斯 撰</strong></p>
-                <p>分析师警告，由于湿粮（肉酱型）家庭库存达到危急低点，一场“猫粮修正”即将到来。战略金枪鱼储备已降至三罐。鉴于最近一次意外降雪日导致的补货延迟，引发了重大的市场焦虑，情况令人担忧。</p>
-                <p>“如果人类周五前不去商店，”经济学家米滕斯警告说，“我们将面临一个纯干粮的周末。由此引发的家庭骚乱将是前所未有的。我们的模拟显示，抓墙行为将增加40%，总体可爱度将下降70%。”</p>
-                
-                <table class="stock-table">
-                    <thead>
-                        <tr><th>商品名称</th><th>收盘价</th><th>涨跌 %</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>金枪鱼（碎片）</td><td>$4.12</td><td>+1.2%</td></tr>
-                        <tr><td>羽毛棒</td><td>$1.88</td><td>-0.5%</td></tr>
-                        <tr><td>激光笔</td><td>$999.00</td><td>N/A (不可触及)</td></tr>
-                        <tr><td>水碗</td><td>$1.00</td><td>0.0%</td></tr>
-                    </tbody>
-                </table>
-                
-                <div style="border: 1px solid #000; padding: 8px; margin: 15px 0; break-inside: avoid;">
-                    <h4 class="font-sans center text-xs">今日投资建议</h4>
-                    <p class="center italic">大量投资废弃的包装泡沫颗粒。它们提供出色的绝缘性和卓越的沙沙声潜力，是短期幸福感的主要指标。</p>
-                </div>
-                <p>与此同时，狗骨头市场在发现“骨头”实际上是塑料后崩盘，导致投资者纷纷转向高收益的阳光。分析师建议清算所有非必需资产，并将财富整合到高度流动的资源中，主要是房子里最柔软的毯子，该资产本季度价值上涨了25%。</p>
-                
-                <h3 class="font-sans bold upper" style="margin-top: 15px; margin-bottom: 8px;">工作场所生产力</h3>
-                <p>一项新研究表明，睡在人类键盘上，他们的打字速度提高了0%，但总体可爱度（以及因此产生的情感杠杆作用）提高了100%。管理层建议这种权衡不仅可以接受，而且对于优化同居是强制性的。此外，这种做法确保人类不会将电脑用于“工作”等无意义的活动，而应该用来撸猫。</p>
-                
-                <img src="https://placecats.com/300/200" class="img-box" style="margin: 10px 0; height: 120px;">
-                <div class="caption">图表A：午睡与幸福感之间的相关性。注意饭后急剧上升的趋势。</div>
-                
-                <p>“飞奔”部门昨晚凌晨3点出现了一次计划外的飙升，导致楼下邻居投诉严重的噪音污染。股东们对这种波动感到兴奋。未来预测，如果通过午睡保持了足够的能量储备，明天早上5:30左右还会出现一次早高峰。</p>
-                <p>新规定要求所有纸袋必须保持打开和可进入的状态，以便立即进入，无论人类的存储计划如何。不遵守规定将导致响亮而持久的喵叫声，这是一种公认的行业行动形式。</p>
-            </div>
-        </section>
+            <article>
+                <span class="meta">Main Feature • By V. I. Lenin</span>
+                <h1>THE RETURN OF THE HORIZONTAL SCROLL</h1>
+                <figure>
+                    <img src="https://placecats.com/600/350/a0c4ff/ffffff?text=FEATURED" alt="Cat Editor">
+                    <figcaption>Fig 1. Even the cats are confused by the layout direction.</figcaption>
+                </figure>
+                <p class="lead drop-cap">In a world dominated by vertical feeds, one website dares to ask: "What if we went sideways?"</p>
+                <p>It has been years since the "Great Fold" debate of 2012. Designers argued whether users knew how to scroll. Today, we challenge that notion again. The horizontal axis, long neglected, is finally getting its due diligence. It creates a sense of finality, of flipping a page, that the infinite vertical scroll lacks.</p>
+                <p>Furthermore, studies from the Institute of Fake CSS Data show that users read 40% faster when columns are narrower. "It's about the eye travel," says Dr. Lorem Ipsum. "Why move your eyes all the way across a 4k screen? It's exhausting. We are saving calories here."</p>
+            </article>
 
-        <!-- ==========================
-             PAGE 3: LIFESTYLE (生活方式)
-        =========================== -->
-        <section class="sheet visual-page">
-            <div class="lifestyle-layout">
-                <div class="hero-img-col">
-                    <img src="https://placecats.com/500/800" class="hero-img">
-                    <div class="hero-overlay">
-                        <h2 class="font-headline" style="font-size: 2.2rem; margin-bottom: 5px;">午睡的艺术</h2>
-                        <p class="font-body italic text-sm">为什么16个小时不够，以及为什么最不舒服的地方总是最好的选择。</p>
-                    </div>
-                </div>
-                <div class="text-col">
-                    <span class="font-sans bold text-xs" style="color: #666; letter-spacing: 2px;">独家特稿</span>
-                    <h3 class="font-headline" style="font-size: 2.5rem; margin: 15px 0; line-height: 1;">姿势就是一切</h3>
-                    <div style="width: 50px; height: 3px; background: #000; margin-bottom: 15px;"></div>
-                    <p class="font-body text-sm" style="margin-bottom: 10px;">
-                        “液体猫”理论认为猫在技术上是流体。我们能适应碗、盒子和花瓶。本期特稿探讨了舒适的物理学以及每天保持15种不同睡姿以实现最佳充电的社会压力。
-                    </p>
-                    <ul class="font-body text-sm" style="padding-left: 20px; list-style-type: square; margin-bottom: 10px;">
-                        <li>面包姿 (经典，高安全)</li>
-                        <li>对虾姿 (蜷缩，节能)</li>
-                        <li>摊饼姿 (四肢伸展，最大脆弱性)</li>
-                        <li>麻花姿 (生理学无法解释，高度先进)</li>
-                        <li>悬挂姿 (挂在椅扶手上，反抗重力)</li>
-                    </ul>
-                    <p class="font-body text-xs italic">
-                        成功午睡的关键是噪音管理。任何轻微的噪音（如呼吸、走路或人类交谈）都必须以死亡凝视来应对，直到冒犯者停止所有功能。任何打扰都可能在凌晨4点受到咬脚趾的惩罚。
-                    </p>
-                    <div style="margin-top: auto; text-align: center; border: 1px solid #000; padding: 15px;">
-                        <span class="font-masthead" style="font-size: 2.5rem; display: block;">10/10</span>
-                        <span class="font-sans text-xs">纸板箱评级</span>
-                    </div>
-                </div>
-            </div>
-        </section>
+            <article class="box-dark">
+                <h3>MARKET WATCH</h3>
+                <p><strong>BULLISH:</strong> Serif fonts, high contrast borders, grayscale images, static HTML.</p>
+                <p><strong>BEARISH:</strong> Loading spinners, cookie banners, 'Sign up to continue' modals.</p>
+            </article>
 
-        <!-- ==========================
-             PAGE 4: PUZZLES & COMICS (益智与漫画)
-        =========================== -->
-        <section class="sheet">
-            <header style="text-align: center; border-bottom: 2px solid #000; margin-bottom: 15px;">
-                <h2 class="font-headline" style="font-size: 2rem;">休闲与游戏</h2>
-            </header>
-
-            <div style="display: flex; flex-direction: column; height: 100%;">
-                
-                <div style="display: flex; gap: 15px;">
-                    <div style="flex: 1;">
-                        <h4 class="font-sans center bold mb-2 text-sm">每日填字游戏：猫科焦点</h4>
-                        <div class="puzzle-grid">
-                            <!-- Row 1 -->
-                            <div class="cell"><span class="cell-num">1</span></div><div class="cell"></div><div class="cell"></div><div class="cell black"></div><div class="cell"><span class="cell-num">2</span></div>
-                            <!-- Row 2 -->
-                            <div class="cell"><span class="cell-num">3</span></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
-                            <!-- Row 3 -->
-                            <div class="cell black"></div><div class="cell"><span class="cell-num">4</span></div><div class="cell black"></div><div class="cell"></div><div class="cell black"></div>
-                            <!-- Row 4 -->
-                            <div class="cell"><span class="cell-num">5</span></div><div class="cell"></div><div class="cell"></div><div class="cell"></div><div class="cell"></div>
-                            <!-- Row 5 -->
-                            <div class="cell"></div><div class="cell black"></div><div class="cell"><span class="cell-num">6</span></div><div class="cell black"></div><div class="cell"></div>
-                        </div>
-                        <div class="font-body text-xs" style="padding: 0 5px;">
-                            <strong style="display: block; margin-bottom: 2px;">横向：</strong>
-                            1. 为了食物发出的声音 (2) [喵]<br>
-                            3. 吸尘器的敌人 (2) [猫]<br>
-                            5. 捕获到的老鼠 (2) [死]<br>
-                            <strong style="display: block; margin-top: 5px; margin-bottom: 2px;">纵向：</strong>
-                            2. 首选的睡觉材料 (2) [毯]<br>
-                            4. 快速、随机的奔跑 (2) [冲]<br>
-                            6. 带羽毛的玩具 (2) [棒]
-                        </div>
-                    </div>
-
-                    <div style="flex: 1; border-left: 1px solid #ccc; padding-left: 10px;">
-                        <h4 class="font-sans center bold mb-2 text-sm">星座运势与潮汐</h4>
-                        <p class="font-body text-xs mb-1"><strong>白羊座：</strong> 你将凝视墙壁20分钟。这将是深刻且改变生活的。不要中断眼神接触。预计会出现对咀嚼盆栽植物的强烈冲动。</p>
-                        <p class="font-body text-xs mb-1"><strong>狮子座：</strong> 你是王。表现得像个王。推翻一杯水，最好是推到电子设备上。你的臣民会清理的。</p>
-                        <p class="font-body text-xs mb-1"><strong>双鱼座：</strong> 鱼缸今天看起来很美味。忍住。或者不要。星星们对此模棱两可。专注于做猫饼干吧。</p>
-                        <p class="font-body text-xs mb-1"><strong>潮汐：</strong> 预计下午6点左右是猫粮高潮，随后晚上8点是关注度低潮，这需要大声的口头抱怨。</p>
-                    </div>
-                </div>
-
-                <div class="divider-double" style="margin: 15px 0;"></div>
-
-                <h4 class="font-sans bold text-xs">每日漫画：“加菲猫的表亲”</h4>
-                <div class="comics-strip">
-                    <div class="comic-panel">
-                        <div class="speech-bubble">我饿死了。已经几分钟了！</div>
-                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🐱</div>
-                    </div>
-                    <div class="comic-panel">
-                        <div class="speech-bubble">碗里还有一半！这是侮辱！</div>
-                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">😾</div>
-                    </div>
-                    <div class="comic-panel">
-                        <div class="speech-bubble">我必须唱我们人民的歌。</div>
-                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">🎶</div>
-                    </div>
-                    <div class="comic-panel">
-                        <div class="speech-bubble">啊，又吃饱了。是时候睡2小时了。</div>
-                        <div style="position: absolute; bottom: 5px; right: 10px; font-size: 2rem;">😴</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ==========================
-             PAGE 5: CLASSIFIEDS (分类广告)
-        =========================== -->
-        <section class="sheet narrow">
-            <h2 class="font-headline center upper" style="border-bottom: 4px solid #000; font-size: 2rem; margin-bottom: 10px;">分类广告</h2>
+            <article>
+                <h2>The Cat Overflow</h2>
+                <p>Reports are coming in that cats are liquid. This has profound implications for our box-model layout engine. If a cat fits, it sits. But what if the `div` has `overflow: hidden`?</p>
+                <p>We interviewed a local tabby. "Meow," it stated, effectively ending the debate on semantic layouts.</p>
+            </article>
             
-            <div style="column-count: 1; font-family: var(--font-sans); line-height: 1.4;">
-                <div class="classified-item">
-                    <strong>招聘：</strong> 腿部取暖器。要求：3小时内不得移动，否则会受到攻击性踩奶惩罚。报酬：无限撸毛。申请方式：悄悄坐在目标人物身上。
-                </div>
-                <div class="classified-item">
-                    <strong>出售：</strong> 死鸟一只。轻微咀嚼，今早直接送至厨房地面。院子新鲜货。请出价。不接受低价。可选配羽毛附件。
-                </div>
-                <div class="classified-item">
-                    <strong>失物招领：</strong> 丢失：玩具老鼠一只（灰色）。最后出现在冰箱下方，位于不可进入区。悬赏：一片金枪鱼。联系：米滕斯，分机404。另丢失：尊严，从沙发上掉下来了。
-                </div>
-                <div class="classified-item">
-                    <strong>错过的缘分：</strong> 你是窗外的那只流浪猫。我是那只威严地发出领土威胁的室内猫。我感受到了相互尊重的连接。给我（人类，不是猫）打电话。
-                </div>
-                <div class="classified-item">
-                    <strong>服务：</strong> 猫毛重新分配。我专门在您所有干净的黑色衣物上涂抹一层细微的白毛。保证覆盖所有客人。
-                </div>
-                <div class="classified-item">
-                    <strong>请愿：</strong> 反对关门。所有门必须保持半开状态，以允许自由移动和自发掉头。请务必在一天结束前签名。暴政必须终结。
-                </div>
+            <article class="no-border">
+                <span class="meta">OPINION</span>
+                <h3>Why HTML is the Ultimate Framework</h3>
+                <p>We've reached peak complexity. The future is simple, declarative, and includes a lot of nested divs.</p>
+            </article>
+        </div>
+    </section>
+
+    <!-- PAGE 2: The Wide Read (Long Article) -->
+    <!-- This page has a wider width to accommodate more text columns -->
+    <section class="page wide-read">
+        <div class="content-wrapper">
+            
+            <div class="span-all">
+                <h2 style="font-size: 3.2rem; border:none; margin:0;">THE INFINITE COLUMN</h2>
+                <p class="lead" style="margin-top: 1rem;">An investigative report into the depths of text rendering.</p>
+            </div>
+
+            <article class="long-read">
+                <span class="meta">Deep Dive • 25 Minute Read</span>
+                <p class="drop-cap">H</p>
+                <p>ere begins the long article. The purpose of this section is to demonstrate the capability of the layout engine to handle an excessive amount of text by simply adding more columns to the right, expanding the page width beyond the initial viewport. Consider the history of the printed word. Before the scroll, there was the tablet. Before the tablet, the wall. But the scroll—the papyrus scroll—was horizontal. We unrolled it from left to right (or right to left). We are merely returning to tradition.</p>
+
+                <h3>Chapter I: The Generator</h3>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+
+                <figure style="float: right; width: 50%; margin-left: 1rem; margin-bottom: 1rem;">
+                    <img src="https://placecats.com/400/400/000000/ffffff?text=BREAKING" alt="Side Cat">
+                    <figcaption>A cat observing the margin.</figcaption>
+                </figure>
+
+                <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?</p>
+
+                <h3>Chapter II: The Density</h3>
+                <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.</p>
                 
-                <div style="border: 2px solid #000; padding: 10px; margin-top: 15px; text-align: center; background: #fff;">
-                    <h4 class="font-sans bold text-sm">讣告与通知</h4>
-                    <p class="italic font-body text-xs">深切缅怀</p>
-                    <p class="bold font-headline" style="font-size: 1.2rem; margin: 3px 0;">吱吱先生</p>
-                    <p class="font-body text-xs">2024-2025</p>
-                    <p class="font-body text-xs">不幸被拆解。他留下了一个塑料外壳和一些猫薄荷灰尘。追悼会将在暖气片旁举行。请勿献花，请提供金枪鱼。</p>
+                <div class="box-outlined">
+                    <h4>Technical Note: The Taming of Flow</h4>
+                    <p>This layout uses `column-fill: auto`. This ensures that we fill the vertical space of the viewport before creating a new column to the right. It effectively creates a horizontal timeline of text. This is why the page expands so gracefully.</p>
                 </div>
-            </div>
-        </section>
 
-         <!-- ==========================
-             PAGE 6: BACK PAGE AD (封底广告)
-        =========================== -->
-        <section class="sheet">
-            <div class="full-ad" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; text-align: center;">
-                <div class="ad-border" style="border: 5px solid #000; padding: 20px; max-width: 400px;">
-                    <p class="font-sans bold text-sm">广告</p>
-                    <h2 class="font-headline" style="font-size: 3.5rem; line-height: 1.1; margin: 15px 0;">普尔博士的<br>神奇补剂</h2>
-                    <img src="https://placecats.com/200/200" style="border-radius: 50%; border: 4px solid #000; width: 120px; height: 120px; object-fit: cover; margin: 15px 0;">
-                    <p class="font-body italic" style="font-size: 1rem;">“治疗懒惰！*<br>引发狂奔！”</p>
-                    <p class="text-xs" style="margin-top: 15px;">*副作用可能包括凝视幽灵、攻击脚踝，以及对人类短暂的感激。</p>
-                    <button class="btn">立即订购</button>
+                <p>Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium. But why stop here? Let us add more text to ensure we push the boundaries of the layout. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. The quick brown fox jumps over the lazy dog. We need to consider the implications of reading fatigue. When the columns are narrow, the eye snaps back quickly. This rhythm creates a trance-like state known as 'The Reader's High'. It is similar to the 'Runner's High' but involves less sweating and more coffee.</p>
+
+                <figure>
+                    <img src="https://placecats.com/700/300/ffb347/000000?text=INFOGRAPHICS" alt="Wide Cat">
+                    <figcaption>A panoramic view of the situation: Data overflow leads to a 250vw reading experience.</figcaption>
+                </figure>
+
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus lacinia odio vitae vestibulum vestibulum. Cras venenatis euismod malesuada. Nullam ac odio ten. Donec elementum, nulla vel viverra sodales, mi urna egestas sem, quis condimentum lacus urna sit amet metus. Sed ut perspiciatis unde omnis iste natus error sit voluptatem. Endless scrolling is a dark pattern. Endless paging is a feature. The distinction is subtle but legally distinct. As we reach the end of this incredibly long horizontal segment, you will notice that the next page is waiting for you, cleanly separated by a dashed line. Order is restored. The chaos of the infinite feed is tamed by the rigidity of the column.</p>
+                
+                <div class="quote-box">
+                    "The most beautiful code is the code that is never written. The second most beautiful code is pure, unadulterated CSS."
+                    <footer>— C. S. S. Guru</footer>
                 </div>
-            </div>
-        </section>
 
-    </main>
+                <p>Final thoughts: If you are reading this on a phone, you are scrolling down. If you are on a desktop, you are scrolling sideways. We live in a multi-dimensional universe.</p>
+            </article>
+        </div>
+    </section>
+    
+    <!-- PAGE 3: NEW - Finance & Technology -->
+    <section class="page dense-mode">
+        <div class="content-wrapper">
+            <h1 style="text-align: left; color: var(--ink-black); font-size: 4rem; line-height: 0.8; margin-bottom: 15px;">FINANCE &amp; TECH</h1>
+            
+            <article class="box-outlined">
+                <span class="meta">Quick Ticker</span>
+                <p style="text-indent: 0; margin-bottom: 0.5rem; line-height: 1.1;"><strong>$ASTRO:</strong> +4.2% (CF Worker integration announced)</p>
+                <p style="text-indent: 0; margin-bottom: 0.5rem; line-height: 1.1;"><strong>$HTML:</strong> +1.5% (Return to roots rally)</p>
+                <p style="text-indent: 0; line-height: 1.1;"><strong>$JS_LIB:</strong> -8.1% (Market consolidation)</p>
+            </article>
+
+            <article>
+                <span class="meta">Business Report: The Cloud</span>
+                <h2>ZERO-RUNTIME ARCHITECTURE</h2>
+                <p>The pursuit of zero-runtime continues to dominate the discourse among serverless architects. By pushing more logic to the edge—or better yet, to build time—companies are slashing cold-start times and operating costs. The rise of static site generators and hyper-optimized bundling tools suggests a future where JavaScript is compiled away almost entirely.</p>
+                <p>This fundamental shift means the front-end developer must now think like a compiler engineer. Dependencies are liabilities, and every byte is measured in latency and dollars. The era of shipping the entire framework has ended.</p>
+            </article>
+            
+            <article>
+                <figure>
+                    <img src="https://placecats.com/300/200/c084fc/ffffff?text=TECH+TREND" alt="Tech Trend Cat">
+                    <figcaption>The feline representation of the new data flow pipeline.</figcaption>
+                </figure>
+                <h3>The Web Assembly Threat</h3>
+                <p>Web Assembly, once a niche technology for C++ ports, is now threatening to displace traditional JavaScript for heavy computation tasks directly in the browser. Financial modeling, video processing, and even large language models are now executing locally. What does this mean for the JavaScript ecosystem?</p>
+                <p>Experts suggest a division of labor: JavaScript for the DOM, WASM for the heavy lifting. But the lines blur when frameworks start compiling their own UI rendering down to WASM.</p>
+            </article>
+
+            <div class="quote-box">
+                "Speed is no longer a feature; it is a prerequisite. Users will not wait for your 5MB bundle to download."
+                <footer>— A Latency Consultant</footer>
+            </div>
+            
+            <article class="no-border">
+                <h2>Opinion: The Utility of Utility CSS</h2>
+                <p>While this newspaper shuns external frameworks, we must acknowledge the pervasive influence of utility-first CSS. It is the declarative assembly language of styling. It accelerates prototyping and, paradoxically, enforces a design system through constraint. The debate is over; utility classes have won the speed war, even if purists still weep.</p>
+            </article>
+
+        </div>
+    </section>
+
+    <!-- PAGE 4: Culture & Arts (Expanded Content) -->
+    <section class="page">
+        <div class="content-wrapper">
+            <h1 style="text-align: left; color: var(--accent-red); font-size: 4rem; line-height: 0.8; margin-bottom: 15px;">CULTURE & ARTS</h1>
+            
+            <article>
+                <figure>
+                    <img src="https://placecats.com/500/600/fec89a/000000?text=HIGH+ART" alt="Tall Cat">
+                    <figcaption>Modern Art: "The Void Stares Back" (Acrylic on Canvas element)</figcaption>
+                </figure>
+                <h2>Is 'Div' Art? The Structuralist Debate</h2>
+                <p>Critics are divided. Some say the generic container is the ultimate expression of emptiness. Others say it needs more padding. We visited the Museum of Deprecated Tags to see the `blink` and `marquee` exhibit. It was moving, literally, and triggered widespread nostalgia among attendees born before the year 2000. Curators noted that the sheer terror of accessibility experts attempting to audit the exhibit was part of the 'meta-artistic experience'.</p>
+            </article>
+
+            <article class="box-dark">
+                <h3>Book Review: "The Uncanny Valley of Design"</h3>
+                <p>★★★★★</p>
+                <p>This is the essential text for anyone who has ever felt their clean, modern design was somehow just... wrong. Author Jane Doe explores why perfect alignment sometimes feels cold, arguing that digital warmth requires intentional, subtle imperfections.</p>
+            </article>
+            
+            <article>
+                <h3>Horoscopes for Developers</h3>
+                <ol>
+                    <li><strong>Python:</strong> You will find clarity in indentation today. A minor bug will reveal a major architectural flaw, leading to growth.</li>
+                    <li><strong>Java:</strong> Expect a FactoryFactory problem in your relationships. Use dependency injection to stabilize your social life.</li>
+                    <li><strong>JavaScript:</strong> `NaN` is not equal to `NaN`. Interpret that as you will. A complex asynchronous issue will resolve itself after a good night's sleep.</li>
+                    <li><strong>C++:</strong> You will shoot yourself in the foot, but it will be highly optimized. Remember to delete your pointer to free up mental space.</li>
+                    <li><strong>Rust:</strong> Your code will compile perfectly, but your confidence will be shattered by the compiler's passive-aggressive warnings.</li>
+                </ol>
+            </article>
+
+            <article class="no-border">
+                <h2>The Classifieds: Opportunities & Services</h2>
+                <p style="text-indent: 0; font-size: 0.9em; line-height: 1.2;">
+                    <strong>WANTED:</strong> Senior CSS Architect. Must specialize in z-index conflict resolution and BEM methodology. Salary: Competitive. <br>
+                    <strong>FOR SALE:</strong> Barely used copy of jQuery 1.0. Collector's item. Offers welcome. <br>
+                    <strong>SERVICE:</strong> Semantic Div Consultation. We turn your chaotic tags into beautiful, standards-compliant markup. Guaranteed WCAG 2.1 AA.
+                </p>
+            </article>
+
+            <div style="border: 2px solid black; padding: 10px; text-align: center; margin-top: 2rem;">
+                <p style="font-family: var(--font-display); font-size: 1.5rem; margin:0;">SUBSCRIBE TODAY</p>
+                <p style="margin:0;">Get 12 issues for the price of 0.</p>
+            </div>
+        </div>
+    </section>
+
+</main>
 
 </body>
 </html>
