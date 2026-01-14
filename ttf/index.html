@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TTF demo</title>
+</head>
+
+<body>
+    <script>
+        function u16(v) { return [v >> 8, v & 255]; }
+        function u32(v) { return [v >> 24, (v >> 16) & 255, (v >> 8) & 255, v & 255]; }
+
+        function table(tag, data) {
+            return { tag, data, checksum: 0 };
+        }
+
+        function checksum(data) {
+            let sum = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                sum = (sum + (
+                    ((data[i] || 0) << 24) |
+                    ((data[i + 1] || 0) << 16) |
+                    ((data[i + 2] || 0) << 8) |
+                    (data[i + 3] || 0)
+                )) >>> 0;
+            }
+            return sum;
+        }
+
+        function pad4(arr) {
+            while (arr.length % 4) arr.push(0);
+        }
+
+        const tables = [];
+
+        /* glyf: empty glyph */
+        const glyf = [];
+        pad4(glyf);
+        tables.push(table("glyf", glyf));
+
+        /* loca: single glyph */
+        tables.push(table("loca", [0, 0]));
+
+        /* hmtx */
+        tables.push(table("hmtx", [0, 0, 0, 0]));
+
+        /* maxp */
+        tables.push(table("maxp", [
+            ...u32(0x00010000),
+            ...u16(1)
+        ]));
+
+        /* head */
+        tables.push(table("head", [
+            ...u32(0x00010000), ...u32(0x00010000),
+            0, 0, 0, 0, 0, 0, 0, 0,
+            ...u16(0), ...u16(1000),
+            ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+            ...u16(0), ...u16(8),
+            ...u16(2), ...u16(0), ...u16(0)
+        ]));
+
+        /* hhea */
+        tables.push(table("hhea", [
+            ...u32(0x00010000),
+            ...u16(0), ...u16(0), ...u16(0),
+            ...u16(0), ...u16(0), ...u16(0), ...u16(0),
+            ...u16(1), ...u16(0)
+        ]));
+
+        /* cmap */
+        tables.push(table("cmap", [
+            0, 0, 0, 1,
+            0, 3, 0, 1, 0, 0, 0, 12,
+            0, 4, 0, 20,
+            0, 0, 0, 2,
+            0, 1, 0, 0,
+            0x26, 0x03, 0, 0`
+        ]));
+
+        /* name */
+        tables.push(table("name", [0, 0, 0, 0]));
+
+        /* post */
+        tables.push(table("post", [...u32(0x00030000)]));
+
+        /* build font */
+        tables.forEach(t => pad4(t.data));
+
+        let offset = 12 + tables.length * 16;
+        tables.forEach(t => {
+            t.offset = offset;
+            t.length = t.data.length;
+            t.checksum = checksum(t.data);
+            offset += t.length;
+        });
+
+        const out = [];
+        out.push(...u32(0x00010000));
+        out.push(...u16(tables.length), 0, 0, 0);
+
+        tables.forEach(t => {
+            out.push(...t.tag.split("").map(c => c.charCodeAt(0)));
+            out.push(...u32(t.checksum), ...u32(t.offset), ...u32(t.length));
+        });
+
+        tables.forEach(t => out.push(...t.data));
+
+        const blob = new Blob([new Uint8Array(out)], { type: "font/ttf" });
+        const url = URL.createObjectURL(blob);
+
+        document.head.insertAdjacentHTML("beforeend", `
+<style>
+@font-face {
+  font-family: GhostRaw;
+  src: url(${url});
+  unicode-range: U+2603;
+}
+body { font-family: GhostRaw, system-ui; }
+</style>
+`);
+
+        document.body.textContent = "☃";
+    </script>
+</body>
+
+</html>
