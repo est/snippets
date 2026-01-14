@@ -432,8 +432,9 @@ def render_mesh_to_buffer(mesh: List[List[Point3D]], buffer: DepthBuffer,
                           angle_x: float, angle_y: float, angle_z: float,
                           term_width: int, term_height: int, aspect_ratio: float):
     """Render 3D mesh to depth buffer"""
-    # Use solid blocks for better readability
-    depth_chars = ["█", " "]
+    # Greyscale characters for edge highlighting and filled areas
+    edge_char = "▇"  # Lighter greyscale for edges
+    fill_char = "█"  # Solid block for filled areas
     
     for face in mesh:
         if len(face) < 3:
@@ -476,9 +477,6 @@ def render_mesh_to_buffer(mesh: List[List[Point3D]], buffer: DepthBuffer,
         # Calculate average depth for depth buffer testing
         avg_z = sum(p.z for p in transformed) / len(transformed)
         
-        # Use solid blocks for all visible faces (no depth shading)
-        char = depth_chars[0]  # Always use solid block (█)
-        
         # Convert to screen coordinates
         # Map from [-1, 1] to [0, term_width/height]
         points_2d = []
@@ -487,14 +485,14 @@ def render_mesh_to_buffer(mesh: List[List[Point3D]], buffer: DepthBuffer,
             y = int((p[1] + 1.0) * term_height / 2.0)
             points_2d.append((x, y))
         
-        # Draw edges
+        # Draw edges with lighter greyscale for highlighting
         for i in range(len(points_2d)):
             p1 = points_2d[i]
             p2 = points_2d[(i + 1) % len(points_2d)]
-            draw_line(buffer, p1[0], p1[1], p2[0], p2[1], avg_z, char)
+            draw_line(buffer, p1[0], p1[1], p2[0], p2[1], avg_z, edge_char)
         
-        # Fill polygon
-        fill_polygon(buffer, points_2d, avg_z, char)
+        # Fill polygon with solid blocks
+        fill_polygon(buffer, points_2d, avg_z, fill_char)
 
 
 def draw_line(buffer: DepthBuffer, x1: int, y1: int, x2: int, y2: int, z: float, char: str):
@@ -590,7 +588,7 @@ def main():
     parser.add_argument("--font", type=str, default="Helvetica", help="Font name")
     parser.add_argument("--speed", type=float, default=1.0, help="Rotation speed multiplier")
     parser.add_argument("--depth", type=float, default=0.5, help="Extrusion depth")
-    parser.add_argument("--size", type=float, default=100.0, help="Font size")
+    parser.add_argument("--size", type=float, default=60.0, help="Font size")
     parser.add_argument("--width", type=int, default=80, help="Terminal width (default: 80)")
     parser.add_argument("--height", type=int, default=24, help="Terminal height (default: 24)")
     parser.add_argument("--fixed-size", action="store_true", help="Use fixed dimensions instead of terminal size")
