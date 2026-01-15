@@ -37,134 +37,131 @@
             return sum;
         }
 
-        // Create minimal valid TTF with single glyph
-        function createZeroWidthTTF() {
+        // Parse existing TTF file and modify cmap table
+        function parseTTF(data) {
+            // Read TTF header
+            const view = new DataView(data.buffer);
+            const version = view.getUint32(0);
+            const numTables = view.getUint16(4);
+            
+            // Read table directory entries
             const tables = [];
-
-            // 1. glyf - single empty glyph
-            const glyfTable = [
-                0, 0,    // numberOfContours (0 for empty glyph)
-                0, 0,    // xMin
-                0, 0,    // yMin
-                0, 0,    // xMax
-                0, 0     // yMax
-            ];
-            tables.push({ tag: "glyf", data: pad4(glyfTable), checksum: 0 });
-
-            // 2. loca - glyph location table
-            tables.push({ tag: "loca", data: pad4([0, 0]), checksum: 0 });
-
-            // 3. hmtx - horizontal metrics
-            tables.push({ tag: "hmtx", data: pad4([0, 0, 0, 0]), checksum: 0 });
-
-            // 4. maxp - maximum profile
-            tables.push({ tag: "maxp", data: pad4([
-                ...u32(0x00010000),    // version 1.0
-                ...u16(1),             // numGlyphs
-                ...u16(0), ...u16(0),  // maxPoints, maxContours
-                ...u16(0), ...u16(0),  // maxCompositePoints, maxCompositeContours
-                ...u16(0), ...u16(0),  // maxZones, maxTwilightPoints
-                ...u16(0), ...u16(0),  // maxStorage, maxFunctionDefs
-                ...u16(0), ...u16(0),  // maxInstructionDefs, maxStackElements
-                ...u16(0), ...u16(0),  // maxSizeOfInstructions, maxComponentElements
-                ...u16(0)              // maxComponentDepth
-            ]), checksum: 0 });
-
-            // 5. head - font header (36 bytes)
-            tables.push({ tag: "head", data: pad4([
-                ...u32(0x00010000),    // version 1.0
-                ...u32(0),             // checkSumAdjustment (will be calculated)
-                ...u32(0x5F0F3CF5),    // magicNumber
-                ...u16(0),             // flags
-                ...u16(1000),          // unitsPerEm
-                ...u32(0), ...u32(0),  // created, modified (placeholder)
-                ...u16(-200), ...u16(-200), // xMin, yMin
-                ...u16(1200), ...u16(1200), // xMax, yMax
-                ...u16(0), ...u16(10), // macStyle, lowestRecPPEM
-                ...u16(2), ...u16(0), ...u16(0) // fontDirectionHint, indexToLocFormat, glyphDataFormat
-            ]), checksum: 0 });
-
-            // 6. hhea - horizontal header (36 bytes)
-            tables.push({ tag: "hhea", data: pad4([
-                ...u32(0x00010000),    // version 1.0
-                ...u16(-200), ...u16(-200), // ascent, descent
-                ...u16(0),             // lineGap
-                ...u16(1000),          // advanceWidthMax
-                ...u16(-200), ...u16(-200), // minLeftSideBearing, minRightSideBearing
-                ...u16(0),             // xMaxExtent
-                ...u16(1),             // caretSlopeRise
-                ...u16(0),             // caretSlopeRun
-                ...u32(0),             // caretOffset
-                ...u16(0), ...u16(1)   // metricDataFormat, numberOfHMetrics
-            ]), checksum: 0 });
-
-            // 7. cmap - character to glyph mapping (format 4, ~44 bytes)
-            tables.push({ tag: "cmap", data: pad4([
-                0, 0, 0, 1,            // version, number of tables
-                0, 3, 0, 1, 0, 0, 0, 12, // platformID, platformSpecificID, offset
-                ...u16(4), ...u16(44), ...u16(0), // format, length, language
-                ...u16(1), ...u16(8), ...u16(0), ...u16(0), // nGroups, searchRange, entrySelector, rangeShift
-                ...u16(0x2603), ...u16(0x2603), ...u16(0) // startCharCode, endCharCode, glyphID
-            ]), checksum: 0 });
-
-            // 8. name - font naming (6 bytes)
-            tables.push({ tag: "name", data: pad4([0, 0, 0, 0, 0, 0]), checksum: 0 });
-
-            // 9. post - PostScript info (32 bytes)
-            tables.push({ tag: "post", data: pad4([
-                ...u32(0x00010000), // version 1.0
-                ...u32(0),         // italicAngle
-                ...u16(0), ...u16(0), // underlinePosition, underlineThickness
-                ...u32(0),         // isFixedPitch
-                ...u32(0), ...u32(0), // minMemType42, maxMemType42
-                ...u32(0), ...u32(0)  // minMemType1, maxMemType1
-            ]), checksum: 0 });
-
-            // 10. OS/2 table (78 bytes minimum)
-            tables.push({ tag: "OS/2", data: pad4([
-                ...u16(0x0004), 0, 0,
-                ...u16(1000), ...u16(5), ...u16(0),
-                ...u16(1000), ...u16(1000), ...u16(0), ...u16(0),
-                ...u16(1200), ...u16(1200), ...u16(0), ...u16(0),
-                ...u16(200), ...u16(0), ...u16(0),
-                0, 0, 0, 0, 0, 0, 0, 0,
-                ...u32(0), ...u32(0), ...u32(0), ...u32(0),
-                ...u16(0x0409), ...u16(0),
-                ...u16(65535), ...u16(0),
-                ...u16(0), ...u16(0), ...u16(0),
-                ...u16(1200), ...u16(200),
-                ...new Array(78 - 60).fill(0) // 补全到最小长度
-            ].flat()), checksum: 0 });
-
-            // Sort tables alphabetically by tag
-            const sortedTables = [...tables].sort((a, b) => a.tag.localeCompare(b.tag));
-
-            // Calculate offsets and lengths
-            let offset = 12 + sortedTables.length * 16;
-            sortedTables.forEach(t => {
-                t.offset = offset;
-                t.length = t.data.length;
-                t.checksum = checksum(t.data);
-                offset += t.length;
-            });
-
-            // Calculate checkSumAdjustment
-            const headTable = sortedTables.find(t => t.tag === "head");
-            if (headTable) {
-                let totalChecksum = 0;
-                sortedTables.forEach(t => {
-                    totalChecksum += t.checksum;
-                    totalChecksum &= 0xffffffff;
+            for (let i = 0; i < numTables; i++) {
+                const offset = 12 + i * 16;
+                const tag = String.fromCharCode(
+                    data[offset],
+                    data[offset + 1],
+                    data[offset + 2],
+                    data[offset + 3]
+                );
+                const checksum = view.getUint32(offset + 4);
+                const tableOffset = view.getUint32(offset + 8);
+                const length = view.getUint32(offset + 12);
+                
+                tables.push({
+                    tag,
+                    checksum,
+                    offset: tableOffset,
+                    length,
+                    data: data.subarray(tableOffset, tableOffset + length)
                 });
-                const checkSumAdjustment = (0xB1B0AFBA - totalChecksum) & 0xffffffff;
-                headTable.data.splice(4, 4, ...u32(checkSumAdjustment));
-                headTable.checksum = checksum(headTable.data);
             }
-
-            // Build the TTF file
+            
+            return {
+                version,
+                numTables,
+                tables
+            };
+        }
+        
+        function modifyCmapForCharacter(ttf, charCode) {
+            // Find cmap table
+            const cmapTable = ttf.tables.find(table => table.tag === 'cmap');
+            if (!cmapTable) {
+                throw new Error('cmap table not found');
+            }
+            
+            const cmapData = new Uint8Array(cmapTable.data);
+            const cmapView = new DataView(cmapData.buffer);
+            
+            // cmap table structure:
+            // Offset 0: version (0)
+            // Offset 2: number of subtables (1)
+            // Offset 4: platformID (3 = Windows)
+            // Offset 6: platformSpecificID (1 = Unicode BMP)
+            // Offset 8: subtable offset (12)
+            
+            // Subtable starts at offset 12 (from cmap table start)
+            const subtableOffset = 12;
+            
+            // Check subtable format (should be 4)
+            const format = cmapView.getUint16(subtableOffset);
+            if (format !== 4) {
+                throw new Error('Unsupported cmap format: ' + format);
+            }
+            
+            // Update the character code range in cmap
+            // For format 4, groups are at offset (subtableOffset + 14)
+            // Group format: startCharCode (2 bytes), endCharCode (2 bytes), glyphID (2 bytes)
+            const groupOffset = subtableOffset + 14;
+            
+            // Set start and end char code to the target character
+            cmapData[groupOffset] = charCode >> 8;
+            cmapData[groupOffset + 1] = charCode & 0xFF;
+            cmapData[groupOffset + 2] = charCode >> 8;
+            cmapData[groupOffset + 3] = charCode & 0xFF;
+            
+            // Update cmap table in TTF structure
+            ttf.tables.find(table => table.tag === 'cmap').data = cmapData;
+            
+            // Recalculate checksum for cmap table
+            ttf.tables.find(table => table.tag === 'cmap').checksum = checksum(Array.from(cmapData));
+            
+            // Recalculate checkSumAdjustment in head table
+            recalculateCheckSumAdjustment(ttf);
+            
+            // Rebuild TTF file
+            return buildTTF(ttf);
+        }
+        
+        function recalculateCheckSumAdjustment(ttf) {
+            const headTable = ttf.tables.find(table => table.tag === 'head');
+            if (!headTable) {
+                throw new Error('head table not found');
+            }
+            
+            // Calculate total checksum of all tables
+            let totalChecksum = 0;
+            ttf.tables.forEach(table => {
+                totalChecksum += table.checksum;
+                totalChecksum &= 0xffffffff;
+            });
+            
+            const checkSumAdjustment = (0xB1B0AFBA - totalChecksum) & 0xffffffff;
+            
+            // Update checkSumAdjustment in head table
+            const headData = new Uint8Array(headTable.data);
+            const headView = new DataView(headData.buffer);
+            headView.setUint32(4, checkSumAdjustment);
+            headTable.data = headData;
+            headTable.checksum = checksum(Array.from(headData));
+        }
+        
+        function buildTTF(ttf) {
+            // Sort tables alphabetically by tag
+            const sortedTables = [...ttf.tables].sort((a, b) => a.tag.localeCompare(b.tag));
+            
+            // Calculate table offsets
+            let offset = 12 + sortedTables.length * 16;
+            sortedTables.forEach(table => {
+                table.offset = offset;
+                offset += table.data.length;
+            });
+            
+            // Build TTF file
             const out = [];
             out.push(...u32(0x00010000));
-
+            
             // Calculate search parameters
             const numTables = sortedTables.length;
             let powerOf2 = 0;
@@ -172,49 +169,117 @@
             const searchRange = (1 << powerOf2) * 16;
             const entrySelector = powerOf2;
             const rangeShift = numTables * 16 - searchRange;
-
+            
             out.push(...u16(numTables));
             out.push(...u16(searchRange));
             out.push(...u16(entrySelector));
             out.push(...u16(rangeShift));
-
+            
             // Write table records
-            sortedTables.forEach(t => {
+            sortedTables.forEach(table => {
                 const tagBytes = [];
                 for (let i = 0; i < 4; i++) {
-                    tagBytes.push(t.tag.charCodeAt(i) || 0);
+                    tagBytes.push(table.tag.charCodeAt(i) || 0);
                 }
                 out.push(...tagBytes);
-                out.push(...u32(t.checksum), ...u32(t.offset), ...u32(t.length));
+                out.push(...u32(table.checksum), ...u32(table.offset), ...u32(table.data.length));
             });
-
+            
             // Write table data
-            sortedTables.forEach(t => out.push(...t.data));
-
+            sortedTables.forEach(table => {
+                for (let i = 0; i < table.data.length; i++) {
+                    out.push(table.data[i]);
+                }
+            });
+            
             return new Uint8Array(out);
         }
-
-        // Create and apply the font
-        function applyFont() {
-            const ttfData = createZeroWidthTTF();
-            const blob = new Blob([ttfData], { type: "font/ttf" });
+        
+        // Function to check if font supports a character
+        async function checkFontSupportsCharacter(char) {
+            // Load base font
+            const response = await fetch('base_font.ttf');
+            const buffer = await response.arrayBuffer();
+            const baseFontData = new Uint8Array(buffer);
+            
+            // Parse base font
+            const ttf = parseTTF(baseFontData);
+            
+            // Modify cmap to support the character
+            const charCode = char.charCodeAt(0);
+            const modifiedFontData = modifyCmapForCharacter(ttf, charCode);
+            
+            // Create font blob and apply it
+            const blob = new Blob([modifiedFontData], { type: 'font/ttf' });
             const url = URL.createObjectURL(blob);
-
-            document.head.insertAdjacentHTML("beforeend", `
+            
+            // Create unique font family name for this character
+            const fontFamily = 'ZeroWidthFont_' + charCode;
+            
+            // Create CSS rule with unicode-range targeting the specific character
+            const unicodeRange = 'U+' + charCode.toString(16).padStart(4, '0');
+            
+            // Apply the font
+            document.head.insertAdjacentHTML('beforeend', `
                 <style>
                     @font-face {
-                        font-family: ZeroWidthFont;
+                        font-family: ${fontFamily};
                         src: url(${url});
-                        unicode-range: U+2603;
-                    }
-                    body { 
-                        font-family: ZeroWidthFont, system-ui; 
+                        unicode-range: ${unicodeRange};
                     }
                 </style>
             `);
+            
+            // Create test element to check font support
+            const testElement = document.createElement('span');
+            testElement.textContent = char;
+            testElement.style.fontFamily = fontFamily;
+            testElement.style.visibility = 'hidden';
+            testElement.style.position = 'absolute';
+            document.body.appendChild(testElement);
+            
+            // Check if the character is supported by comparing rendered width
+            const testSpan = document.createElement('span');
+            testSpan.textContent = char;
+            testSpan.style.visibility = 'hidden';
+            testSpan.style.position = 'absolute';
+            testSpan.style.fontFamily = 'system-ui'; // Use system font as fallback
+            document.body.appendChild(testSpan);
+            
+            // Measure widths
+            const fallbackWidth = testSpan.offsetWidth;
+            const testWidth = testElement.offsetWidth;
+            
+            // Remove test elements
+            document.body.removeChild(testElement);
+            document.body.removeChild(testSpan);
+            
+            // Character is supported by our zero-width font if it renders smaller or has zero width
+            return testWidth < fallbackWidth * 0.5 || testWidth === 0;
+        }
 
-            // Display test character
-            document.body.textContent = "☃";
+        // Test function to check various characters
+        async function testCharacters() {
+            const testChars = ['A', 'B', 'C', '☃', '😊', '文', '字', '한', '글', 'π'];
+            
+            console.log('Testing character support...');
+            
+            for (const char of testChars) {
+                const isSupported = await checkFontSupportsCharacter(char);
+                console.log(`Character '${char}' (0x${char.charCodeAt(0).toString(16)}) is ${isSupported ? 'SUPPORTED' : 'NOT supported'}`);
+            }
+        }
+        
+        // Function to demonstrate the usage
+        async function applyFont() {
+            document.body.textContent = 'Testing font character support...';
+            
+            // Test with snowman character (U+2603)
+            const isSnowmanSupported = await checkFontSupportsCharacter('☃');
+            document.body.textContent = `Character '☃' is ${isSnowmanSupported ? 'supported' : 'not supported'} by the zero-width font`;
+            
+            // Test with other characters
+            await testCharacters();
         }
 
         applyFont();
