@@ -23,6 +23,7 @@ C_IN = 1      # Internet class
 T_TXT = 16    # TXT record
 T_SRV = 33    # SRV record
 T_A = 1       # A record
+T_AAAA = 28   # AAAA record
 
 # Allocate buffer
 BUF_SIZE = 512
