@@ -1,33 +1,57 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>WebTransport Request</title>
 </head>
+
 <body>
+  <div id="status">Connecting...</div>
+  <pre id="log"></pre>
   <script>
+    function log(msg) {
+      console.log(msg);
+      document.getElementById("log").innerText += msg + "\n";
+    }
+
     async function main() {
+      const status = document.getElementById("status");
       try {
-        const wt = new WebTransport("https://localhost:4433/");
+        const wt = new WebTransport("https://localhost:4433/", {
+          serverCertificateHashes: [
+            {
+              algorithm: "sha-256",
+              value: new Uint8Array([
+                0x4f, 0x4e, 0xb9, 0xbe, 0x7f, 0x0b, 0xd0, 0x02,
+                0xc3, 0xd9, 0xe8, 0x83, 0xa9, 0x30, 0xd7, 0x73,
+                0xf9, 0x43, 0x07, 0x4f, 0xaf, 0x30, 0x45, 0xb0,
+                0xf2, 0xde, 0x21, 0x4e, 0x75, 0x46, 0x3d, 0xdc
+              ])
+            }
+          ]
+        });
         await wt.ready;
-        console.log("WebTransport connection established");
+        status.innerText = "Connected";
+        log("WebTransport connection established");
 
         const stream = await wt.createBidirectionalStream();
         const writer = stream.writable.getWriter();
-        await writer.write(new Uint8Array([1]));
+        log("Sending data...");
+        await writer.write(new TextEncoder().encode("Hello from client"));
         await writer.close();
 
         const reader = stream.readable.getReader();
         const { value } = await reader.read();
         const text = new TextDecoder().decode(value);
-        document.write(text);
-        console.log("Response received:", text);
+        log("Response received: " + text);
       } catch (error) {
-        console.error("Error:", error);
-        document.write("Error: " + error.message);
+        log("Error: " + error.message);
+        status.innerText = "Connection Failed";
       }
     }
     document.addEventListener("DOMContentLoaded", main);
   </script>
 </body>
+
 </html>

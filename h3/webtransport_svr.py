@@ -1,104 +1,64 @@
 import asyncio
 import ssl
 import os
-from aioquic.asyncio import serve
-from aioquic.h3.connection import H3_ALPN
+from aioquic.asyncio.server import serve
+from aioquic.h3.connection import H3Connection, H3_ALPN
 from aioquic.h3.events import (
     HeadersReceived,
     WebTransportStreamDataReceived,
 )
 from aioquic.quic.configuration import QuicConfiguration
 from aioquic.asyncio.protocol import QuicConnectionProtocol
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
 import threading
 
 
 class WebTransportProtocol(QuicConnectionProtocol):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._h3 = H3Connection(self._quic)
+
     def quic_event_received(self, event):
-        # WebTransport session establishment
+        # Pass QUIC event to H3 connection
+        for h3_event in self._h3.handle_event(event):
+            self.h3_event_received(h3_event)
+
+    def h3_event_received(self, event):
         if isinstance(event, HeadersReceived):
             headers = dict(event.headers)
+            print("Received H3 headers:", headers)
 
-            # :method = CONNECT, :protocol = webtransport
-            if headers.get(b":method") == b"CONNECT":
-                # Accept the session
-                self._quic.send_stream_data(
+            # WebTransport session establishment
+            if headers.get(b":method") == b"CONNECT" and headers.get(b":protocol") == b"webtransport":
+                self._h3.send_headers(
                     event.stream_id,
-                    b":status: 200\r\n\r\n",
-                    end_stream=False,
+                    [(b":status", b"200"), (b"sec-webtransport-http3-draft", b"draft02")],
                 )
-            # Handle HTTP requests for static files
-            elif headers.get(b":method") == b"GET":
-                path = headers.get(b":path", b"/").decode()
-                if path == "/":
-                    path = "/webtransport_req.html"
-                
-                file_path = os.path.join(os.getcwd(), path.lstrip("/"))
-                
-                if os.path.exists(file_path) and os.path.isfile(file_path):
-                    try:
-                        with open(file_path, "rb") as f:
-                            content = f.read()
-                        
-                        # Send HTTP response
-                        response_headers = [
-                            (b":status", b"200"),
-                            (b"content-type", b"text/html"),
-                            (b"content-length", str(len(content)).encode()),
-                        ]
-                        
-                        self._quic.send_stream_data(
-                            event.stream_id,
-                            b"\r\n".join([b": ".join(h) for h in response_headers]) + b"\r\n\r\n",
-                            end_stream=False,
-                        )
-                        self._quic.send_stream_data(
-                            event.stream_id,
-                            content,
-                            end_stream=True,
-                        )
-                    except Exception as e:
-                        # Send 500 error
-                        error_response = b":status: 500\r\ncontent-type: text/plain\r\n\r\nInternal Server Error"
-                        self._quic.send_stream_data(
-                            event.stream_id,
-                            error_response,
-                            end_stream=True,
-                        )
-                else:
-                    # Send 404 error
-                    not_found_response = b":status: 404\r\ncontent-type: text/plain\r\n\r\nFile Not Found"
-                    self._quic.send_stream_data(
-                        event.stream_id,
-                        not_found_response,
-                        end_stream=True,
-                    )
+                self.transmit()
 
-        # Incoming WebTransport stream data
         elif isinstance(event, WebTransportStreamDataReceived):
-            # Reply with "hello world"
-            response = b"hello world\n"
-            self._quic.send_stream_data(
+            print(f"WebTransport data received on stream {event.stream_id}")
+            # Echo "hello world"
+            self._h3._quic.send_stream_data(
                 event.stream_id,
-                response,
+                b"hello world\n",
                 end_stream=True,
             )
+            self.transmit()
 
 
 def start_https_server():
-    """启动HTTPS服务器，提供静态文件服务"""
+    """Start HTTPS server for static files."""
     class Handler(SimpleHTTPRequestHandler):
         def do_GET(self):
             if self.path == "/":
                 self.path = "/webtransport_req.html"
             return super().do_GET()
     
-    # 创建SSL上下文
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
     
-    # 创建HTTPS服务器
-    server = HTTPServer(("localhost", 4433), Handler)
+    server = ThreadingHTTPServer(("localhost", 4433), Handler)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     
     print("HTTPS server started on https://localhost:4433")
@@ -106,11 +66,10 @@ def start_https_server():
 
 
 async def main():
-    # 启动HTTPS服务器线程
+    # Start HTTPS server in a thread
     https_thread = threading.Thread(target=start_https_server, daemon=True)
     https_thread.start()
     
-    # 配置QUIC/WebTransport服务器
     configuration = QuicConfiguration(
         is_client=False,
         alpn_protocols=H3_ALPN,
@@ -121,7 +80,7 @@ async def main():
         keyfile="key.pem",
     )
 
-    print("WebTransport server started on https://localhost:4433")
+    print("WebTransport server started on UDP localhost:4433")
     await serve(
         host="localhost",
         port=4433,
@@ -129,7 +88,7 @@ async def main():
         create_protocol=WebTransportProtocol,
     )
 
-    await asyncio.Future()  # run forever
+    await asyncio.Future()
 
 
 if __name__ == "__main__":
