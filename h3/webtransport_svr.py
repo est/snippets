@@ -19,7 +19,6 @@ class WebTransportProtocol(QuicConnectionProtocol):
         self._h3 = None
 
     def quic_event_received(self, event):
-        print(f"QUIC event: {event}")
         # Create H3 connection lazily after handshake
         if self._h3 is None:
             self._h3 = H3Connection(self._quic, enable_webtransport=True)
@@ -41,14 +40,16 @@ class WebTransportProtocol(QuicConnectionProtocol):
                 self.transmit()
 
         elif isinstance(event, WebTransportStreamDataReceived):
-            print(f"WebTransport data received on stream {event.stream_id}")
-            # Echo "hello world"
-            self._h3._quic.send_stream_data(
-                event.stream_id,
-                b"hello world\n",
-                end_stream=True,
-            )
-            self.transmit()
+            # Only respond if we received actual data (not just the end-stream marker)
+            if event.data:
+                print(f"WebTransport data received on stream {event.stream_id}: {event.data}")
+                # Echo "hello world"
+                self._h3._quic.send_stream_data(
+                    event.stream_id,
+                    b"hello world\n",
+                    end_stream=True,
+                )
+                self.transmit()
 
 
 def start_https_server():
