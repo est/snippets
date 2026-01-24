@@ -16,9 +16,13 @@ import threading
 class WebTransportProtocol(QuicConnectionProtocol):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._h3 = H3Connection(self._quic)
+        self._h3 = None
 
     def quic_event_received(self, event):
+        print(f"QUIC event: {event}")
+        # Create H3 connection lazily after handshake
+        if self._h3 is None:
+            self._h3 = H3Connection(self._quic, enable_webtransport=True)
         # Pass QUIC event to H3 connection
         for h3_event in self._h3.handle_event(event):
             self.h3_event_received(h3_event)
@@ -58,10 +62,10 @@ def start_https_server():
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
     
-    server = ThreadingHTTPServer(("localhost", 4433), Handler)
+    server = ThreadingHTTPServer(("localhost", 8443), Handler)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     
-    print("HTTPS server started on https://localhost:4433")
+    print("HTTPS server started on https://localhost:8443")
     server.serve_forever()
 
 
@@ -82,7 +86,7 @@ async def main():
 
     print("WebTransport server started on UDP localhost:4433")
     await serve(
-        host="localhost",
+        host="::",
         port=4433,
         configuration=configuration,
         create_protocol=WebTransportProtocol,

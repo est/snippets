@@ -15,21 +15,17 @@
       document.getElementById("log").innerText += msg + "\n";
     }
 
+    // SHA-256 hash of cert.pem (run: openssl x509 -in cert.pem -outform DER | openssl dgst -sha256 -binary | base64)
+    const CERT_HASH = "i7zfN8iajtUBr8WMaJf3Jb+gGn8QovauiTVV7Qylx+4=";
+
     async function main() {
       const status = document.getElementById("status");
       try {
         const wt = new WebTransport("https://localhost:4433/", {
-          serverCertificateHashes: [
-            {
-              algorithm: "sha-256",
-              value: new Uint8Array([
-                0x4f, 0x4e, 0xb9, 0xbe, 0x7f, 0x0b, 0xd0, 0x02,
-                0xc3, 0xd9, 0xe8, 0x83, 0xa9, 0x30, 0xd7, 0x73,
-                0xf9, 0x43, 0x07, 0x4f, 0xaf, 0x30, 0x45, 0xb0,
-                0xf2, 0xde, 0x21, 0x4e, 0x75, 0x46, 0x3d, 0xdc
-              ])
-            }
-          ]
+          serverCertificateHashes: [{
+            algorithm: "sha-256",
+            value: Uint8Array.from(atob(CERT_HASH), c => c.charCodeAt(0)),
+          }],
         });
         await wt.ready;
         status.innerText = "Connected";
