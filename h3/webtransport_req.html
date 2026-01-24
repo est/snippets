@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>WebTransport Request</title>
+</head>
+<body>
+  <script>
+    async function main() {
+      try {
+        const wt = new WebTransport("https://localhost:4433/");
+        await wt.ready;
+        console.log("WebTransport connection established");
+
+        const stream = await wt.createBidirectionalStream();
+        const writer = stream.writable.getWriter();
+        await writer.write(new Uint8Array([1]));
+        await writer.close();
+
+        const reader = stream.readable.getReader();
+        const { value } = await reader.read();
+        const text = new TextDecoder().decode(value);
+        document.write(text);
+        console.log("Response received:", text);
+      } catch (error) {
+        console.error("Error:", error);
+        document.write("Error: " + error.message);
+      }
+    }
+    document.addEventListener("DOMContentLoaded", main);
+  </script>
+</body>
+</html>
