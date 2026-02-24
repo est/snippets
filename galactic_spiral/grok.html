@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spiral Galaxy Density Wave Simulation</title>
+    <style>
+        body { background-color: black; color: white; text-align: center; }
+        canvas { border: 1px solid white; }
+    </style>
+</head>
+<body>
+    <h1>旋臂密度波模拟 (Spiral Arms Density Wave Simulation)</h1>
+    <p>这个粒子系统模拟使用密度波理论展示螺旋星系的旋臂。图案以固定速度旋转，而星星穿过臂。</p>
+    <canvas id="canvas" width="600" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const W = 600, H = 600;
+        const center = {x: W/2, y: H/2};
+        const numParticles = 10000;
+        const m = 2; // 臂数
+        const pitch = 15 * Math.PI / 180; // 节距角
+        const amplitude = 0.1; // 振幅
+        const Omega_p = 0.0005; // 图案速度 (慢以观察)
+        const v0 = 0.001; // 平坦速度 (缩放单位)
+        const r_min = 0.05, r_max = 1.5;
+        const scale = W/2 * 0.8; // 缩放
+        const h = 0.3; // 盘尺度长度
+
+        class Particle {
+            constructor() {
+                this.r_g = this.getRandomR_g();
+                this.theta_g = Math.random() * 2 * Math.PI;
+                this.phi0 = (m / Math.tan(pitch)) * Math.log(this.r_g); // 对数螺旋相位
+                this.kappa = Math.sqrt(2) * (v0 / this.r_g); // 外摆频率
+                this.Omega = v0 / this.r_g; // 角速度
+                this.X = amplitude * this.r_g; // 径向振幅
+                this.t = 0;
+            }
+
+            getRandomR_g() {
+                const r_max_sim = 4 * h; // 足够覆盖指数尾
+                const max_f = Math.exp(-1) / h;
+                while (true) {
+                    const r = Math.random() * r_max_sim;
+                    const f = (r / (h * h)) * Math.exp(-r / h);
+                    if (Math.random() < f / max_f && r >= r_min && r <= r_max) {
+                        return r;
+                    }
+                }
+            }
+
+            update(dt) {
+                this.t += dt;
+            }
+
+            getPosition() {
+                const chi = this.kappa * this.t + this.phi0;
+                const r = this.r_g - this.X * Math.cos(chi); // 负号用于尾随螺旋
+                const theta = this.theta_g + this.Omega * this.t - (2 * this.Omega / (this.kappa * this.r_g)) * this.X * Math.sin(chi);
+                const x = r * Math.cos(theta);
+                const y = r * Math.sin(theta);
+                return {x, y};
+            }
+        }
+
+        let particles = [];
+        for (let i = 0; i < numParticles; i++) {
+            particles.push(new Particle());
+        }
+
+        let global_t = 0;
+        const dt = 1; // 时间步 (调整动画速度)
+
+        function animate() {
+            global_t += dt;
+
+            ctx.fillStyle = 'rgba(0,0,0,0.1)'; // 轻淡以显示轨迹，或 'black' 无轨迹
+            ctx.fillRect(0, 0, W, H);
+
+            // 旋转视图以使图案固定
+            ctx.save();
+            ctx.translate(center.x, center.y);
+            ctx.rotate(-Omega_p * global_t);
+            ctx.fillStyle = 'white';
+
+            for (let p of particles) {
+                p.update(dt);
+                const pos = p.getPosition();
+                const px = pos.x * scale;
+                const py = pos.y * scale;
+                ctx.fillRect(px - 0.5, py - 0.5, 1, 1); // 小点
+            }
+
+            ctx.restore();
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

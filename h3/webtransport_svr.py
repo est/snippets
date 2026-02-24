@@ -63,10 +63,10 @@ def start_https_server():
     context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
     context.load_cert_chain(certfile="cert.pem", keyfile="key.pem")
     
-    server = ThreadingHTTPServer(("localhost", 8443), Handler)
+    server = ThreadingHTTPServer(("localhost", 4433), Handler)
     server.socket = context.wrap_socket(server.socket, server_side=True)
     
-    print("HTTPS server started on https://localhost:8443")
+    print("HTTPS server started on https://localhost:4433")
     server.serve_forever()
 
 

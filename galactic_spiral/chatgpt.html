@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>银河旋臂密度波模拟</title>
+<style>
+  body { margin: 0; background: black; overflow: hidden; }
+  canvas { display: block; }
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+// 配置
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+let width = canvas.width = window.innerWidth;
+let height = canvas.height = window.innerHeight;
+const centerX = width / 2;
+const centerY = height / 2;
+const numParticles = 2000; // 恒星数量
+const spiralArms = 2;      // 旋臂数量
+const armTightness = 0.5;  // 旋臂紧度
+const speed = 0.0015;      // 角速度
+
+// 初始化粒子
+const particles = [];
+for (let i = 0; i < numParticles; i++) {
+  const r = Math.random() * Math.min(width, height) / 2;
+  const theta = Math.random() * Math.PI * 2;
+  particles.push({r, theta});
+}
+
+// 绘制一帧
+function draw() {
+  ctx.fillStyle = 'rgba(0,0,0,0.2)'; // 模拟拖尾效果
+  ctx.fillRect(0, 0, width, height);
+
+  for (let p of particles) {
+    // 旋臂密度波公式：在theta + r*armTightness 方向有波峰
+    const armPhase = (p.r * armTightness + p.theta * spiralArms) % (2 * Math.PI);
+    const densityBoost = Math.exp(-Math.pow(Math.sin(armPhase), 2) * 5); // 波峰聚集效果
+
+    // 极坐标更新
+    p.theta += speed;
+    const x = centerX + p.r * Math.cos(p.theta) * (0.8 + 0.2 * densityBoost);
+    const y = centerY + p.r * Math.sin(p.theta) * (0.8 + 0.2 * densityBoost);
+
+    // 绘制粒子
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + 0.7*densityBoost})`;
+    ctx.fillRect(x, y, 1, 1);
+  }
+
+  requestAnimationFrame(draw);
+}
+
+// 监听窗口变化
+window.addEventListener('resize', () => {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+});
+
+draw();
+</script>
+</body>
+</html>

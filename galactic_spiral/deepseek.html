@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>旋臂密度波 · 粒子模拟</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0c10;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 16px;
+        }
+        .card {
+            background: #151e2a;
+            border-radius: 32px;
+            padding: 24px 24px 32px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 0 1px #2d3f55 inset;
+            max-width: 1100px;
+            width: fit-content;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 400;
+            letter-spacing: 1px;
+            color: #e6edf5;
+            margin-left: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        h1 span {
+            font-size: 1rem;
+            background: #2e4258;
+            padding: 4px 14px;
+            border-radius: 40px;
+            font-weight: 300;
+            color: #b6d0e8;
+        }
+        .canvas-wrapper {
+            background: #030609;
+            border-radius: 24px;
+            padding: 10px;
+            box-shadow: 0 0 0 1px #3e5368 inset;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 16px;
+            background: radial-gradient(circle at 30% 40%, #1b2b38, #010101);
+            cursor: default;
+            margin: 0 auto;
+        }
+        .legend {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 18px;
+            padding: 0 16px 0 12px;
+            color: #b8ccdd;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .theory {
+            background: #1b2938;
+            padding: 14px 22px;
+            border-radius: 60px;
+            box-shadow: 0 2px 6px #00000030;
+            border-left: 4px solid #6c8fb0;
+            flex: 2;
+            min-width: 280px;
+        }
+        .theory p {
+            font-size: 1.02rem;
+            line-height: 1.5;
+            color: #d7e6f5;
+        }
+        .theory strong {
+            color: #ffedb0;
+            font-weight: 500;
+        }
+        .stats {
+            display: flex;
+            gap: 28px;
+            background: #101c28;
+            padding: 10px 32px;
+            border-radius: 48px;
+            border: 1px solid #39536d;
+        }
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: #8faec9;
+        }
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: 300;
+            color: #f2e9c2;
+            line-height: 1.3;
+        }
+        .footer {
+            text-align: right;
+            margin-top: 12px;
+            padding-right: 12px;
+            color: #5b7793;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+        .footer a {
+            color: #9bb7d6;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>
+        ⏺ 旋臂密度波 · 粒子模拟
+        <span>恒星流入流出 · 波峰长存</span>
+    </h1>
+    <div class="canvas-wrapper">
+        <canvas id="galaxyCanvas" width="1000" height="700"></canvas>
+    </div>
+    <div class="legend">
+        <div class="theory">
+            <p>⭐ <strong>密度波</strong> — 旋臂不是固定的恒星集团，而是引力势扰动引起的“交通堵塞”。恒星以较差自转穿过旋臂，在波峰处暂时聚集变亮，随后离开。这里用 <strong>亮白色</strong> 表示波峰区域，暗蓝点为背景恒星。波臂图案以恒定角速度旋转，而内圈恒星转得比外圈快。</p>
+        </div>
+        <div class="stats">
+            <div class="stat-item">
+                <span class="stat-label">恒星数</span>
+                <span class="stat-value" id="starCount">12k</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">旋臂</span>
+                <span class="stat-value">2</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">波速</span>
+                <span class="stat-value">🌊</span>
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+        ⏳ 延迟概念：每个粒子沿开普勒轨道运动 —— 旋臂图案旋转慢于内圈恒星，快于外圈。
+    </div>
+</div>
+<script>
+(function() {
+    // ----- 配置参数 -------------------------------------------------
+    const canvas = document.getElementById('galaxyCanvas');
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width = 1000;
+    const height = canvas.height = 700;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    // 模拟尺度：半径范围 2.0 ~ 9.5 (抽象单位)
+    const R_MIN = 2.2;
+    const R_MAX = 9.2;
+    // 缩放因子：将半径映射到画布像素 (留出边距)
+    const scale = Math.min(width, height) * 0.42 / R_MAX;  // 使得最外圈距离边缘约60px
+
+    // 粒子总数
+    const PARTICLE_COUNT = 14000;
+
+    // 旋臂参数 (对数螺旋)
+    const ARMS = 2;                 // 两条主臂
+    const SPIRAL_K = 3.2;           // 螺旋紧密度 (对数螺线 theta = k * ln(r) + phase)
+    let patternPhase = 0;           // 图案相位 (随时间增加，模拟波转动)
+    const PATTERN_SPEED = 0.0075;    // 每帧波图案转动的角速度
+
+    // 较差自转参数: 角速度 = baseOmega * r^(-gamma)
+    const BASE_OMEGA = 0.017;        // 基础系数
+    const GAMMA = 1.3;              // 指数 (>0 使得内圈转得快)
+
+    // 亮度与颜色
+    const BG_COLOR = {r: 25, g: 30, b: 45};      // 暗背景粒子
+    const ARM_COLOR = {r: 255, g: 250, b: 210};  // 亮白黄色
+
+    // ----- 粒子数组 -------------------------------------------------
+    let particles = [];
+
+    // 初始化粒子 (位置、角速度)
+    function initParticles() {
+        particles = [];
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            // 半径：在 R_MIN ~ R_MAX 之间均匀分布 (视觉上外圈稀疏自然)
+            const r = R_MIN + Math.random() * (R_MAX - R_MIN);
+            // 角度 0~2pi
+            const angle = Math.random() * 2 * Math.PI;
+            // 根据半径计算角速度 (较差自转)
+            const omega = BASE_OMEGA * Math.pow(r, -GAMMA);
+            particles.push({
+                r: r,
+                angle: angle,
+                omega: omega,
+            });
+        }
+    }
+    initParticles();
+
+    // 更新粒子位置 (按较差自转)
+    function updateParticles() {
+        for (let p of particles) {
+            p.angle += p.omega;
+            // 保持角度在 [0, 2pi] 防止浮点数溢出 (非必须，但整洁)
+            if (p.angle > 2 * Math.PI) p.angle -= 2 * Math.PI;
+            if (p.angle < 0) p.angle += 2 * Math.PI;
+        }
+        // 波臂相位前进 (密度波图案转动)
+        patternPhase += PATTERN_SPEED;
+        if (patternPhase > 2 * Math.PI) patternPhase -= 2 * Math.PI;
+    }
+
+    // 计算一个粒子的“旋臂亮度因子” [0,1]  基于密度波公式
+    function computeArmBrightness(r, angle) {
+        // 对数螺旋相位: theta_spiral = SPIRAL_K * ln(r) + patternPhase
+        const spiralBase = SPIRAL_K * Math.log(r) + patternPhase;
+        // 计算粒子角度与螺旋基准的差值 (考虑多臂)
+        // 使用 cos(ARMS * (angle - spiralBase)) 将其转化为波峰亮度。
+        // 采用 (1+cos)/2 将[-1,1]映射到[0,1]，再乘方锐化。
+        const phi = ARMS * (angle - spiralBase);
+        // 使用(1+cos)/2 得到一个在臂中心为1，臂间为0的光滑分布
+        let bright = (1 + Math.cos(phi)) / 2;   // 此时 bright 范围 [0,1]
+        // 进一步锐化，让臂更清晰 (指数越高，臂越细)
+        bright = Math.pow(bright, 2.5);
+        return bright;
+    }
+
+    // 绘制一帧
+    function draw() {
+        ctx.clearRect(0, 0, width, height);
+
+        // 绘制背景雾效 (轻微银河光晕)
+        const grad = ctx.createRadialGradient(centerX, centerY, 30, centerX, centerY, 400);
+        grad.addColorStop(0, '#0c1a24');
+        grad.addColorStop(0.8, '#020304');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height);
+
+        // 绘制所有粒子
+        for (let p of particles) {
+            const r = p.r;
+            const angle = p.angle;
+
+            // 计算屏幕坐标 (数学极坐标：角度从 +x 逆时针, y向上为正, 屏幕转置)
+            const x = centerX + r * scale * Math.cos(angle);
+            const y = centerY - r * scale * Math.sin(angle);  // 减号使y向上
+
+            // 边界剔除 (防止极少数出画布)
+            if (x < 0 || x >= width || y < 0 || y >= height) continue;
+
+            // 计算亮度因子
+            let brightness = computeArmBrightness(r, angle);
+
+            // 加入少许随机闪烁? 不需要，保持稳定
+
+            // 颜色插值 (从背景色到臂色)
+            const red = Math.round(BG_COLOR.r + (ARM_COLOR.r - BG_COLOR.r) * brightness);
+            const green = Math.round(BG_COLOR.g + (ARM_COLOR.g - BG_COLOR.g) * brightness);
+            const blue = Math.round(BG_COLOR.b + (ARM_COLOR.b - BG_COLOR.b) * brightness);
+
+            // 绘制粒子 (小矩形, 效率略高)
+            ctx.fillStyle = `rgb(${red}, ${green}, ${blue})`;
+            ctx.fillRect(x, y, 1.7, 1.7);   // 1.7 像素点，略带柔和
+
+            // 极少量粒子可画更大，但保持性能
+        }
+
+        // 绘制中心核球 (亮核)
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 12, 0, 2 * Math.PI);
+        ctx.fillStyle = '#f9e6b3';
+        ctx.shadowColor = '#feb';
+        ctx.shadowBlur = 22;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
+
+        // 绘制两条淡淡的参考螺旋线 (辅助观察)
+        ctx.beginPath();
+        ctx.strokeStyle = '#b4cde0';
+        ctx.lineWidth = 0.8;
+        ctx.setLineDash([8, 12]);
+        for (let k = 0; k < ARMS; k++) {
+            ctx.beginPath();
+            let first = true;
+            // 绘制螺旋线: r从 R_MIN 到 R_MAX
+            for (let r = R_MIN; r <= R_MAX; r += 0.15) {
+                const theta = SPIRAL_K * Math.log(r) + patternPhase + (k * 2 * Math.PI / ARMS);
+                const x0 = centerX + r * scale * Math.cos(theta);
+                const y0 = centerY - r * scale * Math.sin(theta);
+                if (first) {
+                    ctx.moveTo(x0, y0);
+                    first = false;
+                } else {
+                    ctx.lineTo(x0, y0);
+                }
+            }
+            ctx.strokeStyle = '#7093b0';
+            ctx.stroke();
+        }
+        ctx.setLineDash([]); // 恢复实线
+
+        // 显示额外文字 (粒子数)
+        ctx.font = '12px "Segoe UI", monospace';
+        ctx.fillStyle = '#d2dce8';
+        ctx.fillText('每颗恒星穿过旋臂时变亮', 20, height - 30);
+        ctx.fillText('波臂转动速度 < 内圈恒星速度', 20, height - 12);
+    }
+
+    // 动画循环
+    function animate() {
+        updateParticles();
+        draw();
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // 更新统计显示 (粒子数)
+    document.getElementById('starCount').innerText = (PARTICLE_COUNT / 1000).toFixed(1) + 'k';
+
+    // 可选：点击重置粒子 (但为了简单，不添加重置按钮，但可以双击重置)
+    canvas.addEventListener('dblclick', () => {
+        initParticles();
+        patternPhase = 0;
+    });
+
+    // resize 防抖：canvas 已经固定尺寸，但窗口缩放时保持像素比
+    // 无操作
+})();
+</script>
+</body>
+</html>

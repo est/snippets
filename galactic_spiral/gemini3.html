@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>星系旋臂：密度波模拟器</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #050505;
+            color: #eee;
+            font-family: sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        canvas {
+            display: block;
+        }
+        .ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            pointer-events: none;
+        }
+        h1 { margin: 0 0 10px 0; font-size: 18px; color: #4af; }
+        p { margin: 5px 0; font-size: 13px; line-height: 1.4; max-width: 300px; }
+        .legend { color: #aaa; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="ui">
+        <h1>星系密度波模拟 (Density Wave)</h1>
+        <p>每个点代表一颗恒星。注意：恒星并未固定在旋臂上，而是不断穿过它。</p>
+        <p class="legend">视觉上的“臂”是恒星在椭圆轨道交汇处形成的<strong>高密度区域</strong>。</p>
+    </div>
+
+    <canvas id="galaxyCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('galaxyCanvas');
+const ctx = canvas.getContext('2d');
+
+let width, height;
+let particles = [];
+const particleCount = 4000; // 粒子数量
+const armCount = 2;         // 旋臂数量
+const twist = 2.5;          // 旋臂扭转程度
+
+// 粒子类
+class Star {
+    constructor() {
+        this.init();
+    }
+
+    init() {
+        // 随机分布在不同半径的轨道上
+        this.r = Math.random() * Math.min(width, height) * 0.4;
+        // 初始角度
+        this.theta = Math.random() * Math.PI * 2;
+        // 轨道离心率 (让轨道变成椭圆)
+        this.eccentricity = 0.2;
+        // 轨道角速度：内圈快，外圈慢
+        this.speed = (1 / (this.r + 20)) * 2;
+        // 粒子大小
+        this.size = Math.random() * 1.5;
+        // 颜色：核心偏白/黄，边缘偏蓝
+        const hue = 200 + (this.r / 400) * 60;
+        this.color = `hsla(${hue}, 80%, 80%, ${Math.random() * 0.5 + 0.5})`;
+    }
+
+    update() {
+        this.theta += this.speed;
+    }
+
+    draw() {
+        // 核心原理：密度波理论
+        // 椭圆轨道的方向随半径旋转，产生“堆积”效应
+        const phi = (this.r * twist) / 100; // 轨道轴向随半径旋转的角度偏移
+        
+        // 计算椭圆上的位置
+        // x = a * cos(t), y = b * sin(t)
+        // 然后旋转这个椭圆 phi 弧度
+        const a = this.r; 
+        const b = this.r * (1 - this.eccentricity);
+        
+        const cosPhi = Math.cos(phi);
+        const sinPhi = Math.sin(phi);
+        
+        // 基础椭圆坐标
+        const ex = a * Math.cos(this.theta);
+        const ey = b * Math.sin(this.theta);
+        
+        // 旋转后的坐标
+        const x = width / 2 + (ex * cosPhi - ey * sinPhi);
+        const y = height / 2 + (ex * sinPhi + ey * cosPhi);
+
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(x, y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function resize() {
+    width = canvas.width = window.innerWidth;
+    height = canvas.height = window.innerHeight;
+    particles = [];
+    for (let i = 0; i < particleCount; i++) {
+        particles.push(new Star());
+    }
+}
+
+function animate() {
+    // 渐隐效果形成拖尾
+    ctx.fillStyle = 'rgba(5, 5, 5, 0.3)';
+    ctx.fillRect(0, 0, width, height);
+
+    // 绘制发光的银心
+    const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, 50);
+    gradient.addColorStop(0, 'rgba(255, 200, 100, 0.3)');
+    gradient.addColorStop(1, 'transparent');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, width, height);
+
+    particles.forEach(p => {
+        p.update();
+        p.draw();
+    });
+
+    requestAnimationFrame(animate);
+}
+
+window.addEventListener('resize', resize);
+resize();
+animate();
+
+</script>
+</body>
+</html>
