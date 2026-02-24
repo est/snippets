@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>银河系密度波理论模拟 (Galactic Density Wave)</title>
+    <style>
+        :root {
+            --bg-color: #050810;
+            --panel-bg: rgba(15, 20, 30, 0.85);
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 320px;
+            background: var(--panel-bg);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            color: var(--text-main);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            margin: 0 0 10px 0;
+            color: var(--accent);
+        }
+
+        p.desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        input[type=range] {
+            width: 100%;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .checkbox-group input {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: #f87171;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            font-size: 0.95rem;
+            cursor: pointer;
+            color: #f87171;
+            font-weight: bold;
+        }
+
+        button {
+            margin-top: 10px;
+            width: 100%;
+            padding: 8px;
+            background: rgba(56, 189, 248, 0.2);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="galaxyCanvas"></canvas>
+
+    <div id="ui-panel">
+        <h1>银河系密度波模拟</h1>
+        <p class="desc">
+            悬臂不是刚体，而是引力形成的<b>概率波</b>（交通拥堵带）。所有粒子都在自己闭合的椭圆轨道上运行，但在特定区域速度变慢，视觉上聚集成了悬臂。
+        </p>
+
+        <div class="control-group">
+            <label><span>粒子数量 (Particles)</span> <span id="val-count">15000</span></label>
+            <input type="range" id="p-count" min="1000" max="40000" step="1000" value="15000">
+        </div>
+
+        <div class="control-group">
+            <label><span>悬臂数量 (Arms / Modes)</span> <span id="val-arms">2</span></label>
+            <input type="range" id="p-arms" min="1" max="5" step="1" value="2">
+        </div>
+
+        <div class="control-group">
+            <label><span>缠绕度 (Winding Rate)</span> <span id="val-winding">2.5</span></label>
+            <input type="range" id="p-winding" min="-6" max="6" step="0.1" value="2.5">
+        </div>
+
+        <div class="control-group">
+            <label><span>轨道离心率 (Eccentricity)</span> <span id="val-eccentricity">0.4</span></label>
+            <input type="range" id="p-eccentricity" min="0" max="0.8" step="0.05" value="0.4">
+        </div>
+
+        <div class="control-group">
+            <label><span>恒星运行速度 (Star Speed)</span> <span id="val-speed">1.0</span></label>
+            <input type="range" id="p-speed" min="0" max="3" step="0.1" value="1.0">
+        </div>
+
+        <div class="control-group">
+            <label><span>波阵面自转 (Pattern Speed)</span> <span id="val-pattern">0.05</span></label>
+            <input type="range" id="p-pattern" min="-0.2" max="0.2" step="0.01" value="0.05">
+        </div>
+
+        <div class="checkbox-group">
+            <input type="checkbox" id="p-track">
+            <label for="p-track">跟踪单一粒子 (Track Particle)</label>
+        </div>
+        <button id="btn-retrack" style="display: none;">切换跟踪目标</button>
+
+    </div>
+
+    <script>
+        const canvas = document.getElementById('galaxyCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let width, height, R_max;
+
+        // 核心参数
+        const params = {
+            numParticles: 15000,
+            arms: 2,
+            winding: 2.5,
+            eccentricity: 0.4,
+            starSpeed: 1.0,
+            patternSpeed: 0.05,
+            trackParticle: false
+        };
+
+        // 绑定UI事件
+        const bindings = [
+            ['p-count', 'numParticles', 'val-count'],
+            ['p-arms', 'arms', 'val-arms'],
+            ['p-winding', 'winding', 'val-winding'],
+            ['p-eccentricity', 'eccentricity', 'val-eccentricity'],
+            ['p-speed', 'starSpeed', 'val-speed'],
+            ['p-pattern', 'patternSpeed', 'val-pattern']
+        ];
+
+        bindings.forEach(([id, paramName, valId]) => {
+            const el = document.getElementById(id);
+            const valEl = document.getElementById(valId);
+            el.addEventListener('input', (e) => {
+                const val = parseFloat(e.target.value);
+                params[paramName] = val;
+                valEl.innerText = val;
+                if (paramName === 'numParticles') {
+                    updateParticleCount();
+                }
+            });
+        });
+
+        const trackBox = document.getElementById('p-track');
+        const retrackBtn = document.getElementById('btn-retrack');
+        let trackedIndex = 0;
+
+        trackBox.addEventListener('change', (e) => {
+            params.trackParticle = e.target.checked;
+            retrackBtn.style.display = params.trackParticle ? 'block' : 'none';
+            if (params.trackParticle) pickRandomTracked();
+        });
+
+        retrackBtn.addEventListener('click', pickRandomTracked);
+
+        function pickRandomTracked() {
+            // 选择一个距离中心不是太近的粒子以便观察
+            do {
+                trackedIndex = Math.floor(Math.random() * particles.length);
+            } while (particles[trackedIndex].a_norm < 0.3);
+        }
+
+        // 响应窗口大小调整
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            R_max = Math.min(width, height) * 0.45;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // 粒子系统
+        const particles = [];
+
+        function createParticle() {
+            // 半长轴归一化 (0.05 到 1.0)，使用指数分布让核心更密集
+            const a_norm = 0.05 + 0.95 * Math.pow(Math.random(), 0.6);
+            // 初始相位角
+            const phi = Math.random() * Math.PI * 2;
+            return { a_norm, phi };
+        }
+
+        function updateParticleCount() {
+            while(particles.length < params.numParticles) {
+                particles.push(createParticle());
+            }
+            if(particles.length > params.numParticles) {
+                particles.length = params.numParticles;
+            }
+        }
+
+        // 初始化
+        updateParticleCount();
+
+        let time = 0;
+        let lastTime = performance.now();
+
+        function render(now) {
+            let dt = (now - lastTime) / 1000;
+            // 限制dt防止切后台回来后瞬间跨度太大
+            if (dt > 0.1) dt = 0.1; 
+            lastTime = now;
+            time += dt;
+
+            // 绘制深空背景（带一点拖影效果让运动显得更柔和，但粒子多时直接清除性能更好）
+            ctx.fillStyle = '#050810';
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.save();
+            ctx.translate(width / 2, height / 2);
+
+            // 绘制银心发光
+            const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, R_max * 0.3);
+            grad.addColorStop(0, 'rgba(255, 255, 200, 0.8)');
+            grad.addColorStop(0.2, 'rgba(100, 180, 255, 0.2)');
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(-R_max, -R_max, R_max * 2, R_max * 2);
+
+            // 准备统一的粒子颜色
+            ctx.fillStyle = 'rgba(200, 230, 255, 0.5)';
+            ctx.beginPath();
+
+            // 如果跟踪粒子，提取它以便最后绘制
+            let pTrack = null;
+
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+
+                // --- 核心物理/数学公式 ---
+                // 1. 根据当前相位 phi 和离心率计算当前归一化半径 r_norm (基于多瓣轨道近似)
+                let r_norm = p.a_norm * (1 - params.eccentricity * Math.cos(params.arms * p.phi));
+                
+                // 2. 推进相位 phi。为了满足角动量守恒类似的效果，半径越大角速度越慢，
+                // 这样粒子在“远心点”(悬臂处)停留时间长，形成交通拥堵(密度波)。
+                let dPhi = (params.starSpeed * p.a_norm) / (r_norm * r_norm) * dt * 0.5;
+                p.phi += dPhi;
+
+                // 3. 计算在局部椭圆轨道上的坐标
+                let x_loc = r_norm * Math.cos(p.phi) * R_max;
+                let y_loc = r_norm * Math.sin(p.phi) * R_max;
+
+                // 4. 计算该轨道的宏观旋转角 theta
+                // 旋臂产生的秘密就在这里：不同半径的轨道有个微小的渐变偏转角 (Winding)
+                let theta = params.winding * p.a_norm + params.patternSpeed * time;
+                
+                // 5. 将局部坐标旋转 theta 角度，得到屏幕全局坐标
+                let cosT = Math.cos(theta);
+                let sinT = Math.sin(theta);
+                let x = x_loc * cosT - y_loc * sinT;
+                let y = x_loc * sinT + y_loc * cosT;
+
+                if (params.trackParticle && i === trackedIndex) {
+                    pTrack = { p, x, y, theta };
+                } else {
+                    // 使用 fillRect 代替 arc 可以极大提升上万粒子的渲染性能
+                    ctx.fillRect(x, y, 1.5, 1.5);
+                }
+            }
+
+            // 绘制被跟踪的粒子及其轨道
+            if (pTrack) {
+                drawTrackedParticle(pTrack.p, pTrack.x, pTrack.y, pTrack.theta);
+            }
+
+            ctx.restore();
+            requestAnimationFrame(render);
+        }
+
+        function drawTrackedParticle(p, x, y, theta) {
+            // 1. 绘制它完整的固有轨道 (显示轨道本身仅仅是个稍微偏转的椭圆/花瓣形)
+            ctx.beginPath();
+            for (let gamma = 0; gamma <= Math.PI * 2.05; gamma += 0.05) {
+                let r_orb = p.a_norm * (1 - params.eccentricity * Math.cos(params.arms * gamma)) * R_max;
+                let xl = r_orb * Math.cos(gamma);
+                let yl = r_orb * Math.sin(gamma);
+                
+                let cosT = Math.cos(theta);
+                let sinT = Math.sin(theta);
+                let xg = xl * cosT - yl * sinT;
+                let yg = xl * sinT + yl * cosT;
+
+                if (gamma === 0) ctx.moveTo(xg, yg);
+                else ctx.lineTo(xg, yg);
+            }
+            ctx.strokeStyle = 'rgba(248, 113, 113, 0.6)'; // 红色轨道线
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // 2. 绘制粒子本体
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fillStyle = '#f87171'; // 红色高亮粒子
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#f87171';
+            ctx.fill();
+            
+            // 清除阴影防止影响下一帧
+            ctx.shadowBlur = 0;
+            
+            // 添加提示文字
+            ctx.fillStyle = '#fff';
+            ctx.font = "12px sans-serif";
+            ctx.fillText("被跟踪的恒星", x + 10, y - 10);
+        }
+
+        // 启动动画循环
+        requestAnimationFrame(render);
+
+    </script>
+</body>
+</html>
