@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 思维报纸: 语义缩放演示</title>
+    <style>
+        :root {
+            --paper-bg: #f4f1ea;
+            --text-main: #2c2c2c;
+            --micro-color: #ff4757;
+            --macro-color: #2f3542;
+            --transition-speed: 0.7s;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #e0dcd3;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden; /* 防止原生滚动，用我们的交互替代 */
+        }
+
+        /* 顶部控制栏 */
+        #header {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            height: 60px;
+            background: rgba(244, 241, 234, 0.9);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-sizing: border-box;
+            z-index: 100;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .logo { font-weight: 900; font-size: 24px; letter-spacing: -1px; }
+        
+        button {
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            border: 2px solid var(--text-main);
+            background: transparent;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        button:hover { background: var(--text-main); color: white; }
+
+        /* 画布容器 */
+        #canvas {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            padding-top: 60px;
+            box-sizing: border-box;
+            perspective: 1000px;
+        }
+
+        /* 报纸内容卡片（思维 Box） */
+        .card {
+            position: absolute;
+            background: var(--paper-bg);
+            border-radius: 12px;
+            padding: 30px;
+            box-sizing: border-box;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all var(--transition-speed) cubic-bezier(0.25, 1, 0.5, 1);
+            overflow: hidden;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+
+        /* 卡片内部元素的过渡 */
+        .card h1 { margin-top: 0; transition: font-size var(--transition-speed); }
+        .card .content-detail { transition: opacity 0.4s; opacity: 1; }
+        .card .content-summary { display: none; font-weight: bold; color: #666; }
+
+        /* --- 状态 1：微观视角（八卦主导） --- */
+        .state-micro #card-micro {
+            top: 90px; left: 3%; width: 94%; height: calc(100vh - 120px);
+            z-index: 10;
+            border-top: 6px solid var(--micro-color);
+        }
+        .state-micro #card-micro h1 { font-size: 36px; color: var(--micro-color); }
+        
+        /* 宏观视角变成右下角的画中画 */
+        .state-micro #card-macro {
+            top: auto; bottom: 40px; right: 40px; width: 320px; height: 180px;
+            z-index: 20;
+            border-left: 6px solid var(--macro-color);
+            box-shadow: -10px 10px 40px rgba(0,0,0,0.2);
+            padding: 20px;
+        }
+        .state-micro #card-macro:hover { transform: scale(1.05); }
+        .state-micro #card-macro h1 { font-size: 16px; margin-bottom: 10px; }
+        .state-micro #card-macro .content-detail { display: none; }
+        .state-micro #card-macro .content-summary { display: block; }
+
+        /* --- 状态 2：宏观视角（硬核分析主导） --- */
+        .state-macro #card-macro {
+            top: 90px; left: 3%; width: 94%; height: calc(100vh - 120px);
+            z-index: 10;
+            border-top: 6px solid var(--macro-color);
+        }
+        .state-macro #card-macro h1 { font-size: 36px; color: var(--macro-color); }
+
+        /* 微观视角变成右下角的画中画 */
+        .state-macro #card-micro {
+            top: auto; bottom: 40px; right: 40px; width: 320px; height: 140px;
+            z-index: 20;
+            border-left: 6px solid var(--micro-color);
+            box-shadow: -10px 10px 40px rgba(0,0,0,0.2);
+            padding: 20px;
+        }
+        .state-macro #card-micro:hover { transform: scale(1.05); }
+        .state-macro #card-micro h1 { font-size: 16px; margin-bottom: 10px; }
+        .state-macro #card-micro .content-detail { display: none; }
+        .state-macro #card-micro .content-summary { display: block; }
+
+        /* --- 状态 3：全局报纸视角 (Zoom Out) --- */
+        .state-overview #card-micro {
+            top: 100px; left: 5%; width: 40%; height: 60vh;
+            z-index: 10;
+            border-top: 6px solid var(--micro-color);
+        }
+        .state-overview #card-micro h1 { font-size: 24px; }
+        
+        .state-overview #card-macro {
+            top: 150px; right: 5%; width: 45%; height: 75vh;
+            z-index: 10;
+            border-top: 6px solid var(--macro-color);
+        }
+        .state-overview #card-macro h1 { font-size: 28px; }
+
+        /* 排版美化 */
+        p { line-height: 1.8; color: #444; font-size: 17px;}
+        .meta-tag { display: inline-block; padding: 4px 10px; background: #eee; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 15px;}
+        .highlight { background: linear-gradient(120deg, #ffeb3b 0%, #ffeb3b 100%); background-repeat: no-repeat; background-size: 100% 40%; background-position: 0 88%; }
+    </style>
+</head>
+<body>
+
+    <div id="header">
+        <div class="logo">The Daily Mind <span style="font-size: 14px; font-weight: normal; color: #666;">| 语义缩放引擎</span></div>
+        <div>
+            <span style="font-size: 14px; margin-right: 15px; color: #666;">当前焦段：<span id="focal-length">L1 微观情绪</span></span>
+            <button onclick="setZoom('overview')">⛶ Zoom Out (全局版面)</button>
+        </div>
+    </div>
+
+    <div id="canvas" class="state-micro">
+
+        <div id="card-micro" class="card" onclick="setZoom('micro')">
+            <div class="meta-tag" style="color: var(--micro-color);">L1: 社会情绪与消费层</div>
+            <h1>救命！这泼天的战争还没完？德黑兰连夜“卸妆”，我的波斯地毯和香料包还能发货吗？😭</h1>
+            
+            <div class="content-summary">
+                📍 摘要：德黑兰突发空袭，国内消费者最关心的是“双十一”波斯地毯和藏红花等海淘订单是否会受波及断流。
+            </div>
+
+            <div class="content-detail">
+                <p>姐妹们，大半夜刷新闻直接给我吓清醒了！德黑兰那边据说连夜遭到了空袭，火光冲天的视频看得人直揪心。这叫什么事儿啊！</p>
+                <p>但此刻我除了祈祷世界和平，脑子里只剩下一个世俗的念头：<span class="highlight">我上个月底刚在代购那边下单的纯手工波斯地毯，还有给我妈买的特级藏红花香料包，还能不能活着上飞机啊？！</span></p>
+                <p>去问了代购，代购也快急哭了，说目前航班大面积取消，海关那边的物流信息已经停滞了整整24小时。听说很多空运改成了极其不稳定的陆运转海运。这哪里是打仗，这是在碎钞啊！我的软装大计难道要因为地缘冲突而被迫延期吗？真是服了这动荡的世界了……</p>
+            </div>
+        </div>
+
+        <div id="card-macro" class="card" onclick="setZoom('macro')">
+            <div class="meta-tag" style="color: var(--macro-color);">L4: 战略物流与拦截效率层</div>
+            <h1>深度：中东物流链条阻断风险与弹道导弹拦截效率分析</h1>
+            
+            <div class="content-summary">
+                📍 摘要：空袭导致霍尔木兹海峡航运保费单日上涨15%，防空网拦截率数据显现区域物流链脆弱性。点击查看深度推演。
+            </div>
+
+            <div class="content-detail">
+                <p>此次针对德黑兰周边的精确打击，其核心战略目的并非全面摧毁，而是为了达成“威慑性瘫痪”。从军工和物流供应链的底层数据来看，冲突正在引发严重的次生灾害。</p>
+                <p><strong>1. 防空网冗余度耗散：</strong><br>
+                根据最新的雷达截获数据，此次空袭中，防御方的多层防空系统（涵盖 S-300 及本土 Bavar-373）拦截率约为 68%。关键在于，<span class="highlight">高强度的拦截直接消耗了防空导弹的库存基数，导致军工物流被迫进入“战时优先级”</span>，民用空域被强行管制。</p>
+                <p><strong>2. 霍尔木兹海峡的溢价效应：</strong><br>
+                尽管袭击点在内陆，但连锁反应立刻传导至航运。劳合社（Lloyd's）的数据显示，途经波斯湾的商船战争险保费在 12 小时内飙升了 15%。这不仅影响能源（石油/天然气）的出口，包括手工业品、香料在内的低附加值民用散货物流，已被各大航司临时切断了舱位供给。</p>
+                <p><strong>结论：</strong> 从微观的民用消费品断供，到宏观的能源价格波动，底层逻辑皆因“暴力打破了既有的物流数学模型”。我们预计这种物流阻断至少需要 3 周时间才能形成新的替代路由。</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // 极简的状态机：控制 CSS 类的切换
+        function setZoom(state) {
+            const canvas = document.getElementById('canvas');
+            const focalText = document.getElementById('focal-length');
+            
+            // 移除所有状态
+            canvas.classList.remove('state-micro', 'state-macro', 'state-overview');
+            
+            // 添加新状态
+            canvas.classList.add(`state-${state}`);
+
+            // 更新顶部指示器
+            if(state === 'micro') {
+                focalText.innerHTML = "L1 微观情绪 (吃瓜/个人影响)";
+                focalText.style.color = "var(--micro-color)";
+            } else if (state === 'macro') {
+                focalText.innerHTML = "L4 宏观系统 (硬核分析/数据推演)";
+                focalText.style.color = "var(--macro-color)";
+            } else {
+                focalText.innerHTML = "全局上帝视角";
+                focalText.style.color = "var(--text-main)";
+            }
+        }
+    </script>
+</body>
+</html>
