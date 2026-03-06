@@ -49,7 +49,7 @@
             text-align: center;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start;
             min-height: 200px;
         }
         
@@ -61,10 +61,9 @@
             color: #333;
             white-space: pre-wrap;
             text-align: center;
-            column-count: 5;
-            column-gap: 25px;
-            column-rule: none;
+            max-height: 400px;
             padding: 20px 0;
+            overflow-x: auto;
         }
         
         .poem-title {
@@ -78,8 +77,7 @@
         /* 响应式设计 */
         @media (max-width: 992px) {
             .poem-long {
-                column-count: 4;
-                column-gap: 20px;
+                max-height: 350px;
                 font-size: 1.1rem;
                 line-height: 2;
             }
@@ -87,8 +85,7 @@
         
         @media (max-width: 768px) {
             .poem-long {
-                column-count: 3;
-                column-gap: 15px;
+                max-height: 300px;
                 font-size: 1rem;
                 line-height: 1.8;
             }
@@ -96,8 +93,7 @@
         
         @media (max-width: 480px) {
             .poem-long {
-                column-count: 2;
-                column-gap: 10px;
+                max-height: 250px;
                 font-size: 0.9rem;
                 line-height: 1.6;
             }
@@ -130,8 +126,10 @@
         <div class="poem-quote">
             <div class="poem-title">将进酒</div>
             <div class="poem-long">
-君不见，黄河之水天上来，奔流到海不复回。
-君不见，高堂明镜悲白发，朝如青丝暮成雪。
+君不见，黄河之水天上来，
+奔流到海不复回。
+君不见，高堂明镜悲白发，
+朝如青丝暮成雪。
 人生得意须尽欢，莫使金樽空对月。
 天生我材必有用，千金散尽还复来。
 烹羊宰牛且为乐，会须一饮三百杯。
