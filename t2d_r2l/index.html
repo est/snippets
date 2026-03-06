@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>将进酒 - 古典中文排版</title>
+    <title>长恨歌 - 古典中文排版</title>
     <style>
         * {
             margin: 0;
@@ -28,76 +28,43 @@
         }
         
         .classical-layout {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 20px;
             writing-mode: vertical-rl;
-            min-height: 600px;
-            height: 80vh;
-        }
-        
-        .row {
-            display: flex;
-            flex-direction: row-reverse;
-            gap: 30px;
-            align-items: center;
-        }
-        
-        .second-row {
-            margin-right: 60px;
-        }
-        
-        .poem-column {
+            text-orientation: mixed;
             font-size: 1.2rem;
             line-height: 2.2;
             color: #333;
             white-space: pre-wrap;
             text-align: center;
-            flex: 0 0 auto;
+            column-count: 5;
+            column-gap: 30px;
+            column-rule: none;
+            height: 80vh;
+            min-height: 600px;
         }
         
         /* 响应式设计 */
         @media (max-width: 992px) {
-            .row {
-                gap: 20px;
-            }
-            
-            .second-row {
-                margin-right: 40px;
-            }
-            
-            .poem-column {
+            .classical-layout {
+                column-count: 4;
+                column-gap: 20px;
                 font-size: 1.1rem;
                 line-height: 2;
             }
         }
         
         @media (max-width: 768px) {
-            .row {
-                gap: 15px;
-            }
-            
-            .second-row {
-                margin-right: 30px;
-            }
-            
-            .poem-column {
+            .classical-layout {
+                column-count: 3;
+                column-gap: 15px;
                 font-size: 1rem;
                 line-height: 1.8;
             }
         }
         
         @media (max-width: 480px) {
-            .row {
-                gap: 10px;
-            }
-            
-            .second-row {
-                margin-right: 20px;
-            }
-            
-            .poem-column {
+            .classical-layout {
+                column-count: 2;
+                column-gap: 10px;
                 font-size: 0.9rem;
                 line-height: 1.6;
             }
@@ -107,45 +74,67 @@
 <body>
     <div class="container">
         <div class="classical-layout">
-            <div class="row">
-                <div class="poem-column">
-将进酒
-君不见，黄河之水天上来，奔流到海不复回。
-君不见，高堂明镜悲白发，朝如青丝暮成雪。
-                </div>
-                <div class="poem-column">
-人生得意须尽欢，莫使金樽空对月。
-天生我材必有用，千金散尽还复来。
-烹羊宰牛且为乐，会须一饮三百杯。
-                </div>
-                <div class="poem-column">
-岑夫子，丹丘生，将进酒，杯莫停。
-与君歌一曲，请君为我倾耳听。
-钟鼓馔玉不足贵，但愿长醉不复醒。
-                </div>
-                <div class="poem-column">
-古来圣贤皆寂寞，惟有饮者留其名。
-陈王昔时宴平乐，斗酒十千恣欢谑。
-主人何为言少钱，径须沽取对君酌。
-                </div>
-                <div class="poem-column">
-五花马，千金裘，呼儿将出换美酒，与尔同销万古愁。
-                </div>
-            </div>
-            <div class="row second-row">
-                <div class="poem-column">
-第二行内容示例1
-                </div>
-                <div class="poem-column">
-第二行内容示例2
-                </div>
-                <div class="poem-column">
-第二行内容示例3
-                </div>
-                <div class="poem-column">
-第二行内容示例4
-                </div>
-            </div>
+长恨歌
+汉皇重色思倾国，御宇多年求不得。
+杨家有女初长成，养在深闺人未识。
+天生丽质难自弃，一朝选在君王侧。
+回眸一笑百媚生，六宫粉黛无颜色。
+春寒赐浴华清池，温泉水滑洗凝脂。
+侍儿扶起娇无力，始是新承恩泽时。
+云鬓花颜金步摇，芙蓉帐暖度春宵。
+春宵苦短日高起，从此君王不早朝。
+承欢侍宴无闲暇，春从春游夜专夜。
+后宫佳丽三千人，三千宠爱在一身。
+金屋妆成娇侍夜，玉楼宴罢醉和春。
+姊妹弟兄皆列土，可怜光彩生门户。
+遂令天下父母心，不重生男重生女。
+骊宫高处入青云，仙乐风飘处处闻。
+缓歌慢舞凝丝竹，尽日君王看不足。
+渔阳鼙鼓动地来，惊破霓裳羽衣曲。
+九重城阙烟尘生，千乘万骑西南行。
+翠华摇摇行复止，西出都门百余里。
+六军不发无奈何，宛转蛾眉马前死。
+花钿委地无人收，翠翘金雀玉搔头。
+君王掩面救不得，回看血泪相和流。
+黄埃散漫风萧索，云栈萦纡登剑阁。
+峨嵋山下少人行，旌旗无光日色薄。
+蜀江水碧蜀山青，圣主朝朝暮暮情。
+行宫见月伤心色，夜雨闻铃肠断声。
+天旋地转回龙驭，到此踌躇不能去。
+马嵬坡下泥土中，不见玉颜空死处。
+君臣相顾尽沾衣，东望都门信马归。
+归来池苑皆依旧，太液芙蓉未央柳。
+芙蓉如面柳如眉，对此如何不泪垂。
+春风桃李花开日，秋雨梧桐叶落时。
+西宫南内多秋草，落叶满阶红不扫。
+梨园弟子白发新，椒房阿监青娥老。
+夕殿萤飞思悄然，孤灯挑尽未成眠。
+迟迟钟鼓初长夜，耿耿星河欲曙天。
+鸳鸯瓦冷霜华重，翡翠衾寒谁与共。
+悠悠生死别经年，魂魄不曾来入梦。
+临邛道士鸿都客，能以精诚致魂魄。
+为感君王辗转思，遂教方士殷勤觅。
+排空驭气奔如电，升天入地求之遍。
+上穷碧落下黄泉，两处茫茫皆不见。
+忽闻海上有仙山，山在虚无缥渺间。
+楼阁玲珑五云起，其中绰约多仙子。
+中有一人字太真，雪肤花貌参差是。
+金阙西厢叩玉扃，转教小玉报双成。
+闻道汉家天子使，九华帐里梦魂惊。
+揽衣推枕起徘徊，珠箔银屏迤逦开。
+云鬓半偏新睡觉，花冠不整下堂来。
+风吹仙袂飘飖举，犹似霓裳羽衣舞。
+玉容寂寞泪阑干，梨花一枝春带雨。
+含情凝睇谢君王，一别音容两渺茫。
+昭阳殿里恩爱绝，蓬莱宫中日月长。
+回头下望人寰处，不见长安见尘雾。
+惟将旧物表深情，钿合金钗寄将去。
+钗留一股合一扇，钗擘黄金合分钿。
+但教心似金钿坚，天上人间会相见。
+临别殷勤重寄词，词中有誓两心知。
+七月七日长生殿，夜半无人私语时。
+在天愿作比翼鸟，在地愿为连理枝。
+天长地久有时尽，此恨绵绵无绝期。
         </div>
     </div>
 </body>
