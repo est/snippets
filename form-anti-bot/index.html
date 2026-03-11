@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FormGuard — 行为分析反 Spam Demo</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #222535;
+      --border: #2e3347;
+      --text: #e2e5f0;
+      --text-muted: #7a809a;
+      --accent: #5b8cff;
+      --accent-glow: rgba(91,140,255,0.15);
+      --green: #3ecf8e;
+      --yellow: #f5a623;
+      --red: #ff5b5b;
+      --radius: 12px;
+      --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 48px;
+    }
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #5b8cff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+    .page-header p {
+      color: var(--text-muted);
+      margin-top: 10px;
+      font-size: 0.95rem;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      padding: 3px 10px;
+      border-radius: 100px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      max-width: 1100px;
+      margin: 0 auto;
+      align-items: start;
+    }
+
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    /* ── Card ──────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+    .card-title {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    /* ── Form ──────────────────────────────────────────────────────── */
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+    }
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 11px 14px;
+      outline: none;
+      transition: border-color 0.2s;
+      font-family: inherit;
+      resize: none;
+    }
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    .form-group textarea { min-height: 100px; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px 24px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { opacity: 0.88; }
+    .btn-secondary { background: var(--surface2); color: var(--text); border: 1px solid var(--border); }
+    .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 4px;
+    }
+
+    /* ── Score Gauge ───────────────────────────────────────────────── */
+    .score-section {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    .gauge-wrap {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      flex-shrink: 0;
+    }
+    .gauge-wrap svg { transform: rotate(-90deg); }
+    .gauge-bg { fill: none; stroke: var(--surface2); stroke-width: 8; }
+    .gauge-fill {
+      fill: none;
+      stroke-width: 8;
+      stroke-linecap: round;
+      stroke-dasharray: 226;
+      stroke-dashoffset: 226;
+      transition: stroke-dashoffset 0.5s cubic-bezier(.4,0,.2,1), stroke 0.5s;
+    }
+    .gauge-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .gauge-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .gauge-label {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    .score-meta { flex: 1; }
+    .verdict-badge {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 6px;
+    }
+    .verdict-clean { background: rgba(62,207,142,0.15); color: var(--green); border: 1px solid rgba(62,207,142,0.3); }
+    .verdict-warn  { background: rgba(245,166,35,0.15); color: var(--yellow); border: 1px solid rgba(245,166,35,0.3); }
+    .verdict-spam  { background: rgba(255,91,91,0.15); color: var(--red); border: 1px solid rgba(255,91,91,0.3); }
+    .verdict-desc { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ── Signal list ───────────────────────────────────────────────── */
+    .signals-list { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .signal-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      background: var(--surface2);
+      border-radius: 8px;
+      border: 1px solid transparent;
+      transition: border-color 0.3s, background 0.3s;
+      font-size: 0.83rem;
+    }
+    .signal-item.triggered {
+      border-color: rgba(255,91,91,0.25);
+      background: rgba(255,91,91,0.06);
+    }
+    .signal-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .signal-dot.ok   { background: var(--green); }
+    .signal-dot.warn { background: var(--red); }
+    .signal-dot.idle { background: var(--border); }
+    .signal-label { flex: 1; color: var(--text-muted); }
+    .signal-label.triggered { color: var(--text); }
+    .signal-risk {
+      font-size: 0.72rem;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .signal-risk.triggered { color: var(--red); }
+
+    /* ── Modal ─────────────────────────────────────────────────────── */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      max-width: 640px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .modal-header h2 { font-size: 1.1rem; font-weight: 700; }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.4rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 2px 6px;
+    }
+    .modal-close:hover { color: var(--text); }
+
+    .report-score-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: var(--surface2);
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    .report-score-num {
+      font-size: 2.8rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      line-height: 1;
+    }
+    .report-score-num.spam  { color: var(--red); }
+    .report-score-num.clean { color: var(--green); }
+    .report-score-meta { flex: 1; }
+    .report-score-meta .label { font-size: 0.8rem; color: var(--text-muted); }
+    .report-score-meta .sub   { font-size: 0.8rem; color: var(--text-muted); margin-top: 4px; }
+
+    .report-section { margin-bottom: 18px; }
+    .report-section h3 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .signal-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .signal-table th {
+      text-align: left;
+      padding: 6px 10px;
+      color: var(--text-muted);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+    }
+    .signal-table td { padding: 7px 10px; border-bottom: 1px solid rgba(46,51,71,0.5); }
+    .signal-table tr.row-triggered td { color: var(--red); }
+    .signal-table tr.row-clean td { color: var(--text-muted); }
+
+    .json-block {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-size: 0.75rem;
+      font-family: var(--mono);
+      color: var(--text-muted);
+      white-space: pre;
+      overflow-x: auto;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    /* ── Test controls ─────────────────────────────────────────────── */
+    .test-panel {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .test-panel-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+    .test-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn-test {
+      font-size: 0.78rem;
+      padding: 7px 14px;
+      border-radius: 6px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-test:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── Divider ───────────────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    /* scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<header class="page-header">
+  <div class="badge">FormGuard Demo</div>
+  <h1>行为分析反 Spam</h1>
+  <p>在左侧表单正常输入，右侧面板实时显示风险评分；也可点击下方测试按钮模拟各类 bot 行为。</p>
+</header>
+
+<div class="layout">
+
+  <!-- ── Left: Form ── -->
+  <div class="card">
+    <div class="card-title">联系表单</div>
+
+    <form id="contact-form" novalidate>
+      <div class="form-group">
+        <label for="name">姓名</label>
+        <input type="text" id="name" name="name" placeholder="请输入您的姓名" autocomplete="name" />
+      </div>
+      <div class="form-group">
+        <label for="email">邮箱</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="message">留言</label>
+        <textarea id="message" name="message" placeholder="请输入留言内容…"></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">提交</button>
+        <button type="button" class="btn btn-secondary" id="btn-reset">重置</button>
+      </div>
+    </form>
+
+    <!-- ── Bot simulation controls ── -->
+    <div class="test-panel">
+      <div class="test-panel-title">模拟 Bot 行为（测试用）</div>
+      <div class="test-btns">
+        <button class="btn-test" id="sim-programmatic">程序赋值 (.value=)</button>
+        <button class="btn-test" id="sim-paste">模拟粘贴</button>
+        <button class="btn-test" id="sim-robot-type">机器人均速输入</button>
+        <button class="btn-test" id="sim-no-focus">无焦点赋值</button>
+        <button class="btn-test" id="sim-fast-submit">极速提交</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right: Real-time panel ── -->
+  <div class="card">
+    <div class="card-title">实时风险评分</div>
+
+    <div class="score-section">
+      <div class="gauge-wrap">
+        <svg width="90" height="90" viewBox="0 0 90 90">
+          <circle class="gauge-bg" cx="45" cy="45" r="36" />
+          <circle class="gauge-fill" id="gauge-fill" cx="45" cy="45" r="36" />
+        </svg>
+        <div class="gauge-text">
+          <div class="gauge-number" id="score-number">0</div>
+          <div class="gauge-label">/ 100</div>
+        </div>
+      </div>
+      <div class="score-meta">
+        <div class="verdict-badge verdict-clean" id="verdict-badge">CLEAN</div>
+        <div class="verdict-desc" id="verdict-desc">行为正常，暂无可疑信号。</div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <ul class="signals-list" id="signals-list">
+      <!-- populated by JS -->
+    </ul>
+  </div>
+
+</div>
+
+<!-- ── Result Modal ── -->
+<div class="modal-backdrop" id="modal-backdrop">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>提交检测报告</h2>
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+
+    <div class="report-score-row">
+      <div class="report-score-num" id="report-score-num">0</div>
+      <div class="report-score-meta">
+        <div class="label" id="report-verdict-label">—</div>
+        <div class="sub" id="report-timing">—</div>
+      </div>
+      <div class="verdict-badge" id="report-verdict-badge">—</div>
+    </div>
+
+    <div class="report-section">
+      <h3>信号明细</h3>
+      <table class="signal-table">
+        <thead>
+          <tr>
+            <th>检测项</th>
+            <th>触发</th>
+            <th>风险分</th>
+          </tr>
+        </thead>
+        <tbody id="report-signals-body"></tbody>
+      </table>
+    </div>
+
+    <div class="report-section">
+      <h3>原始数据（可传后端）</h3>
+      <div class="json-block" id="report-json"></div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:4px">
+      <button class="btn btn-primary" id="modal-allow">忽略警告，继续提交</button>
+      <button class="btn btn-secondary" id="modal-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<script src="antispam.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ── Init FormGuard ──────────────────────────────────────────────────────
+
+  const form = document.getElementById('contact-form');
+
+  const guard = new FormGuard(form, {
+    threshold: 60,
+    onChange(score, signals) {
+      updatePanel(score, signals);
+    },
+  });
+
+  // ── Panel update ────────────────────────────────────────────────────────
+
+  const gaugeEl    = document.getElementById('gauge-fill');
+  const scoreEl    = document.getElementById('score-number');
+  const verdictEl  = document.getElementById('verdict-badge');
+  const descEl     = document.getElementById('verdict-desc');
+  const sigListEl  = document.getElementById('signals-list');
+
+  const CIRCUMFERENCE = 2 * Math.PI * 36; // 226.19
+
+  function updatePanel(score, signals) {
+    // Gauge
+    const offset = CIRCUMFERENCE - (score / 100) * CIRCUMFERENCE;
+    gaugeEl.style.strokeDashoffset = offset;
+    gaugeEl.style.stroke = scoreColor(score);
+    scoreEl.textContent = score;
+    scoreEl.style.color = scoreColor(score);
+
+    // Verdict
+    verdictEl.className = 'verdict-badge ' + verdictClass(score);
+    verdictEl.textContent = score >= 60 ? 'SPAM' : score >= 30 ? 'SUSPECT' : 'CLEAN';
+    descEl.textContent = verdictDescription(score);
+
+    // Signals
+    sigListEl.innerHTML = '';
+    for (const sig of signals) {
+      const li = document.createElement('li');
+      li.className = 'signal-item' + (sig.triggered ? ' triggered' : '');
+
+      const dot = document.createElement('span');
+      dot.className = 'signal-dot ' + (sig.triggered ? 'warn' : sig.id === 'keystroke_stddev' ? 'idle' : 'ok');
+
+      const label = document.createElement('span');
+      label.className = 'signal-label' + (sig.triggered ? ' triggered' : '');
+      label.textContent = sig.label;
+
+      const risk = document.createElement('span');
+      risk.className = 'signal-risk' + (sig.triggered ? ' triggered' : '');
+      risk.textContent = sig.triggered ? `+${sig.penalty ?? sig.risk}` : `±${sig.risk}`;
+
+      li.appendChild(dot);
+      li.appendChild(label);
+      li.appendChild(risk);
+      sigListEl.appendChild(li);
+    }
+  }
+
+  function scoreColor(score) {
+    if (score >= 60) return 'var(--red)';
+    if (score >= 30) return 'var(--yellow)';
+    return 'var(--green)';
+  }
+
+  function verdictClass(score) {
+    if (score >= 60) return 'verdict-spam';
+    if (score >= 30) return 'verdict-warn';
+    return 'verdict-clean';
+  }
+
+  function verdictDescription(score) {
+    if (score >= 60) return '高风险，检测到多项 bot 特征，建议拦截。';
+    if (score >= 30) return '中等风险，存在可疑行为，请留意。';
+    return '行为正常，暂无可疑信号。';
+  }
+
+  // Initialize panel with zeroed state
+  updatePanel(0, guard.getCurrentScore().signals);
+
+  // ── Submit handler ──────────────────────────────────────────────────────
+
+  let _pendingAllow = null;
+
+  guard.onSubmit((report, allow) => {
+    _pendingAllow = allow;
+    showModal(report);
+  });
+
+  // ── Modal ───────────────────────────────────────────────────────────────
+
+  const backdrop   = document.getElementById('modal-backdrop');
+  const closeBtn   = document.getElementById('modal-close');
+  const allowBtn   = document.getElementById('modal-allow');
+  const cancelBtn  = document.getElementById('modal-cancel');
+
+  function showModal(report) {
+    const scoreNum   = document.getElementById('report-score-num');
+    const verdictLbl = document.getElementById('report-verdict-label');
+    const timingLbl  = document.getElementById('report-timing');
+    const vBadge     = document.getElementById('report-verdict-badge');
+    const sigBody    = document.getElementById('report-signals-body');
+    const jsonBlock  = document.getElementById('report-json');
+
+    scoreNum.textContent = report.score;
+    scoreNum.className = 'report-score-num ' + (report.isSpam ? 'spam' : 'clean');
+
+    vBadge.className = 'verdict-badge ' + verdictClass(report.score);
+    vBadge.textContent = report.verdict;
+
+    verdictLbl.textContent = report.isSpam
+      ? `风险分 ${report.score} ≥ 阈值 ${report.threshold}，判定为 SPAM`
+      : `风险分 ${report.score} < 阈值 ${report.threshold}，判定为 CLEAN`;
+
+    timingLbl.textContent = `页面停留 ${(report.timing.elapsedMs / 1000).toFixed(1)}s`;
+
+    sigBody.innerHTML = '';
+    for (const sig of report.signals) {
+      const tr = document.createElement('tr');
+      tr.className = sig.triggered ? 'row-triggered' : 'row-clean';
+      tr.innerHTML = `
+        <td>${sig.label}</td>
+        <td>${sig.triggered ? '⚠ 触发' : '✓ 正常'}</td>
+        <td>${sig.triggered ? `+${sig.penalty ?? sig.risk}` : '0'}</td>
+      `;
+      sigBody.appendChild(tr);
+    }
+
+    // Omit token from displayed JSON for brevity, keep rest
+    const display = { ...report };
+    delete display.raw;
+    jsonBlock.textContent = JSON.stringify(display, null, 2);
+
+    backdrop.classList.add('open');
+  }
+
+  function closeModal() {
+    backdrop.classList.remove('open');
+    _pendingAllow = null;
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  cancelBtn.addEventListener('click', closeModal);
+  backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
+
+  allowBtn.addEventListener('click', () => {
+    closeModal();
+    if (_pendingAllow) _pendingAllow();
+  });
+
+  // ── Reset ───────────────────────────────────────────────────────────────
+
+  document.getElementById('btn-reset').addEventListener('click', () => {
+    form.reset();
+    updatePanel(0, guard.getCurrentScore().signals);
+  });
+
+  // ── Bot simulation buttons ──────────────────────────────────────────────
+
+  // 1. Programmatic assignment via .value =
+  document.getElementById('sim-programmatic').addEventListener('click', () => {
+    document.getElementById('name').value = 'Bot User';
+    document.getElementById('email').value = 'bot@spam.example.com';
+    document.getElementById('message').value = 'Buy cheap meds now! Click here.';
+    // Trigger onChange manually since value setter fires async microtask
+    setTimeout(() => {
+      const { score, signals } = guard.getCurrentScore();
+      updatePanel(score, signals);
+    }, 50);
+  });
+
+  // 2. Simulate paste event
+  document.getElementById('sim-paste').addEventListener('click', () => {
+    const msgEl = document.getElementById('message');
+    msgEl.focus();
+    const pasteText = 'Special offer! Visit http://spam.example.com for cheap deals. Limited time!';
+    const dt = new DataTransfer();
+    dt.setData('text/plain', pasteText);
+    msgEl.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true }));
+    msgEl.value = pasteText;
+    msgEl.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  // 3. Robot uniform typing (zero stddev)
+  document.getElementById('sim-robot-type').addEventListener('click', () => {
+    const nameEl = document.getElementById('name');
+    nameEl.focus();
+    nameEl.value = '';
+    const text = 'robotuser';
+    let i = 0;
+    const INTERVAL = 20; // ms — perfectly uniform, stddev ≈ 0
+    function typeNext() {
+      if (i >= text.length) return;
+      nameEl.dispatchEvent(new KeyboardEvent('keydown', { key: text[i], bubbles: true }));
+      nameEl.value += text[i];
+      nameEl.dispatchEvent(new Event('input', { bubbles: true }));
+      i++;
+      setTimeout(typeNext, INTERVAL);
+    }
+    typeNext();
+  });
+
+  // 4. Assign value without focus
+  document.getElementById('sim-no-focus').addEventListener('click', () => {
+    // No focus event fired — only set value
+    const emailEl = document.getElementById('email');
+    emailEl.value = 'nofocus@bot.example.com';
+    emailEl.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+
+  // 5. Fast submit (immediately click submit)
+  document.getElementById('sim-fast-submit').addEventListener('click', () => {
+    form.requestSubmit();
+  });
+
+})();
+</script>
+</body>
+</html>
