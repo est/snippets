@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lab.est.im</title>
+    <meta name="description"
+        content="A repository of ephemeral thoughts, incomplete scripts, and unpolished experiments by est.">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+
+        :root {
+            --bg-color: #051A10;
+            --text-main: #E2F5E6;
+            --text-muted: #8DB59A;
+            --accent: #2DEB70;
+            --accent-glow: rgba(45, 235, 112, 0.4);
+            --stem-color: rgba(45, 235, 112, 0.2);
+            --hover-stem: rgba(45, 235, 112, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            line-height: 1.6;
+        }
+
+        /* Abstract Grass Background */
+        .bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 100%, #0a331c 0%, #051A10 70%);
+            overflow: hidden;
+        }
+
+        .grass-blade {
+            position: absolute;
+            bottom: -5px;
+            width: 2px;
+            background: linear-gradient(to top, #0c4d29, var(--accent));
+            border-radius: 4px 4px 0 0;
+            transform-origin: bottom center;
+            opacity: 0;
+            animation: grow-in 2.5s cubic-bezier(0.1, 0.9, 0.2, 1) forwards, sway 5s ease-in-out infinite alternate;
+            height: 0;
+        }
+
+        @keyframes sway {
+            0% {
+                transform: rotate(-6deg);
+            }
+
+            100% {
+                transform: rotate(6deg);
+            }
+        }
+
+        @keyframes grow-in {
+            0% {
+                height: 0;
+                opacity: 0;
+            }
+
+            100% {
+                height: var(--final-height);
+                opacity: 0.3;
+            }
+        }
+
+        /* Particles */
+        .particle {
+            position: absolute;
+            background: var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--accent-glow);
+            animation: float-up linear infinite;
+        }
+
+        @keyframes float-up {
+            0% {
+                transform: translateY(100vh) scale(0);
+                opacity: 0;
+            }
+
+            20% {
+                opacity: 1;
+                scale: 1;
+            }
+
+            80% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100px) scale(0);
+                opacity: 0;
+            }
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 6rem;
+            animation: fade-in-down 1s ease-out;
+        }
+
+        h1 {
+            font-size: 6rem;
+            font-weight: 300;
+            color: var(--text-main);
+            margin-bottom: 1rem;
+            letter-spacing: -2px;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: "lab.est.im";
+            position: absolute;
+            left: 0;
+            top: 0;
+            z-index: -1;
+            filter: blur(25px);
+            background: linear-gradient(to right, #4ade80, #2DEB70);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0.4;
+            animation: pulse-glow 4s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% {
+                opacity: 0.2;
+            }
+
+            100% {
+                opacity: 0.5;
+            }
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            font-weight: 300;
+            color: var(--text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Forest Layout (No Squares) */
+        .forest {
+            display: flex;
+            flex-direction: column;
+            gap: 5rem;
+            position: relative;
+            padding-bottom: 4rem;
+        }
+
+        /* Visual Root Trunk */
+        .forest::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: -2rem;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, transparent, var(--stem-color) 2%, var(--stem-color) 90%, transparent);
+        }
+
+        .branch {
+            position: relative;
+            padding-left: 5rem;
+            animation: fade-in-up 0.8s ease-out backwards;
+        }
+
+        .branch-title {
+            font-size: 2rem;
+            font-weight: 400;
+            color: var(--text-main);
+            margin-bottom: 2rem;
+            position: relative;
+            display: inline-block;
+            letter-spacing: 1px;
+        }
+
+        /* Stem from trunk to branch title */
+        .branch-title::before {
+            content: '';
+            position: absolute;
+            left: -5rem;
+            top: 50%;
+            width: 4rem;
+            height: 2px;
+            background: var(--stem-color);
+            transform: translateY(-50%);
+            transition: all 0.4s ease;
+        }
+
+        /* Glowing junction bud on the trunk */
+        .branch-title::after {
+            content: '';
+            position: absolute;
+            left: -5rem;
+            top: 50%;
+            width: 8px;
+            height: 8px;
+            background: var(--bg-color);
+            border: 2px solid var(--accent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--accent-glow);
+            transition: all 0.4s ease;
+        }
+
+        .branch:hover .branch-title::after {
+            background: var(--accent);
+            box-shadow: 0 0 20px var(--accent);
+            transform: translate(-50%, -50%) scale(1.5);
+        }
+
+        .leaves-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            position: relative;
+            padding-left: 2rem;
+            border-left: 1px solid rgba(45, 235, 112, 0.1);
+            margin-left: 1rem;
+        }
+
+        .leaf {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            text-decoration: none;
+            color: var(--text-main);
+            position: relative;
+            padding: 0.5rem 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            outline: none;
+            /* Abstract grouping */
+        }
+
+        /* Micro stem for the individual leaf */
+        .leaf::before {
+            content: '';
+            position: absolute;
+            left: -2rem;
+            top: 50%;
+            width: 1.5rem;
+            height: 1px;
+            background: rgba(45, 235, 112, 0.2);
+            transform: translateY(-50%);
+            transition: all 0.3s ease;
+            transform-origin: left;
+        }
+
+        /* The leaf shape itself (appears on hover) */
+        .leaf::after {
+            content: '';
+            position: absolute;
+            left: -2.0rem;
+            top: 50%;
+            width: 0;
+            height: 0;
+            background: transparent;
+            border-radius: 0 50% 0 50%;
+            transform: translateY(-50%) rotate(45deg);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        .leaf:hover {
+            transform: translateX(15px);
+        }
+
+        .leaf:hover::before {
+            background: var(--accent);
+            width: 2rem;
+        }
+
+        .leaf:hover::after {
+            width: 12px;
+            height: 12px;
+            background: var(--accent);
+            box-shadow: 0 0 20px var(--accent);
+            left: -1.3rem;
+        }
+
+        .leaf-name {
+            font-size: 1.3rem;
+            font-weight: 300;
+            color: #fff;
+            transition: color 0.3s;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+
+        .leaf:hover .leaf-name {
+            color: var(--accent);
+            text-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .blog-link {
+            font-size: 0.8rem;
+            color: rgba(45, 235, 112, 0.5);
+            margin-left: 0.75rem;
+            text-decoration: none;
+            letter-spacing: 1px;
+            font-weight: 600;
+            transition: all 0.3s;
+            opacity: 0;
+            transform: translateX(-10px);
+        }
+
+        .leaf:hover .blog-link {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .blog-link:hover {
+            color: #fff;
+            text-shadow: 0 0 8px var(--accent);
+        }
+
+        .leaf-separator {
+            flex-grow: 1;
+            height: 1px;
+            border-bottom: 1px dotted rgba(45, 235, 112, 0.15);
+            transition: all 0.3s;
+        }
+
+        .leaf:hover .leaf-separator {
+            border-color: rgba(45, 235, 112, 0.5);
+        }
+
+        .leaf-desc {
+            font-size: 1rem;
+            color: var(--text-muted);
+            max-width: 55%;
+            text-align: right;
+            transition: color 0.3s;
+            font-weight: 300;
+        }
+
+        .leaf:hover .leaf-desc {
+            color: #E2F5E6;
+        }
+
+        footer {
+            margin-top: 6rem;
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1.5rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .license {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: color 0.3s;
+            opacity: 0.7;
+        }
+
+        .license:hover {
+            color: var(--accent);
+            opacity: 1;
+        }
+
+        @keyframes fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fade-in-down {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Staggered animation delays */
+        .branch:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .branch:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .branch:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .branch:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        /* Custom Ambient Cursor Glow */
+        .cursor-glow {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(45, 235, 112, 0.08) 0%, transparent 60%);
+            border-radius: 50%;
+            position: fixed;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            transition: left 0.1s ease-out, top 0.1s ease-out;
+            mix-blend-mode: screen;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 4rem;
+            }
+
+            .container {
+                padding: 3rem 1.5rem;
+            }
+
+            .forest::before {
+                left: 10px;
+            }
+
+            .branch {
+                padding-left: 2rem;
+            }
+
+            .branch-title::before {
+                left: -2rem;
+                width: 1.5rem;
+            }
+
+            .branch-title::after {
+                left: -2rem;
+            }
+
+            .leaf {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.2rem;
+            }
+
+            .leaf-separator {
+                display: none;
+            }
+
+            .leaf-desc {
+                max-width: 100%;
+                text-align: left;
+                padding-left: 0;
+            }
+
+            .blog-link {
+                opacity: 1;
+                transform: none;
+            }
+
+            .cursor-glow {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="cursor-glow" id="cursorGlow"></div>
+    <div class="bg-canvas" id="bgCanvas"></div>
+
+    <div class="container">
+        <header>
+            <h1>lab.est.im</h1>
+            <p class="subtitle">Ephemeral thoughts, incomplete scripts, and unpolished experiments organically branching
+                out.</p>
+        </header>
+
+        <main class="forest">
+            <!-- Branch 1: Audio & WebRTC -->
+            <section class="branch">
+                <h2 class="branch-title">Audio & WebRTC</h2>
+                <div class="leaves-container">
+                    <a href="/dtmf" class="leaf">
+                        <div class="leaf-name">dtmf <object><a href="https://blog.est.im/2022/stdout-10" target="_blank"
+                                    class="blog-link">blog ↗</a></object></div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Dual-tone multi-frequency signaling</div>
+                    </a>
+                    <a href="/metronome" class="leaf">
+                        <div class="leaf-name">metronome <object><a href="https://blog.est.im/2024/stdout-19"
+                                    target="_blank" class="blog-link">blog ↗</a></object></div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Precise web-based metronome</div>
+                    </a>
+                    <a href="/audio/midi" class="leaf">
+                        <div class="leaf-name">Harp MIDI</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">MIDI playback with room echo</div>
+                    </a>
+                    <a href="/web-audio-data" class="leaf">
+                        <div class="leaf-name">Web Audio TX</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Transmit data over soundwaves</div>
+                    </a>
+                    <a href="/webrtc" class="leaf">
+                        <div class="leaf-name">WebRTC Sandbox</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Fundamental testing implementations</div>
+                    </a>
+                    <a href="/webrtc/scanner" class="leaf">
+                        <div class="leaf-name">WebRTC Scanner</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Scan network capabilities locally</div>
+                    </a>
+                    <a href="/webrtc-no-signaling-server" class="leaf">
+                        <div class="leaf-name">Serverless RTC</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Strictly P2P WebRTC connections</div>
+                    </a>
+                    <a href="/ECG" class="leaf">
+                        <div class="leaf-name">ECG Audio</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Simulating electrocardiogram sounds</div>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Branch 2: Visual & Interactive -->
+            <section class="branch">
+                <h2 class="branch-title">Visual & Interactive</h2>
+                <div class="leaves-container">
+                    <a href="/3d_parallax_barrier" class="leaf">
+                        <div class="leaf-name">3D Parallax <object><a href="https://blog.est.im/archives/3762"
+                                    target="_blank" class="blog-link">blog ↗</a></object></div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Naked-eye 3D barriers</div>
+                    </a>
+                    <a href="/grayscale_animation" class="leaf">
+                        <div class="leaf-name">Grayscale Anim</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">HTML5 cinematic grit animation</div>
+                    </a>
+                    <a href="/addictive_color" class="leaf">
+                        <div class="leaf-name">Additive Color</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Luminescent color blending</div>
+                    </a>
+                    <a href="/bg_parallax" class="leaf">
+                        <div class="leaf-name">Gyro Parallax</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Device-orientation based depths</div>
+                    </a>
+                    <a href="/html5_color_wheel" class="leaf">
+                        <div class="leaf-name">Color Wheel</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Interactive color selection ring</div>
+                    </a>
+                    <a href="/vertical-rl" class="leaf">
+                        <div class="leaf-name">Vertical-RL</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Vertical layout for classical poetry</div>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Branch 3: SVG Mastery -->
+            <section class="branch">
+                <h2 class="branch-title">SVG Playground</h2>
+                <div class="leaves-container">
+                    <a href="/shit_svg" class="leaf">
+                        <div class="leaf-name">Shit SVG</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Abstract chaotic vectors</div>
+                    </a>
+                    <a href="/svg/3d-neon.svg" class="leaf">
+                        <div class="leaf-name">3D Neon</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Volumetric glowing tubes</div>
+                    </a>
+                    <a href="/svg/metal.svg" class="leaf">
+                        <div class="leaf-name">Metallic</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Brushed metal and sharp lighting</div>
+                    </a>
+                    <a href="/svg/mouse.html" class="leaf">
+                        <div class="leaf-name">Mouse Tracker</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Vectors reacting to pointers</div>
+                    </a>
+                    <a href="/svg/fancy.svg" class="leaf">
+                        <div class="leaf-name">Favicons</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Sleek dynamic branding vectors</div>
+                    </a>
+                    <a href="/svg/frame-anim.svg" class="leaf">
+                        <div class="leaf-name">Frame Anim</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Sprite-sheet stepping purely in XML</div>
+                    </a>
+                    <a href="/svg/circle-anim.svg" class="leaf">
+                        <div class="leaf-name">Circle Anim</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Graceful scaling & dash offsets</div>
+                    </a>
+                    <a href="/svg/svg-text.html" class="leaf">
+                        <div class="leaf-name">Inline Text</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Fusing DOM blocks inside SVG</div>
+                    </a>
+                </div>
+            </section>
+
+            <!-- Branch 4: Misc -->
+            <section class="branch">
+                <h2 class="branch-title">Misc Systems</h2>
+                <div class="leaves-container">
+                    <a href="/hscroll" class="leaf">
+                        <div class="leaf-name">Horizontal Scroll</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Trackpad-friendly content flow</div>
+                    </a>
+                    <a href="/http_redir" class="leaf">
+                        <div class="leaf-name">Meta Redirects</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Routing directly to data URI schemas</div>
+                    </a>
+                    <a href="/mdns" class="leaf">
+                        <div class="leaf-name">mDNS Cast</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Multicast DNS discovery tests</div>
+                    </a>
+                    <a href="/mmm" class="leaf">
+                        <div class="leaf-name">WeChat Moments</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">UX replication of the timeline</div>
+                    </a>
+                    <a href="/passkey" class="leaf">
+                        <div class="leaf-name">Serverless Passkey</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">WebAuthn flows without backends</div>
+                    </a>
+                    <a href="/pres-api" class="leaf">
+                        <div class="leaf-name">Presentation API</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Secondary display throwing spec</div>
+                    </a>
+                    <a href="/pinglish" class="leaf">
+                        <div class="leaf-name">Pinglish</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Alternative Pinyin romanization scheme</div>
+                    </a>
+                    <a href="https://github.com/est/snippets/blob/master/ssd-warmup/ssd_warmup.py" target="_blank"
+                        class="leaf">
+                        <div class="leaf-name">SSD Warmup.py</div>
+                        <div class="leaf-separator"></div>
+                        <div class="leaf-desc">Refresh cold clusters to mitigate speed decay</div>
+                    </a>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="license noopener noreferrer"
+                class="license">
+                CC BY-NC 4.0
+                <img style="height:22px!important" src="https://mirrors.creativecommons.org/presskit/icons/cc.svg"
+                    alt="CC">
+                <img style="height:22px!important" src="https://mirrors.creativecommons.org/presskit/icons/by.svg"
+                    alt="BY">
+                <img style="height:22px!important" src="https://mirrors.creativecommons.org/presskit/icons/nc.svg"
+                    alt="NC">
+            </a>
+            <div style="margin-top: 1rem;">
+                <a href="https://github.com/est/snippets" target="_blank"
+                    style="color:var(--text-muted);text-decoration:none;font-weight:300;">est/snippets</a>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Custom Mouse Glow
+        const cursorGlow = document.getElementById('cursorGlow');
+        document.addEventListener('mousemove', (e) => {
+            cursorGlow.style.left = e.clientX + 'px';
+            cursorGlow.style.top = e.clientY + 'px';
+        });
+
+        // Abstract Grass Generator
+        const bgCanvas = document.getElementById('bgCanvas');
+        const numBlades = Math.floor(window.innerWidth / 15);
+
+        for (let i = 0; i < numBlades; i++) {
+            const blade = document.createElement('div');
+            blade.classList.add('grass-blade');
+
+            const left = Math.random() * 100;
+            const height = 10 + Math.random() * 30; // 10vh to 40vh
+            const delay = Math.random() * 2.5;
+            const swayDuration = 3 + Math.random() * 4;
+            const rotBase = -8 + Math.random() * 16;
+
+            blade.style.left = `${left}vw`;
+            blade.style.setProperty('--final-height', `${height}vh`);
+            blade.style.animationDelay = `${delay}s, ${delay}s`;
+            blade.style.animationDuration = `2.5s, ${swayDuration}s`;
+            blade.style.transform = `rotate(${rotBase}deg)`;
+
+            if (Math.random() > 0.5) {
+                blade.style.borderRadius = "4px 0 0 0";
+            }
+
+            bgCanvas.appendChild(blade);
+        }
+
+        // Floating Spores
+        const numParticles = 30;
+        for (let i = 0; i < numParticles; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+
+            const size = 1 + Math.random() * 2;
+            const left = Math.random() * 100;
+            const duration = 15 + Math.random() * 25;
+            const delay = Math.random() * 20;
+
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${left}vw`;
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `-${delay}s`;
+
+            bgCanvas.appendChild(particle);
+        }
+    </script>
+</body>
+
+</html>

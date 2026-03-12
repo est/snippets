@@ -46,7 +46,7 @@ Be warned many of the scripts are incomplete or cringy.
 
 ## Useful toolz
 
-- [ssd_warmup.py](https://github.com/est/snippets/blob/master/ssd-warmup/ssd-warmup.py) 用来解决垃圾 WD/Sandisk 冷数据读取掉速门 问题。把指定目录的所有文件 32MB 读出来再原地写回去。
+- [ssd_warmup.py](https://github.com/est/snippets/blob/master/ssd-warmup/ssd_warmup.py) 用来解决垃圾 WD/Sandisk 冷数据读取掉速门 问题。把指定目录的所有文件 32MB 读出来再原地写回去。
 
 ## Python scripts
 
