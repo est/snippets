@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="sweep" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#000" stop-opacity="0"/>
+      <stop offset="50%" stop-color="#fff" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="mask">
+      <rect width="32" height="32" fill="white"/>
+      <rect class="beam" width="12" height="32" fill="black" x="-12">
+        <animate attributeName="x" from="-12" to="44" dur="2s" repeatCount="indefinite"/>
+      </rect>
+    </mask>
+  </defs>
+  <rect width="32" height="32" rx="4" fill="#1a1a2e"/>
+  <rect class="beam" width="32" height="32" fill="url(#sweep)" mask="url(#mask)">
+    <animate attributeName="x" from="-32" to="64" dur="2s" repeatCount="indefinite"/>
+  </rect>
+  <text x="16" y="22" font-size="20" text-anchor="middle">🥽</text>
+</svg>
