@@ -1,8 +1,8 @@
-# snippets of lab.est.im
+# lab.est.im
 
 Many crap I wrote don't really fit in a proper sized GIT repo, so I dump them [here](https://github.com/est/snippets).
 
-Also `paste`, `gist` or `codepen` are too ephemeral.
+Avoid `paste`, `gist` or `codepen` because they are too ephemeral.
 
 Be warned many of the scripts are incomplete or cringy.
 
@@ -40,6 +40,8 @@ Be warned many of the scripts are incomplete or cringy.
    - [entity](/svg/entity.xhtml)
 - [MicroMsg Moments](/mmm) 风格模仿
 - [ECG](/ECG) 模拟心电图声音
+- [vertical-rl](/vertical-rl) 垂直古诗词排版
+- [pinglish](/pinglish) 更好的拼音方案
 
 ## Useful toolz
 
