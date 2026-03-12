@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>汉字转拼音 — TTS→ASR Hack</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'SF Pro Display', -apple-system, system-ui, sans-serif;
+            background: #0a0a0f;
+            color: #e0e0e6;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            width: 480px;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+        }
+
+        h1 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            background: linear-gradient(135deg, #7c8aff, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 28px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #e0e0e6;
+            font-size: 18px;
+            padding: 12px 14px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            border-color: rgba(124, 138, 255, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 18px 0;
+        }
+
+        button {
+            flex: 1;
+            padding: 10px 0;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #btnSpeak {
+            background: linear-gradient(135deg, #7c8aff, #6366f1);
+            color: #fff;
+        }
+
+        #btnListen {
+            background: linear-gradient(135deg, #c084fc, #a855f7);
+            color: #fff;
+        }
+
+        #btnAll {
+            background: linear-gradient(135deg, #34d399, #10b981);
+            color: #fff;
+        }
+
+        button:hover {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            min-height: 60px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px dashed rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #c8c8d0;
+            white-space: pre-wrap;
+        }
+
+        .result-box.active {
+            border-color: rgba(192, 132, 252, 0.4);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(192, 132, 252, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 12px 2px rgba(192, 132, 252, 0.15);
+            }
+        }
+
+        .status {
+            font-size: 12px;
+            color: #666;
+            margin-top: 12px;
+            min-height: 16px;
+        }
+
+        .settings {
+            margin: 14px 0;
+            display: flex;
+            gap: 10px;
+        }
+
+        select {
+            flex: 1;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #ccc;
+            font-size: 13px;
+            outline: none;
+        }
+
+        .tip {
+            margin-top: 18px;
+            font-size: 11px;
+            color: #555;
+            line-height: 1.5;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding-top: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>汉字 → 拼音</h1>
+        <p class="subtitle">TTS 发音 → ASR 听写，不用字典的野路子</p>
+
+        <label>输入汉字</label>
+        <textarea id="input" placeholder="你好世界">你好世界</textarea>
+
+        <div class="settings">
+            <select id="ttsVoice"></select>
+            <select id="asrLang">
+                <option value="en-US">ASR: English</option>
+                <option value="zh-CN">ASR: 中文</option>
+                <option value="ja-JP">ASR: 日本語</option>
+            </select>
+        </div>
+
+        <div class="controls">
+            <button id="btnSpeak">🔊 TTS 朗读</button>
+            <button id="btnListen">🎤 ASR 听写</button>
+            <button id="btnAll">⚡ 连跑</button>
+        </div>
+
+        <label>ASR 识别结果</label>
+        <div class="result-box" id="result">等待中…</div>
+        <div class="status" id="status"></div>
+
+        <div class="tip">
+            💡 <b>原理</b>：TTS 用中文语音朗读汉字，ASR 用英文模式接收，输出近似拼音。<br>
+            ⚠️ 需要音频回环（如 BlackHole）或外放收音，因为浏览器 ASR 只听麦克风。<br>
+            🎯 "连跑"模式：先 TTS 朗读，延迟后自动启动 ASR 监听。
+        </div>
+    </div>
+
+    <script>
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        const inputEl = document.getElementById('input');
+        const resultEl = document.getElementById('result');
+        const statusEl = document.getElementById('status');
+        const voiceSel = document.getElementById('ttsVoice');
+        const asrLangSel = document.getElementById('asrLang');
+        const btnSpeak = document.getElementById('btnSpeak');
+        const btnListen = document.getElementById('btnListen');
+        const btnAll = document.getElementById('btnAll');
+
+        // ─── Populate Chinese voices ───
+        function loadVoices() {
+            const voices = speechSynthesis.getVoices();
+            voiceSel.innerHTML = '';
+            const zhVoices = voices.filter(v => /^zh/i.test(v.lang));
+            if (zhVoices.length === 0) {
+                voiceSel.innerHTML = '<option>无中文语音</option>';
+                return;
+            }
+            zhVoices.forEach((v, i) => {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `${v.name} (${v.lang})`;
+                voiceSel.appendChild(opt);
+            });
+        }
+        speechSynthesis.onvoiceschanged = loadVoices;
+        loadVoices();
+
+        function getSelectedVoice() {
+            const voices = speechSynthesis.getVoices().filter(v => /^zh/i.test(v.lang));
+            return voices[voiceSel.value | 0] || null;
+        }
+
+        // ─── TTS ───
+        function speak(text) {
+            return new Promise((resolve, reject) => {
+                speechSynthesis.cancel();
+                const utt = new SpeechSynthesisUtterance(text);
+                const voice = getSelectedVoice();
+                if (voice) utt.voice = voice;
+                utt.lang = 'zh-CN';
+                utt.rate = 0.75;         // slower = clearer
+                utt.pitch = 1;
+                utt.onend = () => { status('TTS 完成'); resolve(); };
+                utt.onerror = (e) => { status('TTS 出错: ' + e.error); reject(e); };
+                status('TTS 朗读中…');
+                speechSynthesis.speak(utt);
+            });
+        }
+
+        // ─── ASR ───
+        function listen(durationMs = 6000) {
+            return new Promise((resolve, reject) => {
+                if (!SpeechRecognition) {
+                    reject(new Error('此浏览器不支持 SpeechRecognition'));
+                    return;
+                }
+                const rec = new SpeechRecognition();
+                rec.lang = asrLangSel.value;
+                rec.interimResults = true;
+                rec.continuous = true;
+                rec.maxAlternatives = 3;
+
+                let finals = [];
+                let interim = '';
+
+                resultEl.classList.add('active');
+                status('🎤 ASR 监听中…');
+
+                rec.onresult = (e) => {
+                    finals = [];
+                    interim = '';
+                    for (let i = 0; i < e.results.length; i++) {
+                        if (e.results[i].isFinal) {
+                            // show all alternatives
+                            const alts = [];
+                            for (let j = 0; j < e.results[i].length; j++) {
+                                alts.push(e.results[i][j].transcript);
+                            }
+                            finals.push(alts.join(' | '));
+                        } else {
+                            interim += e.results[i][0].transcript;
+                        }
+                    }
+                    resultEl.textContent = finals.join('\n') + (interim ? '\n⏳ ' + interim : '');
+                };
+
+                rec.onerror = (e) => {
+                    status('ASR 出错: ' + e.error);
+                    resultEl.classList.remove('active');
+                    reject(e);
+                };
+
+                rec.onend = () => {
+                    resultEl.classList.remove('active');
+                    status('ASR 结束');
+                    resolve(finals.join(' '));
+                };
+
+                rec.start();
+
+                // auto-stop after duration
+                setTimeout(() => {
+                    try { rec.stop(); } catch { }
+                }, durationMs);
+            });
+        }
+
+        // ─── Buttons ───
+        btnSpeak.onclick = async () => {
+            const text = inputEl.value.trim();
+            if (!text) return;
+            btnSpeak.disabled = true;
+            try { await speak(text); } finally { btnSpeak.disabled = false; }
+        };
+
+        btnListen.onclick = async () => {
+            btnListen.disabled = true;
+            resultEl.textContent = '';
+            try { await listen(8000); } finally { btnListen.disabled = false; }
+        };
+
+        btnAll.onclick = async () => {
+            const text = inputEl.value.trim();
+            if (!text) return;
+            btnAll.disabled = btnSpeak.disabled = btnListen.disabled = true;
+            resultEl.textContent = '';
+
+            try {
+                //逐字朗读，每个字之间给 ASR 足够时间
+                const chars = [...text].filter(c => c.trim());
+
+                // 先启动 ASR 监听
+                const asrPromise = listen(chars.length * 2500 + 3000);
+
+                // 等 500ms 让 ASR 启动
+                await new Promise(r => setTimeout(r, 800));
+
+                // 逐字 TTS
+                for (const ch of chars) {
+                    status(`🔊 正在朗读: ${ch}`);
+                    await speak(ch);
+                    await new Promise(r => setTimeout(r, 600));
+                }
+
+                status('等待 ASR 收尾…');
+                await asrPromise;
+            } catch (e) {
+                status('出错: ' + e.message);
+            } finally {
+                btnAll.disabled = btnSpeak.disabled = btnListen.disabled = false;
+            }
+        };
+
+        function status(msg) {
+            statusEl.textContent = msg;
+        }
+    </script>
+
+</body>
+
+</html>
