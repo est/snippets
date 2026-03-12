@@ -1,5 +1,3 @@
-<link rel="icon" type="image/svg+xml" href="favicon.png">
-
 # lab.est.im
 
 Many crap I wrote don't really fit in a proper sized GIT repo, so I dump them [here](https://github.com/est/snippets).
