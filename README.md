@@ -42,6 +42,7 @@ Be warned many of the scripts are incomplete or cringy.
 - [ECG](/ECG) 模拟心电图声音
 - [vertical-rl](/vertical-rl) 垂直古诗词排版
 - [pinglish](/pinglish) 更好的拼音方案
+- [passkey](/passkey) 无服务端的 passkey 登录
 
 ## Useful toolz
 
