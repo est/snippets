@@ -2,17 +2,9 @@ import ssl
 import asyncio
 import datetime
 
-# 全局字典：id(SSLObject) -> peername
-_ssl_peername_map = {}
-
 
 def get_client_ip(sslobj):
     """在 SNI callback 中获取客户端 IP"""
-    # 先查缓存
-    key = id(sslobj)
-    if key in _ssl_peername_map:
-        return _ssl_peername_map[key]
-
     # 遍历查找（只会在第一次调用时执行）
     loop = asyncio.get_running_loop()
     for transport in loop._transports.values():
@@ -20,7 +12,6 @@ def get_client_ip(sslobj):
         if protocol and getattr(protocol, '_sslobj', None) is sslobj:
             peername = transport.get_extra_info('peername')
             if peername:
-                _ssl_peername_map[key] = peername[0]
                 return peername[0]
     return None
 
