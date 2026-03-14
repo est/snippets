@@ -1,39 +1,33 @@
 import ssl
 import asyncio
 import datetime
-import ctypes
 
-
-def get_ssl_ptr(sslobj):
-    """从 _ssl._SSLSocket 获取 SSL* 指针"""
-    class PySSLSocket(ctypes.Structure):
-        _fields_ = [("ob_refcnt", ctypes.c_ssize_t), ("ob_type", ctypes.c_void_p),
-                    ("Socket", ctypes.py_object), ("ssl", ctypes.c_void_p)]
-    return ctypes.cast(id(sslobj), ctypes.POINTER(PySSLSocket)).contents.ssl
+# 全局字典：id(SSLObject) -> peername
+_ssl_peername_map = {}
 
 
 def get_client_ip(sslobj):
     """在 SNI callback 中获取客户端 IP"""
-    # import pdb;pdb.set_trace()
-    # ssl_ptr = get_ssl_ptr(sslobj._sslobj)
-    owner = sslobj._sslobj.owner
-    loop = asyncio.get_running_loop()
+    # 先查缓存
+    key = id(sslobj)
+    if key in _ssl_peername_map:
+        return _ssl_peername_map[key]
 
+    # 遍历查找（只会在第一次调用时执行）
+    loop = asyncio.get_running_loop()
     for transport in loop._transports.values():
         protocol = getattr(transport, '_protocol', None)
-        # import pdb;pdb.set_trace()
-        if not protocol or not hasattr(protocol, '_sslobj'):
-            continue
-        # if get_ssl_ptr(protocol._sslobj) == owner:
-        if protocol._sslobj == owner:
-            return transport.get_extra_info('peername')
+        if protocol and getattr(protocol, '_sslobj', None) is sslobj:
+            peername = transport.get_extra_info('peername')
+            if peername:
+                _ssl_peername_map[key] = peername[0]
+                return peername[0]
     return None
 
 
 def sni_callback(sslobj, server_name, ssl_context):
     """SNI 回调：记录 IP 并根据 SNI 决定是否拒绝连接"""
-    peer = get_client_ip(sslobj)
-    ip = peer[0] if peer else "unknown"
+    ip = get_client_ip(sslobj) or "unknown"
 
     print(f"[{datetime.datetime.now()}] SNI: {server_name}, IP: {ip}")
 
