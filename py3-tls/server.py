@@ -56,33 +56,26 @@ def dump_memory(ptr, size):
 def try_get_clienthello_bytes(ssl_ptr):
     """
     尝试从 SSL 结构体中读取 ClientHello 原始字节。
-    这是 hack 方法，依赖于 OpenSSL 内部结构，不同版本可能不同。
+    OpenSSL 3.x 中数据存在 s->rlayer.packet 里。
     """
     if not ssl_ptr:
         return None
     
-    # 尝试读取 SSL 结构体前 4KB 内存，看看有没有 ClientHello 数据
-    # TLS record header: ContentType(1) + Version(2) + Length(2) = 5 bytes
-    # Handshake header: HandshakeType(1) + Length(3) = 4 bytes
-    # ClientHello 通常以 0x16 (handshake) 开头
-    
     try:
-        # 读取 SSL 结构体附近内存 (假设结构体小于 4KB)
-        mem = ctypes.string_at(ssl_ptr, 4096)
+        # 读取更大的内存范围 (8KB)，SSL 结构体 + rlayer 子结构
+        mem = ctypes.string_at(ssl_ptr, 8192)
         
         # 查找 TLS Handshake 记录特征: 0x16 0x03 0x01/0x02/0x03/0x04
         for i in range(len(mem) - 5):
             if mem[i] == 0x16 and mem[i+1] == 0x03 and mem[i+2] in (0x01, 0x02, 0x03, 0x04):
-                # 找到可能的 TLS record header
                 record_len = (mem[i+3] << 8) | mem[i+4]
-                if 0 < record_len < 16384:  # TLS record 最大 16KB
-                    # 返回从 record header 开始的若干字节
-                    return mem[i:i+min(record_len+5, 256)]
+                if 0 < record_len < 16384:
+                    return mem[i:i+min(record_len+5, 512)]
         
-        # 如果没找到，返回前 128 字节看看结构
-        return mem[:128]
-    except:
-        return None
+        # 如果没找到，打印前 256 字节看看结构
+        return mem[:256]
+    except Exception as e:
+        return f"error: {e}".encode()
 
 
 class PySSLObject(ctypes.Structure):
@@ -200,23 +193,32 @@ def sni_callback(ssl_socket, server_name, ssl_context):
     print(f"SSL* 指针: {hex(ssl_ptr) if ssl_ptr else 'None'}")
 
     if ssl_ptr:
-        # ClientHello legacy_version
-        legacy_ver = libssl.SSL_client_hello_get0_legacy_version(ssl_ptr)
-        ver_map = {0x0301: 'TLSv1.0', 0x0302: 'TLSv1.1', 0x0303: 'TLSv1.2', 0x0304: 'TLSv1.3'}
-        print(f"ClientHello Legacy 版本: {ver_map.get(legacy_ver, f'0x{legacy_ver:04x}')}")
-        
-        # supported_versions 扩展
-        supp_versions = parse_supported_versions(ssl_ptr)
-        if supp_versions:
-            print(f"Supported Versions: {', '.join(supp_versions)}")
-        
-        # ClientHello 密码套件
-        ciphers = parse_client_hello_ciphers(ssl_ptr)
-        print(f"ClientHello 密码套件 ({len(ciphers)} 个):")
-        for c in ciphers[:15]:
-            print(f"  - {c}")
-        if len(ciphers) > 15:
-            print(f"  ... 还有 {len(ciphers) - 15} 个")
+        # 尝试从内存中读取 ClientHello 原始字节
+        raw = try_get_clienthello_bytes(ssl_ptr)
+        if raw:
+            print(f"\n原始 ClientHello 数据 (前 {len(raw)} 字节):")
+            print(f"  Hex: {raw.hex()[:200]}{'...' if len(raw.hex()) > 200 else ''}")
+            
+            # 尝试解析 TLS record header
+            if len(raw) >= 5 and raw[0] == 0x16:
+                record_ver = f"0x{raw[1]:02x}{raw[2]:02x}"
+                record_len = (raw[3] << 8) | raw[4]
+                print(f"  TLS Record: Handshake, Version={record_ver}, Length={record_len}")
+                
+                # Handshake header
+                if len(raw) >= 9:
+                    handshake_type = raw[5]
+                    handshake_len = (raw[6] << 16) | (raw[7] << 8) | raw[8]
+                    type_name = {1: 'ClientHello', 2: 'ServerHello'}.get(handshake_type, f'Unknown({handshake_type})')
+                    print(f"  Handshake: {type_name}, Length={handshake_len}")
+                    
+                    # ClientHello 版本
+                    if len(raw) >= 11:
+                        ch_ver = (raw[9] << 8) | raw[10]
+                        ver_map = {0x0301: 'TLSv1.0', 0x0302: 'TLSv1.1', 0x0303: 'TLSv1.2', 0x0304: 'TLSv1.3'}
+                        print(f"  ClientHello Version: {ver_map.get(ch_ver, f'0x{ch_ver:04x}')}")
+        else:
+            print("无法读取原始数据")
 
     print(f"{'='*60}\n")
     return None
