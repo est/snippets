@@ -32,6 +32,58 @@ libssl.SSL_SESSION_get_protocol_version.restype = ctypes.c_int
 libssl.SSL_get0_alpn_selected.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.POINTER(ctypes.c_ubyte)), ctypes.POINTER(ctypes.c_size_t)]
 libssl.SSL_get0_alpn_selected.restype = None
 
+# ClientHello 解析 API (OpenSSL 1.1.1+)
+libssl.SSL_client_hello_get0_ciphers.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.POINTER(ctypes.c_ubyte))]
+libssl.SSL_client_hello_get0_ciphers.restype = ctypes.c_size_t
+libssl.SSL_client_hello_get0_compression_methods.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.POINTER(ctypes.c_ubyte))]
+libssl.SSL_client_hello_get0_compression_methods.restype = ctypes.c_size_t
+libssl.SSL_client_hello_get0_ext.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.POINTER(ctypes.POINTER(ctypes.c_ubyte)), ctypes.POINTER(ctypes.c_size_t)]
+libssl.SSL_client_hello_get0_ext.restype = ctypes.c_int
+libssl.SSL_client_hello_get0_legacy_version.argtypes = [ctypes.c_void_p]
+libssl.SSL_client_hello_get0_legacy_version.restype = ctypes.c_uint
+libssl.SSL_client_hello_get1_extensions_present.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.POINTER(ctypes.c_int)), ctypes.POINTER(ctypes.c_size_t)]
+libssl.SSL_client_hello_get1_extensions_present.restype = ctypes.c_int
+
+
+def dump_memory(ptr, size):
+    """读取内存并返回 hex 字符串"""
+    if not ptr or size <= 0:
+        return ""
+    buf = ctypes.string_at(ptr, size)
+    return buf.hex()
+
+
+def try_get_clienthello_bytes(ssl_ptr):
+    """
+    尝试从 SSL 结构体中读取 ClientHello 原始字节。
+    这是 hack 方法，依赖于 OpenSSL 内部结构，不同版本可能不同。
+    """
+    if not ssl_ptr:
+        return None
+    
+    # 尝试读取 SSL 结构体前 4KB 内存，看看有没有 ClientHello 数据
+    # TLS record header: ContentType(1) + Version(2) + Length(2) = 5 bytes
+    # Handshake header: HandshakeType(1) + Length(3) = 4 bytes
+    # ClientHello 通常以 0x16 (handshake) 开头
+    
+    try:
+        # 读取 SSL 结构体附近内存 (假设结构体小于 4KB)
+        mem = ctypes.string_at(ssl_ptr, 4096)
+        
+        # 查找 TLS Handshake 记录特征: 0x16 0x03 0x01/0x02/0x03/0x04
+        for i in range(len(mem) - 5):
+            if mem[i] == 0x16 and mem[i+1] == 0x03 and mem[i+2] in (0x01, 0x02, 0x03, 0x04):
+                # 找到可能的 TLS record header
+                record_len = (mem[i+3] << 8) | mem[i+4]
+                if 0 < record_len < 16384:  # TLS record 最大 16KB
+                    # 返回从 record header 开始的若干字节
+                    return mem[i:i+min(record_len+5, 256)]
+        
+        # 如果没找到，返回前 128 字节看看结构
+        return mem[:128]
+    except:
+        return None
+
 
 class PySSLObject(ctypes.Structure):
     _fields_ = [
@@ -93,6 +145,47 @@ def get_alpn(ssl_ptr):
     return None
 
 
+def parse_client_hello_ciphers(ssl_ptr):
+    """解析 ClientHello 中的密码套件列表"""
+    if not ssl_ptr:
+        return []
+    
+    data = ctypes.POINTER(ctypes.c_ubyte)()
+    len_ = libssl.SSL_client_hello_get0_ciphers(ssl_ptr, ctypes.byref(data))
+    if len_ == 0 or not data:
+        return []
+    
+    # 每个密码套件是 2 字节
+    ciphers = []
+    raw = bytes(data[:len_])
+    for i in range(0, len_, 2):
+        cipher_id = (raw[i] << 8) | raw[i+1]
+        ciphers.append(f"0x{cipher_id:04x}")
+    return ciphers
+
+
+def parse_supported_versions(ssl_ptr):
+    """解析 supported_versions 扩展 (TLS 1.3)"""
+    if not ssl_ptr:
+        return []
+    
+    # supported_versions 扩展类型是 43 (0x002b)
+    data = ctypes.POINTER(ctypes.c_ubyte)()
+    len_ = ctypes.c_size_t()
+    ret = libssl.SSL_client_hello_get0_ext(ssl_ptr, 43, ctypes.byref(data), ctypes.byref(len_))
+    if ret != 1 or not data or len_.value == 0:
+        return []
+    
+    versions = []
+    raw = bytes(data[:len_.value])
+    # 第一个字节是长度，后面是 2 字节的版本号
+    for i in range(1, len_.value, 2):
+        ver = (raw[i] << 8) | raw[i+1]
+        ver_map = {0x0301: 'TLSv1.0', 0x0302: 'TLSv1.1', 0x0303: 'TLSv1.2', 0x0304: 'TLSv1.3'}
+        versions.append(ver_map.get(ver, f'0x{ver:04x}'))
+    return versions
+
+
 def sni_callback(ssl_socket, server_name, ssl_context):
     print(f"\n{'='*60}")
     print(f"[{datetime.datetime.now()}] SNI 回调触发")
@@ -107,20 +200,23 @@ def sni_callback(ssl_socket, server_name, ssl_context):
     print(f"SSL* 指针: {hex(ssl_ptr) if ssl_ptr else 'None'}")
 
     if ssl_ptr:
-        # 尝试获取 session 版本 (TLS 1.3 早期数据可能有用)
-        session_ver = get_session_version(ssl_ptr)
-        print(f"Session 协议版本: {session_ver}")
-
-        # ALPN
-        alpn = get_alpn(ssl_ptr)
-        print(f"ALPN: {alpn}")
-
-        # 客户端密码套件 (SNI 回调时通常为空)
-        client_ciphers = get_client_ciphers(ssl_ptr)
-        print(f"客户端密码套件数量: {len(client_ciphers)}")
-        if client_ciphers:
-            for c in client_ciphers[:10]:
-                print(f"  - {c}")
+        # ClientHello legacy_version
+        legacy_ver = libssl.SSL_client_hello_get0_legacy_version(ssl_ptr)
+        ver_map = {0x0301: 'TLSv1.0', 0x0302: 'TLSv1.1', 0x0303: 'TLSv1.2', 0x0304: 'TLSv1.3'}
+        print(f"ClientHello Legacy 版本: {ver_map.get(legacy_ver, f'0x{legacy_ver:04x}')}")
+        
+        # supported_versions 扩展
+        supp_versions = parse_supported_versions(ssl_ptr)
+        if supp_versions:
+            print(f"Supported Versions: {', '.join(supp_versions)}")
+        
+        # ClientHello 密码套件
+        ciphers = parse_client_hello_ciphers(ssl_ptr)
+        print(f"ClientHello 密码套件 ({len(ciphers)} 个):")
+        for c in ciphers[:15]:
+            print(f"  - {c}")
+        if len(ciphers) > 15:
+            print(f"  ... 还有 {len(ciphers) - 15} 个")
 
     print(f"{'='*60}\n")
     return None
