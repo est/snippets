@@ -8,6 +8,10 @@ import ctypes.util
 libssl = ctypes.CDLL(ctypes.util.find_library('ssl'))
 
 
+# 全局字典：SSL 指针 -> peername
+_ssl_peername_map = {}
+
+
 def get_ssl_ptr(sslobj):
     """从 _ssl._SSLSocket 获取 SSL* 指针"""
     try:
@@ -24,74 +28,67 @@ def get_ssl_ptr(sslobj):
         return None
 
 
-def get_client_ip_from_ssl_socket(ssl_socket):
+def get_ssl_object(protocol):
+    """从 SSLProtocol 获取 SSLObject（兼容 Python 3.9 和 3.12+）"""
+    # Python 3.12+: _sslobj 直接存储 SSLObject
+    if hasattr(protocol, '_sslobj'):
+        return protocol._sslobj
+    # Python 3.9: 通过 _sslpipe.ssl_object 获取
+    sslpipe = getattr(protocol, '_sslpipe', None)
+    if sslpipe:
+        return sslpipe.ssl_object
+    return None
+
+
+def find_peername_for_ssl(ssl_socket):
     """
-    从 SSL socket 获取客户端 IP。
-    通过遍历 event loop 的 _transports 来查找匹配的连接。
+    通过遍历 transport 找到 SSL socket 对应的 peername。
     """
     try:
         ssl_ptr = get_ssl_ptr(ssl_socket)
-        print(f"[DEBUG] ssl_ptr={ssl_ptr}")
         if not ssl_ptr:
             return None
 
-        loop = asyncio.get_running_loop()
-        print(f"[DEBUG] transports count={len(loop._transports)}")
+        # 检查是否已有映射
+        if ssl_ptr in _ssl_peername_map:
+            return _ssl_peername_map[ssl_ptr]
 
-        # 遍历 loop._transports 找到匹配的 SSL 连接
+        loop = asyncio.get_running_loop()
+
+        # 遍历所有 transport
         for fd, transport in loop._transports.items():
-            print(f"[DEBUG] fd={fd}, transport type={type(transport).__name__}")
-            # 获取 protocol（对于 SSL 连接，应该是 SSLProtocol）
             protocol = getattr(transport, '_protocol', None)
-            print(f"[DEBUG] protocol={protocol}, type={type(protocol).__name__ if protocol else None}")
             if not protocol:
                 continue
 
-            # 检查是否是 SSLProtocol
-            if not isinstance(protocol, asyncio.sslproto.SSLProtocol):
-                continue
-
-            sslpipe = getattr(protocol, '_sslpipe', None)
-            print(f"[DEBUG] sslpipe={sslpipe}")
-            if not sslpipe:
-                continue
-
-            ssl_obj = sslpipe.ssl_object
-            print(f"[DEBUG] ssl_obj={ssl_obj}")
+            # 获取 SSLObject
+            ssl_obj = get_ssl_object(protocol)
             if not ssl_obj or not hasattr(ssl_obj, '_sslobj'):
                 continue
 
-            obj_ssl_ptr = get_ssl_ptr(ssl_obj._sslobj)
-            print(f"[DEBUG] obj_ssl_ptr={obj_ssl_ptr}, match={obj_ssl_ptr == ssl_ptr}")
-
             # 比较 SSL 指针
-            if obj_ssl_ptr == ssl_ptr:
-                sock = transport.get_extra_info('socket')
-                if sock:
-                    return sock.getpeername()
-    except Exception as e:
-        print(f"[DEBUG] Error: {e}")
-        import traceback
-        traceback.print_exc()
+            if get_ssl_ptr(ssl_obj._sslobj) == ssl_ptr:
+                # 找到匹配的 transport，获取 peername
+                peername = transport.get_extra_info('peername')
+                if peername:
+                    # 记录映射
+                    _ssl_peername_map[ssl_ptr] = peername
+                    return peername
+    except:
+        pass
     return None
 
 
 def sni_callback(ssl_socket, server_name, ssl_context):
     """
     SNI 回调 - 根据 SNI 决定是否关闭连接，并记录客户端 IP。
-
-    返回 None 表示继续握手，返回 ssl.ALERT_DESCRIPTION_xxx 表示拒绝连接。
     """
-    # 获取客户端 IP
-    peer = get_client_ip_from_ssl_socket(ssl_socket._sslobj)
+    peer = find_peername_for_ssl(ssl_socket._sslobj)
     ip = peer[0] if peer else "unknown"
     port = peer[1] if peer else 0
 
-    # 记录日志
     print(f"[{datetime.datetime.now()}] SNI回调: IP={ip}, 端口={port}, SNI={server_name}")
 
-    # 根据 SNI 判断是否关闭连接
-    # 示例：拒绝某些 SNI
     blocked_sni = ['blocked.com', 'evil.com']
     if server_name in blocked_sni:
         print(f"[{datetime.datetime.now()}] 拒绝连接: SNI={server_name} 在黑名单中")
