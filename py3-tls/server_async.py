@@ -5,7 +5,6 @@ import datetime
 
 def get_client_ip(sslobj):
     """在 SNI callback 中获取客户端 IP"""
-    # 遍历查找（只会在第一次调用时执行）
     loop = asyncio.get_running_loop()
     for transport in loop._transports.values():
         protocol = getattr(transport, '_protocol', None)
