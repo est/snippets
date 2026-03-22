@@ -1,38 +1,30 @@
 #!/usr/bin/env python3
 """
 微信 OpenClaw 通道 API 纯 Python 实现
-基于 @tencent-weixin/openclaw-weixin@1.0.2 源码分析
+基于 @tencent-weixin/openclaw-weixin@1.0.2 源码
 
 核心流程与对应源码文件:
 
-1. 认证头生成 (src/api/api.ts:35-48)
-   - X-WECHAT-UIN: 随机 uint32 -> 十进制字符串 -> base64
-   - Authorization: Bearer <token>
-   - AuthorizationType: ilink_bot_token
-   - 每个请求带 base_info: {channel_version: "x.x.x"}
+1. 扫码登录 (src/auth/login-qr.ts:48-77, 165-250)
+   - GET /ilink/bot/get_bot_qrcode?bot_type=3 → 获取二维码
+   - GET /ilink/bot/get_qrcode_status?qrcode=xxx → 长轮询状态
+   - 状态: wait → scaned → confirmed → 获取 bot_token
 
-2. 长轮询收消息 (src/api/api.ts:130-162)
-   - POST /ilink/bot/getupdates
-   - 请求: {get_updates_buf: "游标"}
-   - 响应: {ret, msgs[], get_updates_buf, longpolling_timeout_ms}
-   - 客户端超时后重试是正常的
+2. 收消息 (src/api/api.ts:130-162)
+   - POST /ilink/bot/getupdates {get_updates_buf}
+   - 长轮询 35s 超时，返回 msgs[]
 
-3. 发送文本消息 (src/messaging/send.ts:70-95)
+3. 发消息 (src/messaging/send.ts:70-95)
    - POST /ilink/bot/sendmessage
-   - 必须字段: context_token (从收到的消息中获取)
-   - 消息结构: {to_user_id, client_id, message_type: 2(BOT), message_state: 2(FINISH), item_list, context_token}
+   - 需 context_token（从收的消息中获取）
+   - 结构: {to_user_id, client_id, message_type: 2, message_state: 2, item_list, context_token}
 
-4. 上传图片到 CDN (src/cdn/upload.ts:50-78, src/cdn/cdn-upload.ts:18-77)
-   - 步骤1: POST /ilink/bot/getuploadurl 获取 upload_param
-   - 步骤2: AES-128-ECB 加密文件 (PKCS7 padding)
-   - 步骤3: POST https://novac2c.cdn.weixin.qq.com/c2c/upload 上传密文
-   - 步骤4: 从响应头 x-encrypted-param 获取 download_param
+4. 上传图片 (src/cdn/upload.ts:50-78, src/cdn/cdn-upload.ts:18-77)
+   - POST /ilink/bot/getuploadurl → 获取 upload_param
+   - AES-128-ECB 加密文件 → POST CDN /upload
+   - 从响应头 x-encrypted-param 获取 download_param
 
-5. 发送图片消息 (src/messaging/send.ts:140-170)
-   - POST /ilink/bot/sendmessage
-   - item_list 包含 image_item: {media: {encrypt_query_param, aes_key(base64), encrypt_type: 1}, mid_size}
-
-消息类型定义 (src/api/types.ts:15-75):
+常量定义 (src/api/types.ts):
 - message_type: 1=USER, 2=BOT
 - message_state: 0=NEW, 1=GENERATING, 2=FINISH
 - item.type: 1=TEXT, 2=IMAGE, 3=VOICE, 4=FILE, 5=VIDEO
@@ -44,6 +36,7 @@
 
 import urllib.request
 import urllib.error
+import urllib.parse
 import json
 import base64
 import hashlib
@@ -67,24 +60,20 @@ def aes_encrypt(data: bytes, key: bytes) -> bytes:
 
 
 class WeixinBot:
-    """微信机器人客户端"""
-
-    def __init__(self, token: str, base_url: str = "https://ilinkai.weixin.qq.com"):
+    def __init__(self, token: str = "", base_url: str = "https://ilinkai.weixin.qq.com"):
         self.base_url = base_url.rstrip('/')
         self.token = token
         self.sync_buf = ""
 
     def _uin(self) -> str:
-        """生成 X-WECHAT-UIN: 随机 uint32 -> 十进制字符串 -> base64"""
+        """X-WECHAT-UIN: 随机 uint32 → 十进制字符串 → base64"""
         return base64.b64encode(str(struct.unpack('>I', os.urandom(4))[0]).encode()).decode()
 
     def _post(self, endpoint: str, data: dict, timeout: int = 35) -> dict:
-        """发送 POST 请求"""
         data["base_info"] = {"channel_version": "1.0.2"}
-        body = json.dumps(data).encode()
         req = urllib.request.Request(
             f"{self.base_url}/ilink/bot/{endpoint}",
-            data=body,
+            data=json.dumps(data).encode(),
             headers={
                 "Content-Type": "application/json",
                 "AuthorizationType": "ilink_bot_token",
@@ -97,6 +86,48 @@ class WeixinBot:
                 return json.loads(r.read())
         except urllib.error.URLError:
             return {"ret": 0, "msgs": []}
+
+    def login(self, timeout: int = 480) -> str:
+        """扫码登录，返回 bot_token"""
+        # 获取二维码
+        req = urllib.request.Request(
+            f"{self.base_url}/ilink/bot/get_bot_qrcode?bot_type=3",
+            headers={"iLink-App-ClientVersion": "1"}
+        )
+        with urllib.request.urlopen(req, timeout=30) as r:
+            qr = json.loads(r.read())
+        
+        print(f"[*] 请扫码: {qr['qrcode_img_content']}")
+        
+        # 轮询状态
+        deadline = time.time() + timeout
+        scanned = False
+        
+        while time.time() < deadline:
+            url = f"{self.base_url}/ilink/bot/get_qrcode_status?qrcode={urllib.parse.quote(qr['qrcode'])}"
+            req = urllib.request.Request(url, headers={"iLink-App-ClientVersion": "1"})
+            try:
+                with urllib.request.urlopen(req, timeout=40) as r:
+                    st = json.loads(r.read())
+            except urllib.error.URLError:
+                st = {"status": "wait"}
+            
+            status = st.get("status")
+            if status == "scaned" and not scanned:
+                print("[*] 已扫码，请确认...")
+                scanned = True
+            elif status == "expired":
+                raise Exception("二维码已过期")
+            elif status == "confirmed":
+                self.token = st.get("bot_token", "")
+                if self.token:
+                    print(f"[*] 登录成功: {st.get('ilink_bot_id')}")
+                    return self.token
+                raise Exception("无 bot_token")
+            
+            time.sleep(1)
+        
+        raise Exception("登录超时")
 
     def get_updates(self) -> list:
         """长轮询获取消息"""
@@ -111,8 +142,8 @@ class WeixinBot:
             "msg": {
                 "to_user_id": to,
                 "client_id": f"py:{int(time.time()*1000)}-{os.urandom(4).hex()}",
-                "message_type": 2,  # BOT
-                "message_state": 2,  # FINISH
+                "message_type": 2,
+                "message_state": 2,
                 "item_list": [{"type": 1, "text_item": {"text": text}}],
                 "context_token": ctx_token
             }
@@ -185,11 +216,12 @@ def get_text(msg: dict) -> str:
 
 
 def main():
-    """回显机器人示例"""
-    bot = WeixinBot("your_token_here")
+    bot = WeixinBot()
+    bot.login()  # 扫码登录
+    
     contexts = {}
-
     print("[*] 启动回显机器人...")
+    
     while True:
         try:
             for msg in bot.get_updates():
