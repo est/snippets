@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 微信 OpenClaw 通道 API 纯 Python 实现
-基于 @tencent-weixin/openclaw-weixin@2.1.7 源码
+基于 @tencent-weixin/openclaw-weixin@2.1.8 源码
 
 核心流程与对应源码文件:
 
@@ -45,6 +45,29 @@ import hashlib
 import os
 import time
 import struct
+import socket
+from typing import Optional
+
+
+def build_client_version(version: str) -> int:
+    parts = version.split(".")
+    major = int(parts[0]) if len(parts) > 0 and parts[0].isdigit() else 0
+    minor = int(parts[1]) if len(parts) > 1 and parts[1].isdigit() else 0
+    patch = int(parts[2]) if len(parts) > 2 and parts[2].isdigit() else 0
+    return ((major & 0xFF) << 16) | ((minor & 0xFF) << 8) | (patch & 0xFF)
+
+
+# 写死。不要从 package/package.json 读
+CHANNEL_VERSION = "2.1.8"
+ILINK_APP_ID = "bot"
+ILINK_APP_CLIENT_VERSION = str(build_client_version(CHANNEL_VERSION))
+
+
+def is_timeout_error(err: Exception) -> bool:
+    reason = getattr(err, "reason", err)
+    if isinstance(reason, (TimeoutError, socket.timeout)):
+        return True
+    return "timed out" in str(reason).lower()
 
 
 def aes_encrypt(data: bytes, key: bytes) -> bytes:
@@ -65,39 +88,50 @@ class WeixinBot:
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.sync_buf = ""
+        self.longpoll_timeout = 35
 
     def _uin(self) -> str:
         return base64.b64encode(str(struct.unpack(">I", os.urandom(4))[0]).encode()).decode()
 
-    def _headers(self) -> dict:
+    def _common_headers(self) -> dict:
         return {
-            "Content-Type": "application/json",
-            "AuthorizationType": "ilink_bot_token",
-            "Authorization": f"Bearer {self.token}",
-            "X-WECHAT-UIN": self._uin(),
-            "iLink-App-Id": "com.tencent.wechat.openclaw",
-            "iLink-App-ClientVersion": "65547",
+            "iLink-App-Id": ILINK_APP_ID,
+            "iLink-App-ClientVersion": ILINK_APP_CLIENT_VERSION,
         }
 
-    def _post(self, endpoint: str, data: dict, timeout: int = 35) -> dict:
-        data["base_info"] = {"channel_version": "2.1.7"}
+    def _headers(self) -> dict:
+        headers = {
+            "Content-Type": "application/json",
+            "AuthorizationType": "ilink_bot_token",
+            "X-WECHAT-UIN": self._uin(),
+        }
+        headers.update(self._common_headers())
+        if self.token:
+            headers["Authorization"] = f"Bearer {self.token}"
+        return headers
+
+    def _post(self, endpoint: str, data: dict, timeout: int = 35, allow_timeout: bool = False) -> dict:
+        payload = dict(data)
+        payload["base_info"] = {"channel_version": CHANNEL_VERSION}
         req = urllib.request.Request(
             f"{self.base_url}/ilink/bot/{endpoint}",
-            data=json.dumps(data).encode(),
+            data=json.dumps(payload).encode(),
             headers=self._headers(),
         )
         try:
             with urllib.request.urlopen(req, timeout=timeout) as r:
                 return json.loads(r.read())
-        except urllib.error.URLError:
-            return {"ret": 0, "msgs": []}
+        except urllib.error.URLError as e:
+            if allow_timeout and is_timeout_error(e):
+                return {"ret": 0, "msgs": [], "get_updates_buf": self.sync_buf}
+            raise
 
     def login(self, timeout: int = 480) -> str:
         qr_req = urllib.request.Request(
             f"{self.base_url}/ilink/bot/get_bot_qrcode?bot_type=3",
-            headers={"iLink-App-ClientVersion": "65547"}
+            headers=self._common_headers(),
         )
-        with urllib.request.urlopen(qr_req, timeout=30) as r:
+        with urllib.request.urlopen(qr_req) as r:
             qr = json.loads(r.read())
 
         print(f"[*] 请扫码: {qr['qrcode_img_content']}")
@@ -108,12 +142,15 @@ class WeixinBot:
 
         while time.time() < deadline:
             url = f"{polling_url}?qrcode={urllib.parse.quote(qr['qrcode'])}"
-            req = urllib.request.Request(url, headers={"iLink-App-ClientVersion": "65547"})
+            req = urllib.request.Request(url, headers=self._common_headers())
             try:
                 with urllib.request.urlopen(req, timeout=40) as r:
                     st = json.loads(r.read())
-            except urllib.error.URLError:
-                st = {"status": "wait"}
+            except urllib.error.URLError as e:
+                if is_timeout_error(e):
+                    st = {"status": "wait"}
+                else:
+                    raise
 
             status = st.get("status")
             if status == "scaned" and not scanned:
@@ -130,7 +167,7 @@ class WeixinBot:
                     raise Exception("二维码多次过期")
                 print(f"[*] 二维码过期，刷新... ({refresh}/3)")
                 scanned = False
-                with urllib.request.urlopen(qr_req, timeout=30) as r:
+                with urllib.request.urlopen(qr_req) as r:
                     qr = json.loads(r.read())
                 print(f"[*] 新二维码: {qr['qrcode_img_content']}")
             elif status == "confirmed":
@@ -145,9 +182,17 @@ class WeixinBot:
         raise Exception("登录超时")
 
     def get_updates(self) -> list:
-        resp = self._post("getupdates", {"get_updates_buf": self.sync_buf})
+        resp = self._post(
+            "getupdates",
+            {"get_updates_buf": self.sync_buf},
+            timeout=self.longpoll_timeout,
+            allow_timeout=True,
+        )
         if resp.get("ret") == 0:
             self.sync_buf = resp.get("get_updates_buf", "")
+            timeout_ms = resp.get("longpolling_timeout_ms")
+            if isinstance(timeout_ms, int) and timeout_ms > 0:
+                self.longpoll_timeout = max(1, (timeout_ms + 999) // 1000)
         return resp.get("msgs", [])
 
     def send_text(self, to: str, text: str, ctx_token: str = "") -> dict:
@@ -222,15 +267,20 @@ class WeixinBot:
 
 
 def get_text(msg: dict) -> str:
+    parts = []
     for item in msg.get("item_list", []):
         if item.get("type") == 1:
-            return item.get("text_item", {}).get("text", "")
+            text = item.get("text_item", {}).get("text", "")
+            if text:
+                parts.append(text)
         if item.get("type") == 3:
-            return item.get("voice_item", {}).get("text", "")
-    return ""
+            text = item.get("voice_item", {}).get("text", "")
+            if text:
+                parts.append(text)
+    return "\n".join(parts)
 
 
-def get_media(msg: dict) -> dict | None:
+def get_media(msg: dict) -> Optional[dict]:
     for item in msg.get("item_list", []):
         if item.get("type") == 2:
             img = item.get("image_item", {})
@@ -244,6 +294,46 @@ def get_media(msg: dict) -> dict | None:
     return None
 
 
+def summarize_item(item: dict) -> str:
+    item_type = item.get("type")
+
+    if item_type == 1:
+        text = item.get("text_item", {}).get("text", "")
+        return text or "[文本]"
+
+    if item_type == 2:
+        img = item.get("image_item", {})
+        size = img.get("mid_size") or img.get("hd_size") or img.get("thumb_size")
+        return f"[图片 size={size}]" if size else "[图片]"
+
+    if item_type == 3:
+        voice = item.get("voice_item", {})
+        text = voice.get("text", "")
+        if text:
+            return f"[语音转文字] {text}"
+        playtime = voice.get("playtime")
+        return f"[语音 playtime={playtime}ms]" if playtime else "[语音]"
+
+    if item_type == 4:
+        file_item = item.get("file_item", {})
+        name = file_item.get("file_name") or "unknown"
+        length = file_item.get("len")
+        return f"[文件] {name} ({length} bytes)" if length else f"[文件] {name}"
+
+    if item_type == 5:
+        video = item.get("video_item", {})
+        play_length = video.get("play_length")
+        return f"[视频 play_length={play_length}ms]" if play_length else "[视频]"
+
+    return f"[未知消息类型 {item_type}]"
+
+
+def build_echo_text(msg: dict) -> str:
+    parts = [summarize_item(item) for item in msg.get("item_list", [])]
+    parts = [part for part in parts if part]
+    return "\n".join(parts) if parts else "[空消息]"
+
+
 def main():
     bot = WeixinBot()
     bot.login()
@@ -254,6 +344,7 @@ def main():
     while True:
         try:
             for msg in bot.get_updates():
+                # print(f'[wechat] {msg}')
                 if msg.get("message_type") != 1 or msg.get("message_state") != 0:
                     continue
 
@@ -261,18 +352,13 @@ def main():
                 ctx = msg.get("context_token", "")
                 if ctx:
                     contexts[user] = ctx
+                ctx_token = ctx or contexts.get(user, "")
 
-                text = get_text(msg)
-                media = get_media(msg)
-                print(f"[收] {user}: {text or str(media)}")
+                echo_text = build_echo_text(msg)
+                print(f"[收] {user}: {echo_text.replace(chr(10), ' | ')}")
 
-                if user in contexts:
-                    ctx_token = contexts[user]
-                    if text:
-                        bot.send_text(user, f"Echo: {text}", ctx_token)
-                        print(f"[发] Echo: {text}")
-                    elif media:
-                        print(f"[提示] 收到媒体类型: {media['type']}, 暂不支持回复")
+                bot.send_text(user, echo_text, ctx_token)
+                print(f"[发] {echo_text.replace(chr(10), ' | ')}")
 
         except KeyboardInterrupt:
             break

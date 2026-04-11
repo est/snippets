@@ -1,6 +1,6 @@
 # 微信 OpenClaw 通道 Python 实现
 
-基于 `@tencent-weixin/openclaw-weixin@2.1.7` 源码分析的纯 Python 实现，仅使用标准库 + urllib。
+基于 `@tencent-weixin/openclaw-weixin@2.1.8` 源码分析的纯 Python 实现，仅使用标准库 + urllib。
 
 
 ## 下载源码
@@ -137,7 +137,7 @@ VIDEO = 5
     "AuthorizationType": "ilink_bot_token",
     "Authorization": f"Bearer {token}",
     "X-WECHAT-UIN": "随机uint32→十进制→base64",
-    "iLink-App-Id": "com.tencent.wechat.openclaw",
+    "iLink-App-Id": "bot",
     "iLink-App-ClientVersion": "65547",  # 1.0.11
 }
 ```
