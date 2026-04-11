@@ -4,3 +4,6 @@
 [submodule "metronome"]
 	path = metronome
 	url = git@github.com:est/metronome.git
+[submodule "audio-editor"]
+	path = audio-editor
+	url = git@github.com:est/audio-editor.git
