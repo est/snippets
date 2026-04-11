@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 
-import { loadConfigRouteTag } from "./accounts.js";
+import { apiGetFetch } from "../api/api.js";
 import { logger } from "../util/logger.js";
 import { redactToken } from "../util/redact.js";
 
@@ -11,8 +11,10 @@ type ActiveLogin = {
   qrcodeUrl: string;
   startedAt: number;
   botToken?: string;
-  status?: "wait" | "scaned" | "confirmed" | "expired";
+  status?: "wait" | "scaned" | "confirmed" | "expired" | "scaned_but_redirect";
   error?: string;
+  /** The current effective polling base URL; may be updated on IDC redirect. */
+  currentApiBaseUrl?: string;
 };
 
 const ACTIVE_LOGIN_TTL_MS = 5 * 60_000;
@@ -22,6 +24,9 @@ const QR_LONG_POLL_TIMEOUT_MS = 35_000;
 /** Default `bot_type` for ilink get_bot_qrcode / get_qrcode_status (this channel build). */
 export const DEFAULT_ILINK_BOT_TYPE = "3";
 
+/** Fixed API base URL for all QR code requests. */
+const FIXED_BASE_URL = "https://ilinkai.weixin.qq.com";
+
 const activeLogins = new Map<string, ActiveLogin>();
 
 interface QRCodeResponse {
@@ -30,12 +35,14 @@ interface QRCodeResponse {
 }
 
 interface StatusResponse {
-  status: "wait" | "scaned" | "confirmed" | "expired";
+  status: "wait" | "scaned" | "confirmed" | "expired" | "scaned_but_redirect";
   bot_token?: string;
   ilink_bot_id?: string;
   baseurl?: string;
   /** The user ID of the person who scanned the QR code. */
   ilink_user_id?: string;
+  /** New host to redirect polling to when status is scaned_but_redirect. */
+  redirect_host?: string;
 }
 
 function isLoginFresh(login: ActiveLogin): boolean {
@@ -52,58 +59,34 @@ function purgeExpiredLogins(): void {
 }
 
 async function fetchQRCode(apiBaseUrl: string, botType: string): Promise<QRCodeResponse> {
-  const base = apiBaseUrl.endsWith("/") ? apiBaseUrl : `${apiBaseUrl}/`;
-  const url = new URL(`ilink/bot/get_bot_qrcode?bot_type=${encodeURIComponent(botType)}`, base);
-  logger.info(`Fetching QR code from: ${url.toString()}`);
-
-  const headers: Record<string, string> = {};
-  const routeTag = loadConfigRouteTag();
-  if (routeTag) {
-    headers.SKRouteTag = routeTag;
-  }
-
-  const response = await fetch(url.toString(), { headers });
-  if (!response.ok) {
-    const body = await response.text().catch(() => "(unreadable)");
-    logger.error(`QR code fetch failed: ${response.status} ${response.statusText} body=${body}`);
-    throw new Error(`Failed to fetch QR code: ${response.status} ${response.statusText}`);
-  }
-  return await response.json();
+  logger.info(`Fetching QR code from: ${apiBaseUrl} bot_type=${botType}`);
+  const rawText = await apiGetFetch({
+    baseUrl: apiBaseUrl,
+    endpoint: `ilink/bot/get_bot_qrcode?bot_type=${encodeURIComponent(botType)}`,
+    label: "fetchQRCode",
+  });
+  return JSON.parse(rawText) as QRCodeResponse;
 }
 
 async function pollQRStatus(apiBaseUrl: string, qrcode: string): Promise<StatusResponse> {
-  const base = apiBaseUrl.endsWith("/") ? apiBaseUrl : `${apiBaseUrl}/`;
-  const url = new URL(`ilink/bot/get_qrcode_status?qrcode=${encodeURIComponent(qrcode)}`, base);
-  logger.debug(`Long-poll QR status from: ${url.toString()}`);
-
-  const headers: Record<string, string> = {
-    "iLink-App-ClientVersion": "1",
-  };
-  const routeTag = loadConfigRouteTag();
-  if (routeTag) {
-    headers.SKRouteTag = routeTag;
-  }
-
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), QR_LONG_POLL_TIMEOUT_MS);
+  logger.debug(`Long-poll QR status from: ${apiBaseUrl} qrcode=***`);
   try {
-    const response = await fetch(url.toString(), { headers, signal: controller.signal });
-    clearTimeout(timer);
-    logger.debug(`pollQRStatus: HTTP ${response.status}, reading body...`);
-    const rawText = await response.text();
+    const rawText = await apiGetFetch({
+      baseUrl: apiBaseUrl,
+      endpoint: `ilink/bot/get_qrcode_status?qrcode=${encodeURIComponent(qrcode)}`,
+      timeoutMs: QR_LONG_POLL_TIMEOUT_MS,
+      label: "pollQRStatus",
+    });
     logger.debug(`pollQRStatus: body=${rawText.substring(0, 200)}`);
-    if (!response.ok) {
-      logger.error(`QR status poll failed: ${response.status} ${response.statusText} body=${rawText}`);
-      throw new Error(`Failed to poll QR status: ${response.status} ${response.statusText}`);
-    }
     return JSON.parse(rawText) as StatusResponse;
   } catch (err) {
-    clearTimeout(timer);
     if (err instanceof Error && err.name === "AbortError") {
       logger.debug(`pollQRStatus: client-side timeout after ${QR_LONG_POLL_TIMEOUT_MS}ms, returning wait`);
       return { status: "wait" };
     }
-    throw err;
+    // 网关超时（如 Cloudflare 524）或其他网络错误，视为等待状态继续轮询
+    logger.warn(`pollQRStatus: network/gateway error, will retry: ${String(err)}`);
+    return { status: "wait" };
   }
 }
 
@@ -148,15 +131,7 @@ export async function startWeixinLoginWithQr(opts: {
     const botType = opts.botType || DEFAULT_ILINK_BOT_TYPE;
     logger.info(`Starting Weixin login with bot_type=${botType}`);
 
-    if (!opts.apiBaseUrl) {
-      return {
-        message:
-          "No baseUrl configured. Add channels.openclaw-weixin.baseUrl to your config before logging in.",
-        sessionKey,
-      };
-    }
-
-    const qrResponse = await fetchQRCode(opts.apiBaseUrl, botType);
+    const qrResponse = await fetchQRCode(FIXED_BASE_URL, botType);
     logger.info(
       `QR code received, qrcode=${redactToken(qrResponse.qrcode)} imgContentLen=${qrResponse.qrcode_img_content?.length ?? 0}`,
     );
@@ -219,11 +194,15 @@ export async function waitForWeixinLogin(opts: {
   let scannedPrinted = false;
   let qrRefreshCount = 1;
 
+  // Initialize the effective polling base URL; may be updated on IDC redirect.
+  activeLogin.currentApiBaseUrl = FIXED_BASE_URL;
+
   logger.info("Starting to poll QR code status...");
 
   while (Date.now() < deadline) {
     try {
-      const statusResponse = await pollQRStatus(opts.apiBaseUrl, activeLogin.qrcode);
+      const currentBaseUrl = activeLogin.currentApiBaseUrl ?? FIXED_BASE_URL;
+      const statusResponse = await pollQRStatus(currentBaseUrl, activeLogin.qrcode);
       logger.debug(`pollQRStatus: status=${statusResponse.status} hasBotToken=${Boolean(statusResponse.bot_token)} hasBotId=${Boolean(statusResponse.ilink_bot_id)}`);
       activeLogin.status = statusResponse.status;
 
@@ -259,7 +238,7 @@ export async function waitForWeixinLogin(opts: {
 
           try {
             const botType = opts.botType || DEFAULT_ILINK_BOT_TYPE;
-            const qrResponse = await fetchQRCode(opts.apiBaseUrl, botType);
+            const qrResponse = await fetchQRCode(FIXED_BASE_URL, botType);
             activeLogin.qrcode = qrResponse.qrcode;
             activeLogin.qrcodeUrl = qrResponse.qrcode_img_content;
             activeLogin.startedAt = Date.now();
@@ -269,9 +248,12 @@ export async function waitForWeixinLogin(opts: {
             try {
               const qrterm = await import("qrcode-terminal");
               qrterm.default.generate(qrResponse.qrcode_img_content, { small: true });
+              process.stdout.write(`如果二维码未能成功展示，请用浏览器打开以下链接扫码：\n`);
+              process.stdout.write(`${qrResponse.qrcode_img_content}\n`);
             } catch {
-              process.stdout.write(`QR Code URL: ${qrResponse.qrcode_img_content}\n`);
-            }
+              process.stdout.write(`二维码未加载成功，请用浏览器打开以下链接扫码：\n`);
+              process.stdout.write(`${qrResponse.qrcode_img_content}\n`);
+            }          
           } catch (refreshErr) {
             logger.error(`waitForWeixinLogin: failed to refresh QR code: ${String(refreshErr)}`);
             activeLogins.delete(opts.sessionKey);
@@ -279,6 +261,17 @@ export async function waitForWeixinLogin(opts: {
               connected: false,
               message: `刷新二维码失败: ${String(refreshErr)}`,
             };
+          }
+          break;
+        }
+        case "scaned_but_redirect": {
+          const redirectHost = statusResponse.redirect_host;
+          if (redirectHost) {
+            const newBaseUrl = `https://${redirectHost}`;
+            activeLogin.currentApiBaseUrl = newBaseUrl;
+            logger.info(`waitForWeixinLogin: IDC redirect, switching polling host to ${redirectHost}`);
+          } else {
+            logger.warn(`waitForWeixinLogin: received scaned_but_redirect but redirect_host is missing, continuing with current host`);
           }
           break;
         }

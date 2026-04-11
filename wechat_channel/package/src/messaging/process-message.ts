@@ -1,12 +1,12 @@
 import path from "node:path";
 
+import { createTypingCallbacks } from "openclaw/plugin-sdk/channel-runtime";
 import {
-  createTypingCallbacks,
   resolveSenderCommandAuthorizationWithRuntime,
   resolveDirectDmAuthorizationOutcome,
-  resolvePreferredOpenClawTmpDir,
-} from "openclaw/plugin-sdk";
-import type { PluginRuntime } from "openclaw/plugin-sdk";
+} from "openclaw/plugin-sdk/command-auth";
+import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/infra-runtime";
+import type { PluginRuntime } from "openclaw/plugin-sdk/core";
 
 import { sendTyping } from "../api/api.js";
 import type { WeixinMessage } from "../api/types.js";
@@ -28,7 +28,8 @@ import {
 } from "./inbound.js";
 import type { WeixinInboundMediaOpts } from "./inbound.js";
 import { sendWeixinMediaFile } from "./send-media.js";
-import { markdownToPlainText, sendMessageWeixin } from "./send.js";
+import { StreamingMarkdownFilter } from "./markdown-filter.js";
+import { sendMessageWeixin } from "./send.js";
 import { handleSlashCommand } from "./slash-commands.js";
 
 const MEDIA_OUTBOUND_TEMP_DIR = path.join(resolvePreferredOpenClawTmpDir(), "weixin/media/outbound-temp");
@@ -109,21 +110,23 @@ export async function processOneMessage(
 
   // Find the first downloadable media item (priority: IMAGE > VIDEO > FILE > VOICE).
   // When none found in the main item_list, fall back to media referenced via a quoted message.
+  const hasDownloadableMedia = (m?: { encrypt_query_param?: string; full_url?: string }) =>
+    m?.encrypt_query_param || m?.full_url;
   const mainMediaItem =
     full.item_list?.find(
-      (i) => i.type === MessageItemType.IMAGE && i.image_item?.media?.encrypt_query_param,
+      (i) => i.type === MessageItemType.IMAGE && hasDownloadableMedia(i.image_item?.media),
     ) ??
     full.item_list?.find(
-      (i) => i.type === MessageItemType.VIDEO && i.video_item?.media?.encrypt_query_param,
+      (i) => i.type === MessageItemType.VIDEO && hasDownloadableMedia(i.video_item?.media),
     ) ??
     full.item_list?.find(
-      (i) => i.type === MessageItemType.FILE && i.file_item?.media?.encrypt_query_param,
+      (i) => i.type === MessageItemType.FILE && hasDownloadableMedia(i.file_item?.media),
     ) ??
     full.item_list?.find(
       (i) =>
         i.type === MessageItemType.VOICE &&
-        i.voice_item?.media?.encrypt_query_param &&
-        !i.voice_item.text,
+        hasDownloadableMedia(i.voice_item?.media) &&
+        !i.voice_item?.text,
     );
   const refMediaItem = !mainMediaItem
     ? full.item_list?.find(
@@ -307,7 +310,11 @@ export async function processOneMessage(
       humanDelay,
       typingCallbacks,
       deliver: async (payload) => {
-        const text = markdownToPlainText(payload.text ?? "");
+        const rawText = payload.text ?? "";
+        const text = (() => {
+          const f = new StreamingMarkdownFilter();
+          return f.feed(rawText) + f.flush();
+        })();
         const mediaUrl = payload.mediaUrl ?? payload.mediaUrls?.[0];
         logger.debug(`outbound payload: ${redactBody(JSON.stringify(payload))}`);
         logger.info(
@@ -381,11 +388,7 @@ export async function processOneMessage(
         deps.errLog(`weixin reply ${info.kind}: ${String(err)}`);
         const errMsg = err instanceof Error ? err.message : String(err);
         let notice: string;
-        if (errMsg.includes("contextToken is required")) {
-          // No contextToken means we cannot send a notice either; just log.
-          logger.warn(`onError: contextToken missing, cannot send error notice to=${ctx.To}`);
-          return;
-        } else if (errMsg.includes("remote media download failed") || errMsg.includes("fetch")) {
+        if (errMsg.includes("remote media download failed") || errMsg.includes("fetch")) {
           notice = `⚠️ 媒体文件下载失败，请检查链接是否可访问。`;
         } else if (
           errMsg.includes("getUploadUrl") ||
@@ -416,7 +419,7 @@ export async function processOneMessage(
           ctx: finalized,
           cfg: deps.config,
           dispatcher,
-          replyOptions,
+          replyOptions: { ...replyOptions, disableBlockStreaming: true },
         }),
     });
     logger.debug(`dispatchReplyFromConfig: done agentId=${route.agentId ?? "(none)"}`);
@@ -429,7 +432,7 @@ export async function processOneMessage(
     markDispatchIdle();
 
     logger.info(
-      `debug-check: accountId=${deps.accountId} debug=${String(debug)} hasContextToken=${Boolean(contextToken)} stateDir=${process.env.OPENCLAW_STATE_DIR ?? "(unset)"}`,
+      `debug-check: accountId=${deps.accountId} debug=${String(debug)} hasContextToken=${Boolean(contextToken)}`,
     );
 
     if (debug && contextToken) {

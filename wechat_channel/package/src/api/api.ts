@@ -30,18 +30,43 @@ export type WeixinApiOptions = {
 // BaseInfo — attached to every outgoing CGI request
 // ---------------------------------------------------------------------------
 
-function readChannelVersion(): string {
+interface PackageJson {
+  name?: string;
+  version?: string;
+  ilink_appid?: string;
+}
+
+function readPackageJson(): PackageJson {
   try {
     const dir = path.dirname(fileURLToPath(import.meta.url));
     const pkgPath = path.resolve(dir, "..", "..", "package.json");
-    const pkg = JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as { version?: string };
-    return pkg.version ?? "unknown";
+    return JSON.parse(fs.readFileSync(pkgPath, "utf-8")) as PackageJson;
   } catch {
-    return "unknown";
+    return {};
   }
 }
 
-const CHANNEL_VERSION = readChannelVersion();
+const pkg = readPackageJson();
+
+const CHANNEL_VERSION = pkg.version ?? "unknown";
+
+/** iLink-App-Id: 直接读取 package.json 顶层 ilink_appid 字段。 */
+const ILINK_APP_ID: string = pkg.ilink_appid ?? "";
+
+/**
+ * iLink-App-ClientVersion: uint32 encoded as 0x00MMNNPP
+ * High 8 bits fixed to 0; remaining bits: major<<16 | minor<<8 | patch.
+ * e.g. "1.0.11" -> 0x0001000B = 65547
+ */
+function buildClientVersion(version: string): number {
+  const parts = version.split(".").map((p) => parseInt(p, 10));
+  const major = parts[0] ?? 0;
+  const minor = parts[1] ?? 0;
+  const patch = parts[2] ?? 0;
+  return ((major & 0xff) << 16) | ((minor & 0xff) << 8) | (patch & 0xff);
+}
+
+const ILINK_APP_CLIENT_VERSION: number = buildClientVersion(pkg.version ?? "0.0.0");
 
 /** Build the `base_info` payload included in every API request. */
 export function buildBaseInfo(): BaseInfo {
@@ -65,19 +90,29 @@ function randomWechatUin(): string {
   return Buffer.from(String(uint32), "utf-8").toString("base64");
 }
 
+/** Build headers shared by both GET and POST requests. */
+function buildCommonHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    "iLink-App-Id": ILINK_APP_ID,
+    "iLink-App-ClientVersion": String(ILINK_APP_CLIENT_VERSION),
+  };
+  const routeTag = loadConfigRouteTag();
+  if (routeTag) {
+    headers.SKRouteTag = routeTag;
+  }
+  return headers;
+}
+
 function buildHeaders(opts: { token?: string; body: string }): Record<string, string> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     AuthorizationType: "ilink_bot_token",
     "Content-Length": String(Buffer.byteLength(opts.body, "utf-8")),
     "X-WECHAT-UIN": randomWechatUin(),
+    ...buildCommonHeaders(),
   };
   if (opts.token?.trim()) {
     headers.Authorization = `Bearer ${opts.token.trim()}`;
-  }
-  const routeTag = loadConfigRouteTag();
-  if (routeTag) {
-    headers.SKRouteTag = routeTag;
   }
   logger.debug(
     `requestHeaders: ${JSON.stringify({ ...headers, Authorization: headers.Authorization ? "Bearer ***" : undefined })}`,
@@ -86,10 +121,53 @@ function buildHeaders(opts: { token?: string; body: string }): Record<string, st
 }
 
 /**
+ * GET fetch wrapper: send a GET request to a Weixin API endpoint.
+ * When `timeoutMs` is set, the request is aborted after that many milliseconds.
+ * Query parameters should already be encoded in `endpoint`.
+ * Returns the raw response text on success; throws on HTTP error or (if used) timeout abort.
+ */
+export async function apiGetFetch(params: {
+  baseUrl: string;
+  endpoint: string;
+  timeoutMs?: number;
+  label: string;
+}): Promise<string> {
+  const base = ensureTrailingSlash(params.baseUrl);
+  const url = new URL(params.endpoint, base);
+  const hdrs = buildCommonHeaders();
+  logger.debug(`GET ${redactUrl(url.toString())}`);
+
+  const timeoutMs = params.timeoutMs;
+  const controller =
+    timeoutMs != null && timeoutMs > 0 ? new AbortController() : undefined;
+  const t =
+    controller != null && timeoutMs != null
+      ? setTimeout(() => controller.abort(), timeoutMs)
+      : undefined;
+  try {
+    const res = await fetch(url.toString(), {
+      method: "GET",
+      headers: hdrs,
+      ...(controller ? { signal: controller.signal } : {}),
+    });
+    if (t !== undefined) clearTimeout(t);
+    const rawText = await res.text();
+    logger.debug(`${params.label} status=${res.status} raw=${redactBody(rawText)}`);
+    if (!res.ok) {
+      throw new Error(`${params.label} ${res.status}: ${rawText}`);
+    }
+    return rawText;
+  } catch (err) {
+    if (t !== undefined) clearTimeout(t);
+    throw err;
+  }
+}
+
+/**
  * Common fetch wrapper: POST JSON to a Weixin API endpoint with timeout + abort.
  * Returns the raw response text on success; throws on HTTP error or timeout.
  */
-async function apiFetch(params: {
+async function apiPostFetch(params: {
   baseUrl: string;
   endpoint: string;
   body: string;
@@ -139,7 +217,7 @@ export async function getUpdates(
 ): Promise<GetUpdatesResp> {
   const timeout = params.timeoutMs ?? DEFAULT_LONG_POLL_TIMEOUT_MS;
   try {
-    const rawText = await apiFetch({
+    const rawText = await apiPostFetch({
       baseUrl: params.baseUrl,
       endpoint: "ilink/bot/getupdates",
       body: JSON.stringify({
@@ -166,7 +244,7 @@ export async function getUpdates(
 export async function getUploadUrl(
   params: GetUploadUrlReq & WeixinApiOptions,
 ): Promise<GetUploadUrlResp> {
-  const rawText = await apiFetch({
+  const rawText = await apiPostFetch({
     baseUrl: params.baseUrl,
     endpoint: "ilink/bot/getuploadurl",
     body: JSON.stringify({
@@ -195,7 +273,7 @@ export async function getUploadUrl(
 export async function sendMessage(
   params: WeixinApiOptions & { body: SendMessageReq },
 ): Promise<void> {
-  await apiFetch({
+  await apiPostFetch({
     baseUrl: params.baseUrl,
     endpoint: "ilink/bot/sendmessage",
     body: JSON.stringify({ ...params.body, base_info: buildBaseInfo() }),
@@ -209,7 +287,7 @@ export async function sendMessage(
 export async function getConfig(
   params: WeixinApiOptions & { ilinkUserId: string; contextToken?: string },
 ): Promise<GetConfigResp> {
-  const rawText = await apiFetch({
+  const rawText = await apiPostFetch({
     baseUrl: params.baseUrl,
     endpoint: "ilink/bot/getconfig",
     body: JSON.stringify({
@@ -229,7 +307,7 @@ export async function getConfig(
 export async function sendTyping(
   params: WeixinApiOptions & { body: SendTypingReq },
 ): Promise<void> {
-  await apiFetch({
+  await apiPostFetch({
     baseUrl: params.baseUrl,
     endpoint: "ilink/bot/sendtyping",
     body: JSON.stringify({ ...params.body, base_info: buildBaseInfo() }),

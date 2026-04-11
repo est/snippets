@@ -2,6 +2,11 @@
 
 基于 `@tencent-weixin/openclaw-weixin@1.0.2` 源码分析的纯 Python 实现，仅使用标准库 + urllib。
 
+
+## 下载源码
+
+npm view @tencent-weixin/openclaw-weixin  dist.tarball
+
 ## 功能对照表
 
 | 功能 | Python 实现 | 源码文件 | 状态 |

@@ -15,8 +15,7 @@ export async function sendWeixinErrorNotice(params: {
   errLog: (m: string) => void;
 }): Promise<void> {
   if (!params.contextToken) {
-    logger.warn(`sendWeixinErrorNotice: no contextToken for to=${params.to}, cannot notify user`);
-    return;
+    logger.warn(`sendWeixinErrorNotice: no contextToken for to=${params.to}, sending without context`);
   }
   try {
     await sendMessageWeixin({ to: params.to, text: params.message, opts: {

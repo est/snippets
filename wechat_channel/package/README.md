@@ -4,9 +4,21 @@
 
 OpenClaw's WeChat channel plugin, supporting login authorization via QR code scanning.
 
+## Compatibility
+
+| Plugin Version | OpenClaw Version       | npm dist-tag | Status      |
+|---------------|------------------------|--------------|-------------|
+| 2.0.x         | >=2026.3.22            | `latest`     | Active      |
+| 1.0.x         | >=2026.1.0 <2026.3.22  | `legacy`     | Maintenance |
+
+> The plugin checks the host version at startup and will refuse to load if the
+> running OpenClaw version is outside the supported range.
+
 ## Prerequisites
 
 [OpenClaw](https://docs.openclaw.ai/install) must be installed (the `openclaw` CLI needs to be available).
+
+Check your version: `openclaw --version`
 
 ## Quick Install
 
@@ -54,13 +66,11 @@ Each QR code login creates a new account entry, supporting multiple WeChat accou
 
 ## Multi-Account Context Isolation
 
-By default, all channels share the same AI conversation context. To isolate conversation context for each WeChat account:
+By default, DMs can share one session bucket. For **multiple logged-in WeChat accounts**, isolate by account + channel + sender:
 
 ```bash
-openclaw config set agents.mode per-channel-per-peer
+openclaw config set session.dmScope per-account-channel-peer
 ```
-
-This gives each "WeChat account + message sender" combination its own independent AI memory, preventing context cross-talk between accounts.
 
 ## Backend API Protocol
 
@@ -269,3 +279,34 @@ All media types (image/voice/file/video) are transferred via CDN using AES-128-E
 6. Use the returned `encrypt_query_param` to construct a `CDNMedia` reference, include it in the `MessageItem`, and send
 
 > For complete type definitions, see [`src/api/types.ts`](src/api/types.ts). For API call implementations, see [`src/api/api.ts`](src/api/api.ts).
+
+## Uninstall
+
+```bash
+openclaw plugins uninstall @tencent-weixin/openclaw-weixin
+```
+
+## Troubleshooting
+
+### "requires OpenClaw >=2026.3.22" error
+
+Your OpenClaw version is too old for this plugin version. Check with:
+
+```bash
+openclaw --version
+```
+
+Install the legacy plugin line instead:
+
+```bash
+openclaw plugins install @tencent-weixin/openclaw-weixin@legacy
+```
+
+### Channel shows "OK" but doesn't connect
+
+Ensure `plugins.entries.openclaw-weixin.enabled` is `true` in `~/.openclaw/openclaw.json`:
+
+```bash
+openclaw config set plugins.entries.openclaw-weixin.enabled true
+openclaw gateway restart
+```
