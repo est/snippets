@@ -1,0 +1,96 @@
+<svg width="400" height="100" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Server can replace the begin="-54180s" values with "-{current_seconds_since_midnight}s" -->
+  <style>
+    .digit { font-family: 'Courier New', Courier, monospace; font-weight: bold; font-size: 50px; fill: #00ffcc; }
+    .bg { fill: #111; }
+    .bezel { fill: #000; stroke: #333; stroke-width: 2; }
+  </style>
+  <rect width="400" height="100" rx="10" class="bg" />
+  <rect x="5" y="5" width="390" height="90" rx="6" class="bezel" />
+  <svg x="5" y="5" width="390" height="90" viewBox="0 0 390 90">
+    <g text-anchor="middle" class="digit">
+      <!-- Hours (00-23) -->
+      <g>
+        <animateTransform attributeName="transform" type="translate" values="0,0;0,-60;0,-120;0,-180;0,-240;0,-300;0,-360;0,-420;0,-480;0,-540;0,-600;0,-660;0,-720;0,-780;0,-840;0,-900;0,-960;0,-1020;0,-1080;0,-1140;0,-1200;0,-1260;0,-1320;0,-1380;0,0" dur="86400s" begin="-54180s" repeatCount="indefinite" calcMode="discrete"/>
+        <text x="75" y="63">00</text>
+        <text x="75" y="123">01</text>
+        <text x="75" y="183">02</text>
+        <text x="75" y="243">03</text>
+        <text x="75" y="303">04</text>
+        <text x="75" y="363">05</text>
+        <text x="75" y="423">06</text>
+        <text x="75" y="483">07</text>
+        <text x="75" y="543">08</text>
+        <text x="75" y="603">09</text>
+        <text x="75" y="663">10</text>
+        <text x="75" y="723">11</text>
+        <text x="75" y="783">12</text>
+        <text x="75" y="843">13</text>
+        <text x="75" y="903">14</text>
+        <text x="75" y="963">15</text>
+        <text x="75" y="1023">16</text>
+        <text x="75" y="1083">17</text>
+        <text x="75" y="1143">18</text>
+        <text x="75" y="1203">19</text>
+        <text x="75" y="1263">20</text>
+        <text x="75" y="1323">21</text>
+        <text x="75" y="1383">22</text>
+        <text x="75" y="1443">23</text>
+      </g>
+      <!-- Minute Tens (0-5) -->
+      <g>
+        <animateTransform attributeName="transform" type="translate" values="0,0;0,-60;0,-120;0,-180;0,-240;0,-300;0,0" dur="3600s" begin="-54180s" repeatCount="indefinite" calcMode="discrete"/>
+        <text x="175" y="63">0</text>
+        <text x="175" y="123">1</text>
+        <text x="175" y="183">2</text>
+        <text x="175" y="243">3</text>
+        <text x="175" y="303">4</text>
+        <text x="175" y="363">5</text>
+      </g>
+      <!-- Minute Ones (0-9) -->
+      <g>
+        <animateTransform attributeName="transform" type="translate" values="0,0;0,-60;0,-120;0,-180;0,-240;0,-300;0,-360;0,-420;0,-480;0,-540;0,0" dur="600s" begin="-54180s" repeatCount="indefinite" calcMode="discrete"/>
+        <text x="215" y="63">0</text>
+        <text x="215" y="123">1</text>
+        <text x="215" y="183">2</text>
+        <text x="215" y="243">3</text>
+        <text x="215" y="303">4</text>
+        <text x="215" y="363">5</text>
+        <text x="215" y="423">6</text>
+        <text x="215" y="483">7</text>
+        <text x="215" y="543">8</text>
+        <text x="215" y="603">9</text>
+      </g>
+      <!-- Second Tens (0-5) -->
+      <g>
+        <animateTransform attributeName="transform" type="translate" values="0,0;0,-60;0,-120;0,-180;0,-240;0,-300;0,0" dur="60s" begin="-54180s" repeatCount="indefinite" calcMode="discrete"/>
+        <text x="295" y="63">0</text>
+        <text x="295" y="123">1</text>
+        <text x="295" y="183">2</text>
+        <text x="295" y="243">3</text>
+        <text x="295" y="303">4</text>
+        <text x="295" y="363">5</text>
+      </g>
+      <!-- Second Ones (0-9) -->
+      <g>
+        <animateTransform attributeName="transform" type="translate" values="0,0;0,-60;0,-120;0,-180;0,-240;0,-300;0,-360;0,-420;0,-480;0,-540;0,0" dur="10s" begin="-54180s" repeatCount="indefinite" calcMode="discrete"/>
+        <text x="335" y="63">0</text>
+        <text x="335" y="123">1</text>
+        <text x="335" y="183">2</text>
+        <text x="335" y="243">3</text>
+        <text x="335" y="303">4</text>
+        <text x="335" y="363">5</text>
+        <text x="335" y="423">6</text>
+        <text x="335" y="483">7</text>
+        <text x="335" y="543">8</text>
+        <text x="335" y="603">9</text>
+      </g>
+      <!-- Blinking Colons -->
+      <g>
+        <animate attributeName="opacity" values="1;0;1" dur="1s" begin="-54180s" repeatCount="indefinite" calcMode="discrete"/>
+        <text x="135" y="63">:</text>
+        <text x="255" y="63">:</text>
+      </g>
+    </g>
+  </svg>
+</svg>

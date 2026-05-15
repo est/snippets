@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 688 188" role="img" aria-label="HH:MM:SS digital clock">
+  <title>SVG HH:MM:SS Clock</title>
+  <desc>
+    JavaScript-free digital clock. For server-rendered start time, replace begin="-0s" with begin="-Ts",
+    where T is seconds since 00:00:00 at render time.
+  </desc>
+
+  <defs>
+    <style>
+      .frame { fill: #111827; stroke: #1f2937; stroke-width: 2; }
+      .digit {
+        fill: #86efac;
+        font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+        font-size: 92px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .colon { fill: #34d399; }
+    </style>
+
+    <clipPath id="clip-h1"><rect x="48" y="38" width="72" height="110" rx="10"/></clipPath>
+    <clipPath id="clip-h2"><rect x="132" y="38" width="72" height="110" rx="10"/></clipPath>
+    <clipPath id="clip-m1"><rect x="266" y="38" width="72" height="110" rx="10"/></clipPath>
+    <clipPath id="clip-m2"><rect x="350" y="38" width="72" height="110" rx="10"/></clipPath>
+    <clipPath id="clip-s1"><rect x="484" y="38" width="72" height="110" rx="10"/></clipPath>
+    <clipPath id="clip-s2"><rect x="568" y="38" width="72" height="110" rx="10"/></clipPath>
+  </defs>
+
+  <rect width="100%" height="100%" fill="#020617"/>
+  <rect x="10" y="10" width="668" height="168" rx="14" fill="#0b1220" stroke="#1e293b" stroke-width="2"/>
+
+  <rect class="frame" x="48" y="38" width="72" height="110" rx="10"/>
+  <rect class="frame" x="132" y="38" width="72" height="110" rx="10"/>
+  <rect class="frame" x="266" y="38" width="72" height="110" rx="10"/>
+  <rect class="frame" x="350" y="38" width="72" height="110" rx="10"/>
+  <rect class="frame" x="484" y="38" width="72" height="110" rx="10"/>
+  <rect class="frame" x="568" y="38" width="72" height="110" rx="10"/>
+
+  <g class="colon">
+    <circle cx="235" cy="76" r="6"/>
+    <circle cx="235" cy="112" r="6"/>
+    <circle cx="453" cy="76" r="6"/>
+    <circle cx="453" cy="112" r="6"/>
+    <animate
+      attributeName="opacity"
+      values="1;1;0;0;1"
+      keyTimes="0;0.45;0.5;0.95;1"
+      dur="1s"
+      repeatCount="indefinite"
+      begin="-0s"/>
+  </g>
+
+  <g class="digit">
+    <g clip-path="url(#clip-h1)">
+      <g transform="translate(84 38)">
+        <g>
+          <text x="0" y="84">0</text>
+          <text x="0" y="194">1</text>
+          <text x="0" y="304">2</text>
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            calcMode="discrete"
+            values="0 0;0 -110;0 -220;0 0"
+            keyTimes="0;0.4166667;0.8333333;1"
+            dur="86400s"
+            repeatCount="indefinite"
+            begin="-0s"/>
+        </g>
+      </g>
+    </g>
+
+    <g clip-path="url(#clip-h2)">
+      <g transform="translate(168 38)">
+        <g>
+          <text x="0" y="84">0</text>
+          <text x="0" y="194">1</text>
+          <text x="0" y="304">2</text>
+          <text x="0" y="414">3</text>
+          <text x="0" y="524">4</text>
+          <text x="0" y="634">5</text>
+          <text x="0" y="744">6</text>
+          <text x="0" y="854">7</text>
+          <text x="0" y="964">8</text>
+          <text x="0" y="1074">9</text>
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            calcMode="discrete"
+            values="0 0;0 -110;0 -220;0 -330;0 -440;0 -550;0 -660;0 -770;0 -880;0 -990;0 0;0 -110;0 -220;0 -330;0 -440;0 -550;0 -660;0 -770;0 -880;0 -990;0 0;0 -110;0 -220;0 -330;0 0"
+            dur="86400s"
+            repeatCount="indefinite"
+            begin="-0s"/>
+        </g>
+      </g>
+    </g>
+
+    <g clip-path="url(#clip-m1)">
+      <g transform="translate(302 38)">
+        <g>
+          <text x="0" y="84">0</text>
+          <text x="0" y="194">1</text>
+          <text x="0" y="304">2</text>
+          <text x="0" y="414">3</text>
+          <text x="0" y="524">4</text>
+          <text x="0" y="634">5</text>
+          <text x="0" y="744">6</text>
+          <text x="0" y="854">7</text>
+          <text x="0" y="964">8</text>
+          <text x="0" y="1074">9</text>
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            calcMode="discrete"
+            values="0 0;0 -110;0 -220;0 -330;0 -440;0 -550;0 -660;0 -770;0 -880;0 -990;0 0"
+            dur="600s"
+            repeatCount="indefinite"
+            begin="-0s"/>
+        </g>
+      </g>
+    </g>
+
+    <g clip-path="url(#clip-m2)">
+      <g transform="translate(386 38)">
+        <g>
+          <text x="0" y="84">0</text>
+          <text x="0" y="194">1</text>
+          <text x="0" y="304">2</text>
+          <text x="0" y="414">3</text>
+          <text x="0" y="524">4</text>
+          <text x="0" y="634">5</text>
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            calcMode="discrete"
+            values="0 0;0 -110;0 -220;0 -330;0 -440;0 -550;0 0"
+            dur="3600s"
+            repeatCount="indefinite"
+            begin="-0s"/>
+        </g>
+      </g>
+    </g>
+
+    <g clip-path="url(#clip-s1)">
+      <g transform="translate(520 38)">
+        <g>
+          <text x="0" y="84">0</text>
+          <text x="0" y="194">1</text>
+          <text x="0" y="304">2</text>
+          <text x="0" y="414">3</text>
+          <text x="0" y="524">4</text>
+          <text x="0" y="634">5</text>
+          <text x="0" y="744">6</text>
+          <text x="0" y="854">7</text>
+          <text x="0" y="964">8</text>
+          <text x="0" y="1074">9</text>
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            calcMode="discrete"
+            values="0 0;0 -110;0 -220;0 -330;0 -440;0 -550;0 -660;0 -770;0 -880;0 -990;0 0"
+            dur="10s"
+            repeatCount="indefinite"
+            begin="-0s"/>
+        </g>
+      </g>
+    </g>
+
+    <g clip-path="url(#clip-s2)">
+      <g transform="translate(604 38)">
+        <g>
+          <text x="0" y="84">0</text>
+          <text x="0" y="194">1</text>
+          <text x="0" y="304">2</text>
+          <text x="0" y="414">3</text>
+          <text x="0" y="524">4</text>
+          <text x="0" y="634">5</text>
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            calcMode="discrete"
+            values="0 0;0 -110;0 -220;0 -330;0 -440;0 -550;0 0"
+            dur="60s"
+            repeatCount="indefinite"
+            begin="-0s"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>

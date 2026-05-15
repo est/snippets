@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 72" width="260" height="72">
+<!--
+  Pure SVG Digital Clock   SMIL animation, zero JavaScript.
+  Works in GitHub README, email signatures, <img> embeds.
+
+  Default start: 00:00:00 (all begin="0s").
+  Server-side time injection:
+    T = H*3600 + M*60 + S  (seconds since midnight)
+    Hours group:         begin="-{T}s"
+    Minutes-tens group:  begin="-{T%3600}s"
+    Minutes-ones group:  begin="-{T%600}s"
+    Seconds-tens group:  begin="-{T%60}s"
+    Seconds-ones group:  begin="-{T%10}s"
+    Colon blink:         begin="-{T%1}s"  (0 for whole seconds)
+-->
+<title>Digital Clock HH:MM:SS</title>
+<defs>
+  <filter id="glow" x="-15%" y="-15%" width="130%" height="130%">
+    <feGaussianBlur stdDeviation="2" result="b"/>
+    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+
+<rect width="260" height="72" rx="8" fill="#0d1117"/>
+<rect x="2" y="2" width="256" height="68" rx="7" fill="none" stroke="#21262d" stroke-width="0.5"/>
+
+<g font-family="'Consolas','Courier New',monospace" font-size="48" font-weight="bold"
+   text-anchor="middle" dominant-baseline="central">
+
+<!-- Inactive segment shadows -->
+<g fill="#00ff41" opacity="0.07">
+  <text x="30" y="37">8</text><text x="62" y="37">8</text>
+  <circle cx="88" cy="25" r="3.5"/><circle cx="88" cy="49" r="3.5"/>
+  <text x="114" y="37">8</text><text x="146" y="37">8</text>
+  <circle cx="172" cy="25" r="3.5"/><circle cx="172" cy="49" r="3.5"/>
+  <text x="198" y="37">8</text><text x="230" y="37">8</text>
+</g>
+
+<g fill="#00ff41" filter="url(#glow)">
+
+<!-- Colons: 1s blink cycle -->
+<g><circle cx="88" cy="25" r="3.5"/><circle cx="88" cy="49" r="3.5"/><animate attributeName="opacity" calcMode="discrete" values="1;0" keyTimes="0;0.5" dur="1s" begin="0s" repeatCount="indefinite"/></g>
+<g><circle cx="172" cy="25" r="3.5"/><circle cx="172" cy="49" r="3.5"/><animate attributeName="opacity" calcMode="discrete" values="1;0" keyTimes="0;0.5" dur="1s" begin="0s" repeatCount="indefinite"/></g>
+
+<!-- Hours tens  x=30  dur=86400s  (0 for h0-9, 1 for h10-19, 2 for h20-23) -->
+<text x="30" y="37" opacity="1">0<animate attributeName="opacity" calcMode="discrete" values="1;0" keyTimes="0;0.416667" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="30" y="37" opacity="0">1<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.416667;0.833333" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="30" y="37" opacity="0">2<animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.833333" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+
+<!-- Hours ones  x=62  dur=86400s  (each digit appears at multiple hours) -->
+<text x="62" y="37" opacity="1">0<animate attributeName="opacity" calcMode="discrete" values="1;0;1;0;1;0" keyTimes="0;0.041667;0.416667;0.458333;0.833333;0.875" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="62" y="37" opacity="0">1<animate attributeName="opacity" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.041667;0.083333;0.458333;0.5;0.875;0.916667" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="62" y="37" opacity="0">2<animate attributeName="opacity" calcMode="discrete" values="0;1;0;1;0;1;0" keyTimes="0;0.083333;0.125;0.5;0.541667;0.916667;0.958333" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="62" y="37" opacity="0">3<animate attributeName="opacity" calcMode="discrete" values="0;1;0;1;0;1" keyTimes="0;0.125;0.166667;0.541667;0.583333;0.958333" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="62" y="37" opacity="0">4<animate attributeName="opacity" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.166667;0.208333;0.583333;0.625" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="62" y="37" opacity="0">5<animate attributeName="opacity" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.208333;0.25;0.625;0.666667" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="62" y="37" opacity="0">6<animate attributeName="opacity" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.25;0.291667;0.666667;0.708333" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="62" y="37" opacity="0">7<animate attributeName="opacity" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.291667;0.333333;0.708333;0.75" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="62" y="37" opacity="0">8<animate attributeName="opacity" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.333333;0.375;0.75;0.791667" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+<text x="62" y="37" opacity="0">9<animate attributeName="opacity" calcMode="discrete" values="0;1;0;1;0" keyTimes="0;0.375;0.416667;0.791667;0.833333" dur="86400s" begin="0s" repeatCount="indefinite"/></text>
+
+<!-- Minutes tens  x=114  dur=3600s  (0-5) -->
+<text x="114" y="37" opacity="1">0<animate attributeName="opacity" calcMode="discrete" values="1;0" keyTimes="0;0.166667" dur="3600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="114" y="37" opacity="0">1<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.166667;0.333333" dur="3600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="114" y="37" opacity="0">2<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.333333;0.5" dur="3600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="114" y="37" opacity="0">3<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.5;0.666667" dur="3600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="114" y="37" opacity="0">4<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.666667;0.833333" dur="3600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="114" y="37" opacity="0">5<animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.833333" dur="3600s" begin="0s" repeatCount="indefinite"/></text>
+
+<!-- Minutes ones  x=146  dur=600s  (0-9) -->
+<text x="146" y="37" opacity="1">0<animate attributeName="opacity" calcMode="discrete" values="1;0" keyTimes="0;0.1" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="146" y="37" opacity="0">1<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.1;0.2" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="146" y="37" opacity="0">2<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.2;0.3" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="146" y="37" opacity="0">3<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.3;0.4" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="146" y="37" opacity="0">4<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.4;0.5" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="146" y="37" opacity="0">5<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.5;0.6" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="146" y="37" opacity="0">6<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.6;0.7" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="146" y="37" opacity="0">7<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.7;0.8" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="146" y="37" opacity="0">8<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.8;0.9" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+<text x="146" y="37" opacity="0">9<animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.9" dur="600s" begin="0s" repeatCount="indefinite"/></text>
+
+<!-- Seconds tens  x=198  dur=60s  (0-5) -->
+<text x="198" y="37" opacity="1">0<animate attributeName="opacity" calcMode="discrete" values="1;0" keyTimes="0;0.166667" dur="60s" begin="0s" repeatCount="indefinite"/></text>
+<text x="198" y="37" opacity="0">1<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.166667;0.333333" dur="60s" begin="0s" repeatCount="indefinite"/></text>
+<text x="198" y="37" opacity="0">2<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.333333;0.5" dur="60s" begin="0s" repeatCount="indefinite"/></text>
+<text x="198" y="37" opacity="0">3<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.5;0.666667" dur="60s" begin="0s" repeatCount="indefinite"/></text>
+<text x="198" y="37" opacity="0">4<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.666667;0.833333" dur="60s" begin="0s" repeatCount="indefinite"/></text>
+<text x="198" y="37" opacity="0">5<animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.833333" dur="60s" begin="0s" repeatCount="indefinite"/></text>
+
+<!-- Seconds ones  x=230  dur=10s  (0-9) -->
+<text x="230" y="37" opacity="1">0<animate attributeName="opacity" calcMode="discrete" values="1;0" keyTimes="0;0.1" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+<text x="230" y="37" opacity="0">1<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.1;0.2" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+<text x="230" y="37" opacity="0">2<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.2;0.3" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+<text x="230" y="37" opacity="0">3<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.3;0.4" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+<text x="230" y="37" opacity="0">4<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.4;0.5" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+<text x="230" y="37" opacity="0">5<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.5;0.6" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+<text x="230" y="37" opacity="0">6<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.6;0.7" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+<text x="230" y="37" opacity="0">7<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.7;0.8" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+<text x="230" y="37" opacity="0">8<animate attributeName="opacity" calcMode="discrete" values="0;1;0" keyTimes="0;0.8;0.9" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+<text x="230" y="37" opacity="0">9<animate attributeName="opacity" calcMode="discrete" values="0;1" keyTimes="0;0.9" dur="10s" begin="0s" repeatCount="indefinite"/></text>
+
+</g>
+</g>
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11 2" width="550" height="100">
+  <style>
+    text { font-family: monospace; font-size: 1.4; dominant-baseline: central; }
+    .hours { animation: roll-h 86400s steps(24) infinite; }
+    .minutes { animation: roll-m 3600s steps(60) infinite; }
+    .seconds { animation: roll-m 60s steps(60) infinite; }
+    .sync { animation-delay: -23906s; } /* 统一校准至 06:38:26 */
+    
+    @keyframes roll-h { to { transform: translateX(-48px); } }
+    @keyframes roll-m { to { transform: translateX(-120px); } }
+  </style>
+  
+  <!-- 经典中央冒号闪烁 -->
+  <text x="3.1" y="1">:<animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/></text>
+  
+  <!-- 小时滑动带 (00-23) -->
+  <g clip-path="url(#w2)" transform="translate(0.5, 0)">
+    <text class="hours sync" x="0" y="1">000102030405060708091011121314151617181920212223</text>
+  </g>
+  
+  <!-- 分钟滑动带 (00-59) -->
+  <g clip-path="url(#w2)" transform="translate(4.5, 0)">
+    <text class="minutes sync" x="0" y="1">000102030405060708091011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859</text>
+  </g>
+  
+  <!-- 秒钟滑动带 (00-59) -->
+  <g clip-path="url(#w2)" transform="translate(7.5, 0)">
+    <text class="seconds sync" x="0" y="1">000102030405060708091011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859</text>
+  </g>
+  
+  <!-- 复用的双位数字裁剪视窗 -->
+  <defs>
+    <clipPath id="w2"><rect width="2" height="2"/></clipPath>
+  </defs>
+</svg>

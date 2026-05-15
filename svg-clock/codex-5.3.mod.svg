@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 32" width="500" height="160">
+<defs><clipPath id="c"><rect width="100" height="32"/></clipPath></defs>
+<style>
+text{font:bold 24px monospace;dominant-baseline:central;fill:#0f0}
+svg{background:#111}
+.blink{animation:blink 1s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+@keyframes d10{0%,10%{transform:translateY(0)}10.01%,20%{transform:translateY(-32px)}20.01%,30%{transform:translateY(-64px)}30.01%,40%{transform:translateY(-96px)}40.01%,50%{transform:translateY(-128px)}50.01%,60%{transform:translateY(-160px)}60.01%,70%{transform:translateY(-192px)}70.01%,80%{transform:translateY(-224px)}80.01%,90%{transform:translateY(-256px)}90.01%,100%{transform:translateY(-288px)}}
+@keyframes d6{0%,16.66%{transform:translateY(0)}16.67%,33.32%{transform:translateY(-32px)}33.33%,49.99%{transform:translateY(-64px)}50%,66.65%{transform:translateY(-96px)}66.66%,83.32%{transform:translateY(-128px)}83.33%,100%{transform:translateY(-160px)}}
+@keyframes d3{0%,41.66%{transform:translateY(0)}41.67%,83.32%{transform:translateY(-32px)}83.33%,100%{transform:translateY(-64px)}}
+.s2{animation:d10 10s infinite}.s1{animation:d6 60s infinite}
+.m2{animation:d10 600s infinite}.m1{animation:d6 3600s infinite}
+.h2{animation:d10 36000s infinite}.h1{animation:d3 86400s infinite}
+</style>
+<g clip-path="url(#c)">
+<g class="h1" style="animation-delay:-24326s"><text x="4" y="16">0</text><text x="4" y="48">1</text><text x="4" y="80">2</text></g>
+<g class="h2" style="animation-delay:-2726s"><text x="18" y="16">0</text><text x="18" y="48">1</text><text x="18" y="80">2</text><text x="18" y="112">3</text><text x="18" y="144">4</text><text x="18" y="176">5</text><text x="18" y="208">6</text><text x="18" y="240">7</text><text x="18" y="272">8</text><text x="18" y="304">9</text></g>
+<text x="33" y="16" class="blink">:</text>
+<g class="m1" style="animation-delay:-326s"><text x="42" y="16">0</text><text x="42" y="48">1</text><text x="42" y="80">2</text><text x="42" y="112">3</text><text x="42" y="144">4</text><text x="42" y="176">5</text></g>
+<g class="m2" style="animation-delay:-26s"><text x="56" y="16">0</text><text x="56" y="48">1</text><text x="56" y="80">2</text><text x="56" y="112">3</text><text x="56" y="144">4</text><text x="56" y="176">5</text><text x="56" y="208">6</text><text x="56" y="240">7</text><text x="56" y="272">8</text><text x="56" y="304">9</text></g>
+<text x="71" y="16" class="blink">:</text>
+<g class="s1" style="animation-delay:-6s"><text x="80" y="16">0</text><text x="80" y="48">1</text><text x="80" y="80">2</text><text x="80" y="112">3</text><text x="80" y="144">4</text><text x="80" y="176">5</text></g>
+<g class="s2" style="animation-delay:0s"><text x="94" y="16">0</text><text x="94" y="48">1</text><text x="94" y="80">2</text><text x="94" y="112">3</text><text x="94" y="144">4</text><text x="94" y="176">5</text><text x="94" y="208">6</text><text x="94" y="240">7</text><text x="94" y="272">8</text><text x="94" y="304">9</text></g>
+</g>
+</svg>

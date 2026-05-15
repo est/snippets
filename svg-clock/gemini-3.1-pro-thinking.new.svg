@@ -1,0 +1,85 @@
+<svg width="440" height="120" viewBox="0 0 440 120" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    :root {
+      /* Current time offset in seconds. Server can modify this to sync time. */
+      --start-time: -23906s; 
+    }
+    
+    .clock-bg {
+      fill: #0d1117;
+      stroke: #30363d;
+      stroke-width: 2;
+    }
+    
+    .digit-text {
+      fill: #3fb950;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 84px;
+      font-weight: bold;
+      user-select: none;
+    }
+    
+    /* Animation: translate left by the total width of the filmstrip */
+    @keyframes scroll-hours {
+      to { transform: translateX(-2400px); }
+    }
+    @keyframes scroll-minutes {
+      to { transform: translateX(-6000px); }
+    }
+    @keyframes scroll-seconds {
+      to { transform: translateX(-6000px); }
+    }
+    @keyframes blink {
+      0%, 49.9% { opacity: 1; }
+      50%, 100% { opacity: 0; }
+    }
+    
+    /* 
+      Use steps(N, end) to divide smooth movement into discrete frame jumps.
+      Share the same animation-delay for perfect frame-level sync.
+    */
+    .hours {
+      animation: scroll-hours 86400s steps(24, end) infinite;
+      animation-delay: var(--start-time);
+    }
+    .minutes {
+      animation: scroll-minutes 3600s steps(60, end) infinite;
+      animation-delay: var(--start-time);
+    }
+    .seconds {
+      animation: scroll-seconds 60s steps(60, end) infinite;
+      animation-delay: var(--start-time);
+    }
+    .colon {
+      animation: blink 1s infinite;
+      animation-delay: var(--start-time);
+    }
+  </style>
+
+  <!-- Background -->
+  <rect class="clock-bg" x="1" y="1" width="438" height="118" rx="15" />
+
+  <g class="digit-text">
+    <!-- Hours: 24 frames, internal svg acts as clipPath -->
+    <svg x="30" y="20" width="100" height="80" overflow="hidden">
+      <!-- Use lengthAdjust="spacing" to prevent glyph distortion, only adjust spaces -->
+      <text class="hours" x="0" y="68" textLength="2400" lengthAdjust="spacing">000102030405060708091011121314151617181920212223</text>
+    </svg>
+
+    <!-- Colon -->
+    <text class="colon" x="150" y="88" text-anchor="middle">:</text>
+
+    <!-- Minutes: 60 frames -->
+    <svg x="170" y="20" width="100" height="80" overflow="hidden">
+      <text class="minutes" x="0" y="68" textLength="6000" lengthAdjust="spacing">000102030405060708091011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859</text>
+    </svg>
+
+    <!-- Colon -->
+    <text class="colon" x="290" y="88" text-anchor="middle">:</text>
+
+    <!-- Seconds: 60 frames -->
+    <svg x="310" y="20" width="100" height="80" overflow="hidden">
+      <text class="seconds" x="0" y="68" textLength="6000" lengthAdjust="spacing">000102030405060708091011121314151617181920212223242526272829303132333435363738394041424344454647484950515253545556575859</text>
+    </svg>
+  </g>
+</svg>

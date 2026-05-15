@@ -1,0 +1,62 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 11 2" width="550" height="100">
+<defs>
+  <clipPath id="slot"><rect x="0" y="0" width="1" height="2"/></clipPath>
+  <g id="digits10">
+    <text x="0" y="1">0</text><text x="0" y="3">1</text><text x="0" y="5">2</text><text x="0" y="7">3</text><text x="0" y="9">4</text>
+    <text x="0" y="11">5</text><text x="0" y="13">6</text><text x="0" y="15">7</text><text x="0" y="17">8</text><text x="0" y="19">9</text>
+    <text x="0" y="21">0</text>
+  </g>
+  <g id="digits6">
+    <text x="0" y="1">0</text><text x="0" y="3">1</text><text x="0" y="5">2</text><text x="0" y="7">3</text><text x="0" y="9">4</text>
+    <text x="0" y="11">5</text><text x="0" y="13">0</text>
+  </g>
+  <g id="digits3">
+    <text x="0" y="1">0</text><text x="0" y="3">1</text><text x="0" y="5">2</text><text x="0" y="7">0</text>
+  </g>
+</defs>
+<style>
+text{font:1.4px monospace;dominant-baseline:central}
+.blink{animation:blink 1s step-end infinite}
+.r10{animation:r10 var(--dur) steps(10,end) infinite;animation-delay:var(--delay)}
+.r6{animation:r6 var(--dur) steps(6,end) infinite;animation-delay:var(--delay)}
+.r3{animation:r3 var(--dur) steps(3,end) infinite;animation-delay:var(--delay)}
+@keyframes blink{50%{opacity:0}}
+@keyframes r10{to{transform:translateY(-20px)}}
+@keyframes r6{to{transform:translateY(-12px)}}
+@keyframes r3{to{transform:translateY(-6px)}}
+</style>
+
+<g transform="translate(0.5 0)">
+  <g clip-path="url(#slot)">
+    <g class="r3" style="--dur:86400s;--delay:-24326s"><use href="#digits3"/></g>
+  </g>
+</g>
+<g transform="translate(1.5 0)">
+  <g clip-path="url(#slot)">
+    <g class="r10" style="--dur:36000s;--delay:-24326s"><use href="#digits10"/></g>
+  </g>
+</g>
+<text class="blink" x="3.1" y="1">:</text>
+<g transform="translate(4.5 0)">
+  <g clip-path="url(#slot)">
+    <g class="r6" style="--dur:3600s;--delay:-2726s"><use href="#digits6"/></g>
+  </g>
+</g>
+<g transform="translate(5.5 0)">
+  <g clip-path="url(#slot)">
+    <g class="r10" style="--dur:600s;--delay:-326s"><use href="#digits10"/></g>
+  </g>
+</g>
+<text class="blink" x="6.1" y="1">:</text>
+<g transform="translate(7.5 0)">
+  <g clip-path="url(#slot)">
+    <g class="r6" style="--dur:60s;--delay:-26s"><use href="#digits6"/></g>
+  </g>
+</g>
+<g transform="translate(8.5 0)">
+  <g clip-path="url(#slot)">
+    <g class="r10" style="--dur:10s;--delay:-6s"><use href="#digits10"/></g>
+  </g>
+</g>
+</svg>
