@@ -2,89 +2,238 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATProto 动态</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>朋友圈</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
-            background-color: #f5f5f5;
-            color: #333;
-            line-height: 1.6;
+            background-color: #EDEDED;
+            color: #191919;
+            line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
         }
         
-        .timeline {
-            max-width: 600px;
+        .container {
+            max-width: 414px;
             margin: 0 auto;
-            background-color: #fff;
-            padding-bottom: 80px;
+            background-color: #EDEDED;
+            min-height: 100vh;
+            position: relative;
         }
         
-        .header {
-            position: sticky;
+        /* 顶部导航栏 */
+        .nav-bar {
+            position: fixed;
             top: 0;
-            background-color: #fff;
-            z-index: 100;
-            padding: 10px 16px;
-            border-bottom: 1px solid #e0e0e0;
-            text-align: center;
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .post {
-            padding: 12px 16px;
-            border-bottom: 8px solid #f5f5f5;
-        }
-        
-        .post-header {
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 414px;
+            height: 55px;
+            z-index: 1000;
             display: flex;
             align-items: center;
-            margin-bottom: 10px;
+            justify-content: center;
+            padding: 0 16px;
+            transition: background-color 0.3s, color 0.3s;
+            background-color: transparent;
         }
         
-        .avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            background-color: #e0e0e0;
-            margin-right: 12px;
+        .nav-bar.scrolled {
+            background-color: #EDEDED;
+        }
+        
+        .nav-bar .back-btn {
+            position: absolute;
+            left: 12px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+        
+        .nav-bar .back-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+            transition: fill 0.3s;
+        }
+        
+        .nav-bar.scrolled .back-btn svg {
+            fill: #191919;
+        }
+        
+        .nav-bar .title {
+            font-size: 16px;
+            font-weight: 500;
+            color: transparent;
+            transition: color 0.3s;
+        }
+        
+        .nav-bar.scrolled .title {
+            color: #191919;
+        }
+        
+        .nav-bar .camera-btn {
+            position: absolute;
+            right: 16px;
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+        }
+        
+        .nav-bar .camera-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+            transition: fill 0.3s;
+        }
+        
+        .nav-bar.scrolled .camera-btn svg {
+            fill: #191919;
+        }
+        
+        /* 封面区域 */
+        .cover-section {
+            position: relative;
+            height: 0;
+            padding-bottom: 75%;
             overflow: hidden;
         }
         
-        .avatar img {
+        .cover-image {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
         
-        .user-info {
-            flex: 1;
+        .cover-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 20px 16px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: flex-end;
+            background: linear-gradient(transparent, rgba(0,0,0,0.3));
         }
         
-        .username {
-            font-size: 15px;
+        .cover-user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .cover-username {
+            font-size: 18px;
             font-weight: 600;
-            margin-bottom: 2px;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
         }
         
-        .post-time {
-            font-size: 12px;
-            color: #8e8e93;
+        .cover-avatar {
+            width: 68px;
+            height: 68px;
+            border-radius: 8px;
+            border: 3px solid white;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
         
-        .post-content {
-            font-size: 15px;
-            line-height: 1.6;
+        .cover-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* 动态列表 */
+        .posts-list {
+            background-color: white;
+            margin-top: 12px;
+            padding-bottom: 80px;
+        }
+        
+        .post-item {
+            padding: 12px 16px;
+            border-bottom: 1px solid #E5E5E5;
+        }
+        
+        .post-item:last-child {
+            border-bottom: none;
+        }
+        
+        .post-header {
+            display: flex;
+            align-items: flex-start;
             margin-bottom: 10px;
+        }
+        
+        .post-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        
+        .post-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .post-meta {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .post-username {
+            font-size: 16px;
+            font-weight: 600;
+            color: #174B73;
+            margin-bottom: 2px;
             word-break: break-word;
         }
         
+        .post-content {
+            font-size: 16px;
+            line-height: 1.5;
+            color: #191919;
+            margin-bottom: 10px;
+            word-break: break-word;
+            display: -webkit-box;
+            -webkit-line-clamp: 8;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .post-location {
+            display: inline-flex;
+            align-items: center;
+            font-size: 13px;
+            color: #576B95;
+            margin-bottom: 10px;
+        }
+        
+        .post-location svg {
+            width: 14px;
+            height: 14px;
+            margin-right: 4px;
+            fill: #576B95;
+        }
+        
+        /* 图片网格 */
         .post-images {
             margin-bottom: 10px;
         }
@@ -96,491 +245,593 @@
         
         .image-grid-1 {
             grid-template-columns: 1fr;
+            max-width: 70%;
         }
         
-        .image-grid-2,
-        .image-grid-3 {
+        .image-grid-2 {
             grid-template-columns: repeat(2, 1fr);
         }
         
-        .image-grid-3 > div:nth-child(3n) {
-            grid-column: span 2;
+        .image-grid-3 {
+            grid-template-columns: repeat(3, 1fr);
         }
         
-        .image-grid-4,
+        .image-grid-4 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
         .image-grid-5,
         .image-grid-6 {
             grid-template-columns: repeat(3, 1fr);
         }
         
-        .image-container {
-            aspect-ratio: 1;
-            overflow: hidden;
-            background-color: #f5f5f5;
+        .image-grid-7,
+        .image-grid-8,
+        .image-grid-9 {
+            grid-template-columns: repeat(3, 1fr);
         }
         
-        .image-container img {
+        .image-item {
+            aspect-ratio: 1;
+            overflow: hidden;
+            background-color: #F5F5F5;
+            cursor: pointer;
+        }
+        
+        .image-item img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            transition: transform 0.3s ease;
+            transition: transform 0.2s;
         }
         
+        .image-item:active img {
+            transform: scale(0.98);
+        }
+        
+        /* 操作栏 */
         .post-actions {
             display: flex;
+            align-items: center;
             justify-content: space-between;
+            margin-top: 12px;
             padding-top: 8px;
-            border-top: 1px solid #e0e0e0;
         }
         
-        .action-btn {
-            display: flex;
-            align-items: center;
-            color: #8e8e93;
-            font-size: 14px;
-            padding: 4px 0;
-        }
-        
-        .action-btn svg {
-            width: 20px;
-            height: 20px;
-            margin-right: 6px;
-        }
-        
-        .like-comment-section {
-            margin-top: 10px;
-            padding: 8px 0;
-        }
-        
-        .likes {
-            background-color: #f5f5f5;
-            padding: 8px 12px;
-            border-radius: 4px;
-            margin-bottom: 8px;
-            font-size: 14px;
-            color: #555;
-        }
-        
-        .comments {
-            font-size: 14px;
-        }
-        
-        .comment {
-            margin-bottom: 8px;
-        }
-        
-        .comment-author {
-            font-weight: 600;
-            margin-right: 4px;
-        }
-        
-        .comment-content {
-            color: #333;
-        }
-        
-        .comment-form {
-            display: flex;
-            align-items: center;
-            margin-top: 8px;
-            padding: 8px;
-            background-color: #f5f5f5;
-            border-radius: 20px;
-        }
-        
-        .comment-input {
-            flex: 1;
-            background: transparent;
-            border: none;
-            outline: none;
-            font-size: 14px;
-        }
-        
-        .comment-submit {
-            background: transparent;
-            border: none;
-            color: #07c160;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        
-        /* 添加更多朋友圈特有样式 */
-        .location-tag {
-            display: inline-flex;
-            align-items: center;
+        .post-time {
             font-size: 13px;
-            color: #3478f6;
-            margin-right: 12px;
-            margin-top: 6px;
+            color: #999;
         }
         
-        .location-tag svg {
-            width: 14px;
-            height: 14px;
-            margin-right: 4px;
-        }
-        
-        .post-more {
-            width: 20px;
-            height: 20px;
+        .action-menu-btn {
+            width: 28px;
+            height: 28px;
+            background-color: #F5F5F5;
+            border: none;
+            border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: pointer;
+            position: relative;
         }
         
-        .post-more svg {
-            width: 16px;
-            height: 16px;
-            color: #8e8e93;
+        .action-menu-btn svg {
+            width: 18px;
+            height: 18px;
+            fill: #191919;
         }
         
-        /* 适配不同屏幕 */
-        @media (max-width: 600px) {
-            .timeline {
-                max-width: 100%;
-            }
+        /* 弹出菜单 */
+        .action-popup {
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: #4C4C4C;
+            border-radius: 4px;
+            display: none;
+            z-index: 100;
+            min-width: 160px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.3);
         }
         
-        /* 错误状态样式 */
-        .error-state {
-            padding: 40px 20px;
-            text-align: center;
-            color: #8e8e93;
+        .action-popup.show {
+            display: flex;
         }
         
-        .error-state .icon {
-            font-size: 48px;
-            margin-bottom: 16px;
+        .action-popup::after {
+            content: '';
+            position: absolute;
+            top: -6px;
+            right: 10px;
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 6px solid #4C4C4C;
         }
         
-        .error-state .message {
-            font-size: 16px;
-            margin-bottom: 16px;
-        }
-        
-        .error-state .retry-btn {
-            background-color: #07c160;
+        .popup-item {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 16px;
             color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 20px;
             font-size: 14px;
+            cursor: pointer;
+            white-space: nowrap;
+            border-right: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .popup-item:last-child {
+            border-right: none;
+        }
+        
+        .popup-item svg {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+        
+        .popup-item:active {
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        /* 点赞和评论区 */
+        .like-comment-section {
+            margin-top: 10px;
+            background-color: #F5F5F5;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .likes-section {
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: #174B73;
+            border-bottom: 1px solid #E5E5E5;
+        }
+        
+        .likes-section svg {
+            width: 18px;
+            height: 18px;
+            fill: #174B73;
+            flex-shrink: 0;
+        }
+        
+        .likes-names {
+            flex: 1;
+            word-break: break-word;
+        }
+        
+        .likes-names .like-user {
             cursor: pointer;
         }
         
-        /* 加载状态样式 */
-        .loading-state {
-            padding: 40px 20px;
-            text-align: center;
-            color: #8e8e93;
+        .likes-names .like-user:hover {
+            text-decoration: underline;
         }
         
-        .loading-state .spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #07c160;
+        .comments-section {
+            padding: 0;
+        }
+        
+        .comment-item {
+            padding: 8px 12px;
+            font-size: 14px;
+            line-height: 1.4;
+            border-bottom: 1px solid #E5E5E5;
+        }
+        
+        .comment-item:last-child {
+            border-bottom: none;
+        }
+        
+        .comment-author {
+            color: #174B73;
+            font-weight: 500;
+            margin-right: 4px;
+        }
+        
+        .comment-text {
+            color: #191919;
+        }
+        
+        .comment-reply {
+            color: #174B73;
+            margin: 0 4px;
+        }
+        
+        /* 图片预览 */
+        .image-preview-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.95);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        .image-preview-overlay.show {
+            display: flex;
+        }
+        
+        .image-preview-overlay img {
+            max-width: 95%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+        
+        /* 加载状态 */
+        .loading-state {
+            padding: 60px 20px;
+            text-align: center;
+            color: #999;
+        }
+        
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid #E5E5E5;
+            border-top-color: #174B73;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            animation: spin 0.8s linear infinite;
             margin: 0 auto 16px;
         }
         
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        /* 点赞动画 */
+        @keyframes likeAnimation {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        
+        .like-animate {
+            animation: likeAnimation 0.3s ease;
+        }
+        
+        /* 遮罩层 */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 50;
+            display: none;
+        }
+        
+        .overlay.show {
+            display: block;
+        }
+        
+        /* 底部安全区 */
+        .safe-area-bottom {
+            height: env(safe-area-inset-bottom, 20px);
+        }
+        
+        @media (max-width: 414px) {
+            .container {
+                max-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="timeline">
-        <div class="header">ATProto 动态</div>
-        
-        <!-- 动态将通过JavaScript动态加载 -->
-        <div id="posts-container"></div>
-        
-        <!-- 错误状态（初始隐藏） -->
-        <div id="error-state" class="error-state" style="display: none;">
-            <div class="icon">⚠️</div>
-            <div class="message">加载动态失败，请重试</div>
-            <button class="retry-btn">重试</button>
+    <div class="container">
+        <!-- 顶部导航栏 -->
+        <div class="nav-bar" id="navBar">
+            <div class="back-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+                </svg>
+            </div>
+            <span class="title">朋友圈</span>
+            <div class="camera-btn">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 15.2l3.2-2.4L12 10.4v4.8M12 7l-6 4.5V18h12v-6.5L12 7m0-2.5L21 9v9H3V9l9-4.5z"/>
+                </svg>
+            </div>
         </div>
         
-        <!-- 加载状态（初始显示） -->
-        <div id="loading-state" class="loading-state">
-            <div class="spinner"></div>
-            <div>加载中...</div>
+        <!-- 封面区域 -->
+        <div class="cover-section">
+            <img class="cover-image" src="https://picsum.photos/id/1018/800/600" alt="封面">
+            <div class="cover-overlay">
+                <div class="cover-user-info">
+                    <span class="cover-username">张小明</span>
+                    <div class="cover-avatar">
+                        <img src="https://picsum.photos/id/1005/200/200" alt="头像">
+                    </div>
+                </div>
+            </div>
         </div>
+        
+        <!-- 动态列表 -->
+        <div class="posts-list" id="postsList">
+            <div class="loading-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <div>正在加载...</div>
+            </div>
+        </div>
+        
+        <!-- 图片预览 -->
+        <div class="image-preview-overlay" id="imagePreview">
+            <img src="" alt="预览图片" id="previewImage">
+        </div>
+        
+        <!-- 遮罩层 -->
+        <div class="overlay" id="overlay"></div>
+        
+        <div class="safe-area-bottom"></div>
     </div>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const postsContainer = document.getElementById('posts-container');
-            const errorState = document.getElementById('error-state');
-            const loadingState = document.getElementById('loading-state');
-            const retryBtn = document.querySelector('.retry-btn');
+            const navBar = document.getElementById('navBar');
+            const postsList = document.getElementById('postsList');
+            const loadingState = document.getElementById('loadingState');
+            const imagePreview = document.getElementById('imagePreview');
+            const previewImage = document.getElementById('previewImage');
+            const overlay = document.getElementById('overlay');
             
-            // 固定的repo参数
-            const REPO = 'did:plc:2g5otsgova72cgqr6zglnys5';
-            // 示例postIds列表，实际应用中可能需要从另一个API获取
-            const POST_IDS = ['3lzxlka3aas2v', '3lzxlka3aas2w', '3lzxlka3aas2x'];
+            // 模拟数据
+            const mockUsers = [
+                { name: '李小华', avatar: 'https://picsum.photos/id/1012/200/200' },
+                { name: '王小红', avatar: 'https://picsum.photos/id/1027/200/200' },
+                { name: '赵小刚', avatar: 'https://picsum.photos/id/1025/200/200' },
+                { name: '刘小芳', avatar: 'https://picsum.photos/id/1029/200/200' },
+                { name: '陈小明', avatar: 'https://picsum.photos/id/1031/200/200' }
+            ];
             
-            // 从atproto API获取单条动态
-            async function fetchPost(postId) {
-                try {
-                    const url = `https://public.api.bsky.app/xrpc/com.atproto.repo.getRecord?repo=${REPO}&collection=app.bsky.feed.post&rkey=${postId}`;
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    const data = await response.json();
-                    return data.value;
-                } catch (error) {
-                    console.error('获取动态失败:', error);
-                    throw error;
+            const mockPosts = [
+                {
+                    user: mockUsers[0],
+                    content: '今天天气真好，和朋友一起去公园散步，拍了好多照片！☀️🌿',
+                    images: [1015, 1016, 1018],
+                    location: '城市中央公园',
+                    time: '15分钟前',
+                    likes: ['王小红', '赵小刚', '刘小芳'],
+                    comments: [
+                        { user: '王小红', text: '拍得真好看！' },
+                        { user: '赵小刚', text: '下次一起去呀' }
+                    ]
+                },
+                {
+                    user: mockUsers[1],
+                    content: '自己做的晚餐，味道还不错！🍳 从选材到烹饪花了两个小时，成果很满意~',
+                    images: [1024, 1022, 1020, 1019],
+                    location: '家里厨房',
+                    time: '2小时前',
+                    likes: ['张小明', '刘小芳'],
+                    comments: [
+                        { user: '张小明', text: '看起来好好吃，求菜谱！' }
+                    ]
+                },
+                {
+                    user: mockUsers[2],
+                    content: '周末去爬山，风景美不胜收！登顶的那一刻，所有的疲惫都值了。🏔️',
+                    images: [1036, 1039, 1040, 1041, 1043, 1044],
+                    time: '昨天',
+                    likes: ['张小明', '李小华', '王小红', '刘小芳', '陈小明'],
+                    comments: [
+                        { user: '李小华', text: '这是哪里？好想去！' },
+                        { user: '陈小明', text: '风景太美了' },
+                        { user: '刘小芳', text: '下次叫上我' }
+                    ]
+                },
+                {
+                    user: mockUsers[3],
+                    content: '新入手的相机，拍了一组照片，大家觉得怎么样？📷',
+                    images: [1050, 1051, 1052, 1053, 1054, 1055, 1056, 1057, 1058],
+                    time: '2天前',
+                    likes: ['赵小刚'],
+                    comments: []
+                },
+                {
+                    user: mockUsers[4],
+                    content: '分享一段读书笔记：「生活不是等待暴风雨过去，而是学会在雨中跳舞。」共勉。📚',
+                    images: [],
+                    time: '3天前',
+                    likes: ['张小明', '李小华', '王小红', '赵小刚', '刘小芳', '陈小明'],
+                    comments: [
+                        { user: '李小华', text: '说得真好！' },
+                        { user: '张小明', text: '共勉' }
+                    ]
                 }
-            }
+            ];
             
-            // 格式化时间
-            function formatDate(dateString) {
-                const date = new Date(dateString);
-                const now = new Date();
-                const diff = now - date;
-                const minutes = Math.floor(diff / 60000);
-                const hours = Math.floor(diff / 3600000);
-                const days = Math.floor(diff / 86400000);
-                
-                if (minutes < 60) {
-                    return `${minutes}分钟前`;
-                } else if (hours < 24) {
-                    return `${hours}小时前`;
-                } else if (days < 7) {
-                    return `${days}天前`;
+            // 滚动监听
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 200) {
+                    navBar.classList.add('scrolled');
                 } else {
-                    return date.toLocaleDateString('zh-CN');
+                    navBar.classList.remove('scrolled');
                 }
+            });
+            
+            // 格式化点赞列表
+            function formatLikes(likes) {
+                if (likes.length === 0) return '';
+                return likes.map(name => `<span class="like-user">${name}</span>`).join('，');
             }
             
             // 创建图片网格
             function createImageGrid(images) {
-                if (!images || images.length === 0) {
-                    return '';
-                }
+                if (!images || images.length === 0) return '';
                 
-                const count = Math.min(images.length, 6);
-                let gridClass = '';
-                
-                if (count === 1) gridClass = 'image-grid-1';
-                else if (count <= 3) gridClass = 'image-grid-3';
-                else gridClass = 'image-grid-6';
+                const count = Math.min(images.length, 9);
+                let gridClass = `image-grid-${count}`;
                 
                 let html = `<div class="post-images"><div class="image-grid ${gridClass}">`;
-                
                 for (let i = 0; i < count; i++) {
-                    // 使用picsum作为图片占位符，实际应用中应使用动态中的图片URL
-                    const imgUrl = `https://picsum.photos/id/${1000 + i}/600/600`;
-                    html += `<div class="image-container"><img src="${imgUrl}" alt="图片"></div>`;
+                    html += `
+                        <div class="image-item" data-src="https://picsum.photos/id/${images[i]}/800/800">
+                            <img src="https://picsum.photos/id/${images[i]}/400/400" alt="图片" loading="lazy">
+                        </div>
+                    `;
                 }
-                
                 html += '</div></div>';
                 return html;
             }
             
-            // 渲染单条动态
-            function renderPost(post, postId) {
-                // 模拟数据，实际应用中应从API响应中提取
-                const username = post.displayName || '用户';
-                const avatarUrl = `https://picsum.photos/id/${Math.floor(Math.random() * 100)}/200/200`;
-                const content = post.text || '这条动态没有文字内容';
-                const createdAt = formatDate(post.createdAt || new Date().toISOString());
+            // 渲染动态
+            function renderPost(post) {
+                const likesHtml = post.likes.length > 0 ? `
+                    <div class="likes-section">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                        <div class="likes-names">${formatLikes(post.likes)}</div>
+                    </div>
+                ` : '';
                 
-                // 生成随机的点赞数和评论
-                const likeCount = Math.floor(Math.random() * 20) + 1;
-                const commentCount = Math.floor(Math.random() * 5);
+                const commentsHtml = post.comments.length > 0 ? `
+                    <div class="comments-section">
+                        ${post.comments.map(c => `
+                            <div class="comment-item">
+                                <span class="comment-author">${c.user}</span>
+                                <span class="comment-text">${c.text}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : '';
                 
-                let commentsHtml = '';
-                for (let i = 0; i < commentCount; i++) {
-                    commentsHtml += `
-                        <div class="comment">
-                            <span class="comment-author">用户${i+1}</span>
-                            <span class="comment-content">这是一条评论</span>
-                        </div>
-                    `;
-                }
-                
-                // 创建位置标签（如果有）
-                const locationTag = post.location ? `
-                    <div class="location-tag">
-                        <svg viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"></path>
-                        </svg>
+                const locationHtml = post.location ? `
+                    <div class="post-location">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                         ${post.location}
                     </div>
                 ` : '';
                 
-                // 生成随机图片
-                const imagesCount = Math.floor(Math.random() * 7); // 0-6张图片
-                const images = imagesCount > 0 ? Array.from({length: imagesCount}) : [];
-                const imageGridHtml = createImageGrid(images);
+                const hasLikeComment = post.likes.length > 0 || post.comments.length > 0;
                 
-                const postHtml = `
-                    <div class="post" data-post-id="${postId}">
+                return `
+                    <div class="post-item">
                         <div class="post-header">
-                            <div class="avatar"><img src="${avatarUrl}" alt="头像"></div>
-                            <div class="user-info">
-                                <div class="username">${username}</div>
-                                <div class="post-time">${createdAt}</div>
+                            <div class="post-avatar">
+                                <img src="${post.user.avatar}" alt="头像">
                             </div>
-                            <div class="post-more">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <circle cx="6" cy="12" r="1.5"></circle>
-                                    <circle cx="12" cy="12" r="1.5"></circle>
-                                    <circle cx="18" cy="12" r="1.5"></circle>
-                                </svg>
+                            <div class="post-meta">
+                                <div class="post-username">${post.user.name}</div>
                             </div>
                         </div>
-                        <div class="post-content">
-                            ${content}
-                        </div>
-                        ${imageGridHtml}
-                        ${locationTag}
+                        <div class="post-content">${post.content}</div>
+                        ${createImageGrid(post.images)}
+                        ${locationHtml}
                         <div class="post-actions">
-                            <div class="action-btn">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"></path>
+                            <div class="post-time">${post.time}</div>
+                            <button class="action-menu-btn" onclick="toggleMenu(this)">
+                                <svg viewBox="0 0 24 24">
+                                    <circle cx="12" cy="6" r="2"/>
+                                    <circle cx="12" cy="12" r="2"/>
+                                    <circle cx="12" cy="18" r="2"/>
                                 </svg>
-                                赞
-                            </div>
-                            <div class="action-btn">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"></path>
-                                </svg>
-                                评论
-                            </div>
-                            <div class="action-btn">
-                                <svg viewBox="0 0 24 24" fill="none">
-                                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path>
-                                </svg>
-                                分享
-                            </div>
+                                <div class="action-popup">
+                                    <div class="popup-item" onclick="handleLike(event, this)">
+                                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                                        <span>赞</span>
+                                    </div>
+                                    <div class="popup-item" onclick="handleComment(event)">
+                                        <svg viewBox="0 0 24 24"><path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6V3c0-.55-.45-1-1-1H3c-.55 0-1 .45-1 1v14l4-4h10c.55 0 1-.45 1-1z"/></svg>
+                                        <span>评论</span>
+                                    </div>
+                                </div>
+                            </button>
                         </div>
-                        <div class="like-comment-section">
-                            <div class="likes">
-                                <span class="like-icon">❤️</span> ${likeCount}人赞了这条动态
-                            </div>
-                            <div class="comments">
+                        ${hasLikeComment ? `
+                            <div class="like-comment-section">
+                                ${likesHtml}
                                 ${commentsHtml}
                             </div>
-                            <div class="comment-form">
-                                <input type="text" class="comment-input" placeholder="评论...">
-                                <button class="comment-submit">发送</button>
-                            </div>
-                        </div>
+                        ` : ''}
                     </div>
                 `;
-                
-                postsContainer.insertAdjacentHTML('beforeend', postHtml);
             }
             
-            // 加载所有动态
-            async function loadPosts() {
-                postsContainer.innerHTML = '';
-                loadingState.style.display = 'block';
-                errorState.style.display = 'none';
+            // 切换菜单
+            window.toggleMenu = function(btn) {
+                const popup = btn.querySelector('.action-popup');
+                const isOpen = popup.classList.contains('show');
                 
-                try {
-                    // 模拟API调用延迟
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                    
-                    // 模拟从API获取数据
-                    const mockPosts = POST_IDS.map((id, index) => ({
-                        text: index === 0 ? '今天天气真好，出来晒太阳啦！☀️' : 
-                              index === 1 ? '自己做的晚餐，味道还不错！🍳' : 
-                              '新入手的相机，拍了一组照片，大家觉得怎么样？📷',
-                        displayName: index === 0 ? '张小明' : 
-                                     index === 1 ? '李小华' : '王小红',
-                        createdAt: new Date(Date.now() - index * 86400000).toISOString(),
-                        location: index === 0 ? '城市中央公园' : 
-                                 index === 2 ? '滨江大道' : null
-                    }));
-                    
-                    // 渲染所有动态
-                    POST_IDS.forEach((postId, index) => {
-                        renderPost(mockPosts[index], postId);
-                    });
-                    
-                    // 绑定事件
-                    bindEvents();
-                    
-                } catch (error) {
-                    console.error('加载动态失败:', error);
-                    loadingState.style.display = 'none';
-                    errorState.style.display = 'block';
-                } finally {
-                    loadingState.style.display = 'none';
+                // 关闭所有菜单
+                document.querySelectorAll('.action-popup').forEach(p => p.classList.remove('show'));
+                overlay.classList.remove('show');
+                
+                if (!isOpen) {
+                    popup.classList.add('show');
+                    overlay.classList.add('show');
                 }
+            };
+            
+            // 处理点赞
+            window.handleLike = function(event, item) {
+                event.stopPropagation();
+                const postItem = item.closest('.post-item');
+                const svg = item.querySelector('svg');
+                svg.style.fill = '#F73757';
+                item.classList.add('like-animate');
+                
+                setTimeout(() => {
+                    item.classList.remove('like-animate');
+                }, 300);
+                
+                // 关闭菜单
+                document.querySelectorAll('.action-popup').forEach(p => p.classList.remove('show'));
+                overlay.classList.remove('show');
+            };
+            
+            // 处理评论
+            window.handleComment = function(event) {
+                event.stopPropagation();
+                alert('评论功能开发中~');
+                document.querySelectorAll('.action-popup').forEach(p => p.classList.remove('show'));
+                overlay.classList.remove('show');
+            };
+            
+            // 点击遮罩关闭菜单
+            overlay.addEventListener('click', function() {
+                document.querySelectorAll('.action-popup').forEach(p => p.classList.remove('show'));
+                overlay.classList.remove('show');
+            });
+            
+            // 图片点击预览
+            document.addEventListener('click', function(e) {
+                const imageItem = e.target.closest('.image-item');
+                if (imageItem) {
+                    const src = imageItem.dataset.src;
+                    previewImage.src = src;
+                    imagePreview.classList.add('show');
+                }
+                
+                if (e.target === imagePreview) {
+                    imagePreview.classList.remove('show');
+                }
+            });
+            
+            // 加载动态
+            function loadPosts() {
+                setTimeout(() => {
+                    loadingState.style.display = 'none';
+                    
+                    const html = mockPosts.map(post => renderPost(post)).join('');
+                    postsList.insertAdjacentHTML('beforeend', html);
+                }, 800);
             }
             
-            // 绑定交互事件
-            function bindEvents() {
-                // 点赞功能
-                const likeButtons = document.querySelectorAll('.action-btn:nth-child(1)');
-                likeButtons.forEach(button => {
-                    button.addEventListener('click', function() {
-                        const likeIcon = this.querySelector('svg');
-                        if (likeIcon.style.fill === 'red') {
-                            likeIcon.style.fill = 'none';
-                        } else {
-                            likeIcon.style.fill = 'red';
-                        }
-                    });
-                });
-                
-                // 评论提交功能
-                const commentForms = document.querySelectorAll('.comment-form');
-                commentForms.forEach(form => {
-                    const input = form.querySelector('.comment-input');
-                    const submitBtn = form.querySelector('.comment-submit');
-                    const commentsContainer = form.parentElement.querySelector('.comments');
-                    
-                    submitBtn.addEventListener('click', function() {
-                        const commentText = input.value.trim();
-                        if (commentText) {
-                            const newComment = document.createElement('div');
-                            newComment.className = 'comment';
-                            newComment.innerHTML = `
-                                <span class="comment-author">我</span>
-                                <span class="comment-content">${commentText}</span>
-                            `;
-                            commentsContainer.appendChild(newComment);
-                            input.value = '';
-                        }
-                    });
-                    
-                    input.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') {
-                            submitBtn.click();
-                        }
-                    });
-                });
-                
-                // 图片点击放大预览
-                const images = document.querySelectorAll('.image-container img');
-                images.forEach(img => {
-                    img.addEventListener('click', function() {
-                        if (this.style.transform === 'scale(1.05)') {
-                            this.style.transform = 'scale(1)';
-                        } else {
-                            this.style.transform = 'scale(1.05)';
-                        }
-                    });
-                });
-            }
-            
-            // 初始化
             loadPosts();
-            
-            // 重试按钮事件
-            retryBtn.addEventListener('click', loadPosts);
         });
     </script>
 </body>
