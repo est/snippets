@@ -1,11 +1,19 @@
-import mmap, codecs
+import codecs, re
 from collections import Counter
 
-def word_count(filepath):
+def word_count(path):
     freq = Counter()
-    decode = codecs.getincrementaldecoder('utf-8')().decode
-    with open(filepath, 'rb') as f, mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
-        for chunk in iter(lambda: mm.read(65536), b''):
-            freq.update(decode(chunk).split())
-        freq.update(decode(b'', final=True).split())
-        return freq
+    dec = codecs.getincrementaldecoder("utf-8")().decode
+    w = re.compile(r'\w+')
+    tail = ""
+
+    with open(path, "rb") as f:
+        while chunk := f.read(65536):
+            s = tail + dec(chunk)
+            parts = w.finditer()
+            tail = parts.pop() if parts and not s[-1].isspace() else ""
+            freq.update(parts)
+        s = tail + dec(b"", final=True)
+        freq.update(s.split())
+
+    return freq
