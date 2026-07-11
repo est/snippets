@@ -79,15 +79,11 @@ export default {
     if (hasActiveSubagents()) return
     const tool = input.tool
     const args = output?.args ?? {}
-    const cmd = args.command ?? ""
 
-    // Predict permission need from tool + args
+    // Only predict for file-modifying tools — bash can't be reliably predicted
     let needsPermission = false
     let perm = ""
-    if (tool === "bash") {
-      if (/^\s*sudo\b/.test(cmd)) { needsPermission = true; perm = "sudo" }
-      else if (/\/(?!dev|tmp|var\/tmp)\S+/.test(cmd)) { needsPermission = true; perm = "external directory" }
-    } else if (tool === "edit" || tool === "write" || tool === "multiedit") {
+    if (tool === "edit" || tool === "write" || tool === "multiedit" || tool === "notebook-edit") {
       const p = args.file_path ?? args.path ?? ""
       if (p && !p.startsWith(process.cwd())) { needsPermission = true; perm = "external directory" }
     }
