@@ -3,6 +3,23 @@
 import { execSync } from "child_process"
 import { homedir } from "os"
 import { join } from "path"
+import { mkdirSync } from "fs"
+
+// --- Logging ---
+
+const LOG_FILE = join(homedir(), ".local/share/mimocode/notify-hook.log")
+mkdirSync(join(homedir(), ".local/share/mimocode"), { recursive: true })
+const logFd = (() => { try { return require("fs").openSync(LOG_FILE, "a") } catch { return -1 } })()
+
+function log(event: string, data: Record<string, any>) {
+  return
+  if (logFd < 0) return
+  try {
+    const ts = new Date().toISOString().slice(11, 23) // HH:MM:SS.mmm
+    const line = JSON.stringify({ ts, event, ...data }) + "\n"
+    require("fs").writeSync(logFd, line)
+  } catch {}
+}
 
 function run(cmd: string): string {
   try {
@@ -54,7 +71,9 @@ function esc(s: string): string {
 }
 
 function notify(title: string, message: string) {
-  if (!shouldNotify()) return
+  const focused = shouldNotify()
+  log("notify", { title, message, focused })
+  if (!focused) return
   try {
     execSync(
       `osascript -e 'display notification "${esc(message)}" with title "${esc(title)}" sound name "Glass"'`,
@@ -74,42 +93,63 @@ function hasActiveSubagents(): boolean {
   return activeSubagents.size > 0
 }
 
-export default {
-  "tool.execute.before": async (input, output) => {
-    if (hasActiveSubagents()) return
-    const tool = input.tool
-    const args = output?.args ?? {}
+// --- Permission detection via timeout ---
 
-    // Only predict for file-modifying tools — bash can't be reliably predicted
-    let needsPermission = false
-    let perm = ""
-    if (tool === "edit" || tool === "write" || tool === "multiedit" || tool === "notebook-edit") {
-      const p = args.file_path ?? args.path ?? ""
-      if (p && !p.startsWith(process.cwd())) { needsPermission = true; perm = "external directory" }
-    }
-    if (needsPermission) {
+const pendingTools = new Map<string, NodeJS.Timeout>()
+const PERMISSION_TIMEOUT_MS = 10000
+
+export default {
+  "tool.execute.before": async (input: any, output: any) => {
+    log("tool.execute.before", { input, output: { args: output?.args } })
+
+    // Start timer for ALL tools (including subagents — they may need permission too)
+    const callID = input.callID
+    const timer = setTimeout(() => {
+      pendingTools.delete(callID)
       waitingForPermission = true
-      notify("MiMoCode", `Permission needed: ${perm}`)
+      log("permission_timeout", { input, output })
+      notify("MiMoCode", `Permission needed: ${input.tool}`)
+    }, PERMISSION_TIMEOUT_MS)
+    pendingTools.set(callID, timer)
+  },
+
+  "tool.execute.after": async (input: any, output: any) => {
+    // log("tool.execute.after", { input, output })
+    // Tool completed — cancel the timer
+    const timer = pendingTools.get(input.callID)
+    if (timer) {
+      clearTimeout(timer)
+      pendingTools.delete(input.callID)
     }
+    waitingForPermission = false
   },
 
   "permission.ask": async (input: any) => {
+    log("permission.ask", { input: JSON.stringify(input).slice(0, 500) })
     waitingForPermission = true
     const perm = input?.permission ?? input?.name ?? "unknown"
     notify("MiMoCode", `Permission needed: ${perm}`)
   },
 
-  "tool.execute.after": async () => {
-    waitingForPermission = false
-  },
-
   "actor.preStop": {
-    run: async (input) => {
+    run: async (input: any) => {
+      log("actor.preStop", {
+        actorID: input.actorID,
+        agentType: input.agentType,
+        mode: input.mode,
+        task: (input.task ?? "").slice(0, 100),
+      })
       if (input.mode === "subagent") activeSubagents.add(input.actorID)
     },
   },
   "actor.postStop": {
-    run: async (input) => {
+    run: async (input: any) => {
+      log("actor.postStop", {
+        actorID: input.actorID,
+        agentType: input.agentType,
+        mode: input.mode,
+        outcome: input.outcome,
+      })
       activeSubagents.delete(input.actorID)
     },
   },
@@ -117,14 +157,30 @@ export default {
   "session.pre": async (input: any) => {
     currentSessionID = input.sessionID ?? ""
     currentAgentID = input.agentID ?? ""
+    log("session.pre", {
+      sessionID: currentSessionID,
+      agentID: currentAgentID,
+      task_id: input.task_id,
+    })
   },
 
-  "session.post": async (input) => {
-    if (hasActiveSubagents()) return
-    if (waitingForPermission) return
-    // Only notify for main agents, skip background tasks (checkpoint-writer, dream, distill, etc.)
-    const MAIN_AGENTS = new Set(["build", "plan", "compose", "max"])
-    if (currentAgentID && !MAIN_AGENTS.has(currentAgentID)) return
+  "session.post": async (input: any) => {
+    const skipReason = hasActiveSubagents() ? "active_subagents"
+      : waitingForPermission ? "waiting_permission"
+        : (currentAgentID && !new Set(["build", "plan", "compose", "max"]).has(currentAgentID)) ? `background_agent:${currentAgentID}`
+          : null
+
+    log("session.post", {
+      outcome: input.outcome,
+      error: input.error?.slice(0, 200),
+      currentSessionID,
+      currentAgentID,
+      activeSubagents: [...activeSubagents],
+      waitingForPermission,
+      skipReason,
+    })
+
+    if (skipReason) return
     const topic = currentSessionID ? getSessionTitle(currentSessionID) : ""
     const suffix = topic ? ` — ${topic}` : ""
     if (input.outcome === "completed") {
