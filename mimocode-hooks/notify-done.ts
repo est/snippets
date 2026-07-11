@@ -1,7 +1,6 @@
 // place to ~/.config/mimocode/hooks/
 
 import { execSync } from "child_process"
-import { readFileSync } from "fs"
 import { homedir } from "os"
 import { join } from "path"
 
@@ -13,12 +12,10 @@ function run(cmd: string): string {
   }
 }
 
-function getSessionTopic(sessionID: string): string {
+function getSessionTitle(sessionID: string): string {
   try {
-    const file = join(homedir(), ".local/share/mimocode/memory/sessions", sessionID, "checkpoint.md")
-    const first = readFileSync(file, "utf-8").split("\n")[0] ?? ""
-    const m = first.match(/^Topic:\s*(.+)/)
-    return m?.[1]?.trim() ?? ""
+    const db = join(homedir(), ".local/share/mimocode/mimocode.db")
+    return run(`sqlite3 "${db}" "SELECT title FROM session WHERE id = '${sessionID}'"`)
   } catch {
     return ""
   }
@@ -77,8 +74,29 @@ function hasActiveSubagents(): boolean {
 }
 
 export default {
+  "tool.execute.before": async (input, output) => {
+    if (hasActiveSubagents()) return
+    const tool = input.tool
+    const args = output?.args ?? {}
+    const cmd = args.command ?? ""
+
+    // Predict permission need from tool + args
+    let needsPermission = false
+    let perm = ""
+    if (tool === "bash") {
+      if (/^\s*sudo\b/.test(cmd)) { needsPermission = true; perm = "sudo" }
+      else if (/\/(?!dev|tmp|var\/tmp)\S+/.test(cmd)) { needsPermission = true; perm = "external directory" }
+    } else if (tool === "edit" || tool === "write" || tool === "multiedit") {
+      const p = args.file_path ?? args.path ?? ""
+      if (p && !p.startsWith(process.cwd())) { needsPermission = true; perm = "external directory" }
+    }
+    if (needsPermission) {
+      waitingForPermission = true
+      notify("MiMoCode", `Permission needed: ${perm}`)
+    }
+  },
+
   "permission.ask": async (input: any) => {
-    // if (hasActiveSubagents()) return
     waitingForPermission = true
     const perm = input?.permission ?? input?.name ?? "unknown"
     notify("MiMoCode", `Permission needed: ${perm}`)
@@ -106,7 +124,7 @@ export default {
   "session.post": async (input) => {
     if (hasActiveSubagents()) return
     if (waitingForPermission) return
-    const topic = currentSessionID ? getSessionTopic(currentSessionID) : ""
+    const topic = currentSessionID ? getSessionTitle(currentSessionID) : ""
     const suffix = topic ? ` — ${topic}` : ""
     if (input.outcome === "completed") {
       notify("MiMoCode", `活儿干完了${suffix}`)
