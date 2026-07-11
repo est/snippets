@@ -68,6 +68,7 @@ function notify(title: string, message: string) {
 const activeSubagents = new Set<string>()
 let waitingForPermission = false
 let currentSessionID = ""
+let currentAgentID = ""
 
 function hasActiveSubagents(): boolean {
   return activeSubagents.size > 0
@@ -119,11 +120,15 @@ export default {
 
   "session.pre": async (input: any) => {
     currentSessionID = input.sessionID ?? ""
+    currentAgentID = input.agentID ?? ""
   },
 
   "session.post": async (input) => {
     if (hasActiveSubagents()) return
     if (waitingForPermission) return
+    // Only notify for main agents, skip background tasks (checkpoint-writer, dream, distill, etc.)
+    const MAIN_AGENTS = new Set(["build", "plan", "compose", "max"])
+    if (currentAgentID && !MAIN_AGENTS.has(currentAgentID)) return
     const topic = currentSessionID ? getSessionTitle(currentSessionID) : ""
     const suffix = topic ? ` — ${topic}` : ""
     if (input.outcome === "completed") {
