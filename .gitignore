@@ -39,4 +39,14 @@ nosetests.xml
 
 /v2ex_backup/*.html
 /vps_scan/*.html
+h3/cert.pem
+h3/key.pem
+h3/localhost.p12
+h3/udp4433.log
+py3-tls/server.crt
+py3-tls/server.key
 
+py3-tls/_ssl.
+suexec/suexec
+py3-tls/_ssl.c
+audio-editor
