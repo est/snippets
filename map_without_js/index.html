@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Pure CSS Map Panning Demo</title>
+<style>
+  /* 基础重置 */
+  body, html {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #1e1e1e;
+    font-family: sans-serif;
+  }
+
+  /* 容器：承载网格和地图 */
+  .container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: grid;
+    /* 创建 7x7 的检测矩阵 */
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(7, 1fr);
+  }
+
+  /* 隐形的鼠标感应区 */
+  .zone {
+    z-index: 10; /* 必须在地图上方 */
+    /* border: 1px solid rgba(255,255,255,0.05); 打开注释可以查看感应网格 */
+  }
+
+  /* 移动的地图图层 */
+  .map {
+    position: absolute;
+    /* 让地图比视口大一圈，避免移动时露底 */
+    top: -50vh;
+    left: -50vw;
+    width: 200vw;
+    height: 200vh;
+    z-index: 1;
+
+    /* 绘制类似地图的背景网格和色块 */
+    background-color: #aad3df; 
+    background-image: 
+      radial-gradient(circle at 30% 30%, #a3cc7a 0%, #a3cc7a 10%, transparent 10.5%),
+      radial-gradient(circle at 75% 65%, #e6dca8 0%, #e6dca8 12%, transparent 12.5%),
+      linear-gradient(rgba(255,255,255,0.5) 2px, transparent 2px),
+      linear-gradient(90deg, rgba(255,255,255,0.5) 2px, transparent 2px);
+    background-size: 100% 100%, 100% 100%, 120px 120px, 120px 120px;
+
+    /* 初始化偏移变量 */
+    --tx: 0%;
+    --ty: 0%;
+    
+    /* 核心动画：利用贝塞尔曲线让离散的坐标变化变得连贯顺滑 */
+    transform: translate(var(--tx), var(--ty));
+    transition: transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+    
+    /* 防止地图本身干扰鼠标悬停检测 */
+    pointer-events: none; 
+  }
+
+  /* ====== 核心逻辑：利用兄弟选择器向地图传递坐标 ====== */
+/* 颠倒后的 X 轴方向：实现手势拖拽感 */
+.c1:hover ~ .map { --tx: -25%; } /* 原为 25% */
+.c2:hover ~ .map { --tx: -15%; } /* 原为 15% */
+.c3:hover ~ .map { --tx: -5%; }  /* 原为 5% */
+.c4:hover ~ .map { --tx: 0%; }
+.c5:hover ~ .map { --tx: 5%; }   /* 原为 -5% */
+.c6:hover ~ .map { --tx: 15%; }  /* 原为 -15% */
+.c7:hover ~ .map { --tx: 25%; }  /* 原为 -25% */
+
+/* 颠倒后的 Y 轴方向 */
+.r1:hover ~ .map { --ty: -25%; } /* 原为 25% */
+.r2:hover ~ .map { --ty: -15%; } /* 原为 15% */
+.r3:hover ~ .map { --ty: -5%; }  /* 原为 5% */
+.r4:hover ~ .map { --ty: 0%; }
+.r5:hover ~ .map { --ty: 5%; }   /* 原为 -5% */
+.r6:hover ~ .map { --ty: 15%; }  /* 原为 -15% */
+.r7:hover ~ .map { --ty: 25%; }  /* 原为 -25% */
+
+  /* 用于视觉参考的坐标点 */
+  .marker {
+    position: absolute;
+    font-size: 2.5rem;
+    transform: translate(-50%, -100%);
+    text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  }
+  .m-forest { top: 30%; left: 30%; }
+  .m-desert { top: 65%; left: 75%; }
+  .m-center { top: 50%; left: 50%; font-size: 1.5rem; background: #fff; padding: 5px 15px; border-radius: 20px; border: 2px solid #333; }
+
+  /* 顶层提示 UI */
+  .ui-layer {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 30px;
+    z-index: 20;
+    pointer-events: none;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- ====== 7x7 矩阵区 ====== -->
+  <!-- 通过分离 r (行) 和 c (列) 类，巧妙地合并覆盖 X/Y 变量 -->
+  
+  <!-- Row 1 -->
+  <div class="zone r1 c1"></div><div class="zone r1 c2"></div><div class="zone r1 c3"></div><div class="zone r1 c4"></div><div class="zone r1 c5"></div><div class="zone r1 c6"></div><div class="zone r1 c7"></div>
+  <!-- Row 2 -->
+  <div class="zone r2 c1"></div><div class="zone r2 c2"></div><div class="zone r2 c3"></div><div class="zone r2 c4"></div><div class="zone r2 c5"></div><div class="zone r2 c6"></div><div class="zone r2 c7"></div>
+  <!-- Row 3 -->
+  <div class="zone r3 c1"></div><div class="zone r3 c2"></div><div class="zone r3 c3"></div><div class="zone r3 c4"></div><div class="zone r3 c5"></div><div class="zone r3 c6"></div><div class="zone r3 c7"></div>
+  <!-- Row 4 -->
+  <div class="zone r4 c1"></div><div class="zone r4 c2"></div><div class="zone r4 c3"></div><div class="zone r4 c4"></div><div class="zone r4 c5"></div><div class="zone r4 c6"></div><div class="zone r4 c7"></div>
+  <!-- Row 5 -->
+  <div class="zone r5 c1"></div><div class="zone r5 c2"></div><div class="zone r5 c3"></div><div class="zone r5 c4"></div><div class="zone r5 c5"></div><div class="zone r5 c6"></div><div class="zone r5 c7"></div>
+  <!-- Row 6 -->
+  <div class="zone r6 c1"></div><div class="zone r6 c2"></div><div class="zone r6 c3"></div><div class="zone r6 c4"></div><div class="zone r6 c5"></div><div class="zone r6 c6"></div><div class="zone r6 c7"></div>
+  <!-- Row 7 -->
+  <div class="zone r7 c1"></div><div class="zone r7 c2"></div><div class="zone r7 c3"></div><div class="zone r7 c4"></div><div class="zone r7 c5"></div><div class="zone r7 c6"></div><div class="zone r7 c7"></div>
+
+  <!-- ====== 移动背景层 ====== -->
+  <div class="map">
+    <div class="marker m-forest">🌲</div>
+    <div class="marker m-desert">🏜️</div>
+    <div class="marker m-center">📍 Initial Center</div>
+  </div>
+
+  <div class="ui-layer">移动鼠标查看纯 CSS Panning 效果</div>
+</div>
+
+</body>
+</html>
