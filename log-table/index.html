@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>常用对数表 · 交互演示</title>
+<style>
+:root{
+  --paper:#f6efdc; --paper2:#efe5c9; --card:#fbf7ea;
+  --ink:#3a2f1f; --ink2:#6d5b3f; --rule:#a08a5f; --rule-dark:#57472c;
+  --red:#a52a1d; --blue:#2f5f9e; --green:#2f6b2f; --orange:#c97b1f; --purple:#6d3fb0;
+  --hl-row:#d9e6f7; --hl-col:#ddf0d0; --hl-cell:#ffd9a0; --hl-diff:#e6d6f8;
+  --hl-stub:#b4cdec; --hl-colhead:#bfe0ae;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  background:
+    radial-gradient(ellipse at 50% -20%, #fdf8e8 0%, transparent 60%),
+    repeating-linear-gradient(0deg, rgba(90,70,40,.015) 0 2px, transparent 2px 4px),
+    #efe6cd;
+  color:var(--ink);
+  font-family: Georgia, "Times New Roman", "Songti SC", "STSong", SimSun, serif;
+  line-height:1.55;
+}
+.ol{text-decoration:overline}
+
+/* ---------- 左右两栏：左表 · 右栏（banner + 交互 + 说明） ---------- */
+.page{height:100vh;height:100dvh;max-width:none;margin:0 auto;padding:10px 14px 12px;
+      display:flex;flex-direction:row;gap:12px;overflow:hidden}
+.side{flex:none;width:500px;max-width:46vw;min-height:0;display:flex;flex-direction:column;gap:10px;overflow-y:auto;padding-right:4px}
+.masthead{border-top:3px double var(--rule-dark);border-bottom:3px double var(--rule-dark);
+          padding:8px 6px;flex:none;text-align:center;background:var(--card)}
+.mh-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.title{font-size:24px;letter-spacing:.12em;margin:0;font-weight:700}
+.subtitle{color:var(--ink2);font-size:13px;letter-spacing:.08em;margin:4px 0 0}
+.seal{background:var(--red);color:#fdf6e3;font-size:13px;letter-spacing:.14em;padding:4px 9px 2px;border-radius:6px;transform:rotate(-4deg);box-shadow:0 2px 6px rgba(90,50,20,.35);font-family:"KaiTi","STKaiti","Songti SC",serif}
+
+.card{background:var(--card);border:1px solid var(--rule);border-radius:2px;padding:10px 16px;box-shadow:0 3px 10px rgba(90,70,40,.12)}
+.hero{flex:none}
+
+/* ---------- 输入 + 结果 ---------- */
+.input-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#numInput{flex:1 1 220px;font:inherit;font-size:20px;padding:6px 12px;border:2px solid var(--rule-dark);background:#fffdf3;color:var(--ink);border-radius:4px;outline:none}
+#numInput:focus{border-color:var(--red);box-shadow:0 0 0 2px rgba(165,42,29,.18)}
+button{font:inherit;cursor:pointer}
+.steppers{display:flex;gap:6px}
+.stp{background:#efe6cd;border:1px solid var(--rule);color:var(--rule-dark);border-radius:4px;padding:6px 11px;font-size:13px;font-weight:700}
+.stp:hover{border-color:var(--red);color:var(--red)}
+#goBtn{background:var(--red);color:#fdf6e3;border:1px solid #7c1f15;padding:6px 18px;font-size:15px;font-weight:700;letter-spacing:.2em;border-radius:4px;box-shadow:0 2px 0 #7c1f15}
+#goBtn:active{transform:translateY(2px);box-shadow:none}
+.help{margin-left:auto}
+.help summary{cursor:pointer;font-size:14px;color:var(--ink2);border:1px dashed var(--rule);border-radius:12px;padding:3px 12px;user-select:none;white-space:nowrap}
+.help[open] summary{margin-bottom:6px}
+.help ul{margin:0;padding-left:16px;font-size:13.5px;color:var(--ink2)}
+.help li{margin:3px 0}
+.examples{margin-top:8px;font-size:13.5px;color:var(--ink2)}
+.ex{background:#fffdf5;border:1px solid var(--rule);color:var(--rule-dark);border-radius:11px;padding:1px 10px;font-size:13px;margin:0 3px 3px 0}
+.ex:hover{border-color:var(--red);color:var(--red)}
+.err{color:var(--red);font-weight:700;min-height:1.3em;margin:6px 0 0;font-size:14.5px}
+
+.answer-line{font-size:28px;margin-top:8px;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;min-height:1.3em}
+.answer-line .rv{color:var(--blue)}
+.answer-line .answer{color:var(--red);font-weight:700;font-size:31px;border-bottom:2px solid var(--red);padding:0 6px 1px;letter-spacing:.03em}
+.neg{font-size:15px;color:var(--ink2);font-weight:400;letter-spacing:.02em}
+
+/* ---------- 竖式拆解（等宽 · 纵式 · 括号线指向，现代互动） ---------- */
+.deriv{
+  margin-top:10px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Courier New", monospace;
+  font-size:15px; line-height:1; /* 1：让上下行的 │ 竖线首尾相接，避免断线 */
+  background:#fffdf5; border:1px solid var(--rule); border-left:4px solid var(--rule-dark);
+  border-radius:4px; padding:10px 14px 6px;
+  white-space:pre-wrap; overflow-x:auto; color:var(--ink); /* pre-wrap：长输入换行，避免水平滚动条 */
+}
+.deriv .arr{color:var(--ink2)}
+.deriv .dg-dim{color:#b6a98c}
+.deriv .dg-ch{color:#8b7a55}
+.deriv .dg-row{color:var(--blue);font-weight:700}
+.deriv .dg-col{color:var(--green);font-weight:700}
+.deriv .dg-dpos{color:var(--purple);font-weight:700}
+.deriv .dg-base{color:var(--orange);font-weight:700}
+.deriv .dg-diff{color:var(--purple);font-weight:700}
+.deriv .dg-mix{color:#fff;background:linear-gradient(90deg,var(--orange) 50%,#8a5bbf 50%);border-radius:2px;padding:0 2px}
+.deriv .tx-mant{color:var(--orange);font-weight:700}
+.deriv .tx-diff{color:var(--purple);font-weight:700}
+.deriv .ok{color:var(--green);font-weight:700}
+.deriv [data-p]{cursor:pointer}
+.deriv-btn{display:block;width:100%;text-align:left;font:inherit;color:var(--ink);background:none;border:none;padding:0;cursor:pointer;line-height:1;opacity:.35;transition:opacity .2s}
+.deriv-btn .lab{font-weight:700}
+.deriv-btn.db-row{color:var(--blue)}
+.deriv-btn.db-col{color:var(--green)}
+.deriv-btn.db-diff{color:var(--purple)}
+.deriv-btn.on{opacity:1}
+.deriv-btn.cur{opacity:1}
+.deriv-btn.cur .lab{color:#fff;background:var(--rule-dark);border-radius:3px;padding:0 6px;animation:pulse .9s ease-in-out infinite}
+.deriv-btn.db-row.cur .lab{background:var(--blue)}
+.deriv-btn.db-col.cur .lab{background:var(--green)}
+.deriv-btn.db-diff.cur .lab{background:var(--purple)}
+.deriv-btn:hover{opacity:1}
+.deriv .d-char,.deriv .d-sum{opacity:.35;transition:opacity .2s}
+.deriv .d-char.on,.deriv .d-sum.on{opacity:1}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.answer.pop{animation:anspop .7s ease}
+@keyframes anspop{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+
+/* ---------- 单表（全屏滚动，首行首列固定） ---------- */
+.tablecard{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;padding:10px 16px 12px}
+.tablecard h2{font-size:14.5px;margin:0 0 8px;padding-bottom:5px;border-bottom:1px solid var(--rule);letter-spacing:.08em;flex:none}
+.tablecard h2 small{font-weight:400;color:var(--ink2);font-size:12px;letter-spacing:.02em}
+.tbl-scroll{flex:1;min-height:0;overflow:auto;border:2px solid var(--rule-dark);background:#fffdf4;padding-right:16px} /* 右侧留空给滚动条 */
+
+table.log{border-collapse:separate;border-spacing:0;width:100%;font-size:12px;font-variant-numeric:tabular-nums;background:#fffdf4}
+table.log th,table.log td{border-right:1px solid #c9b98f;border-bottom:1px solid #c9b98f;padding:2px 5px;text-align:center;white-space:nowrap}
+
+/* 表头：整行 sticky 固定 */
+table.log thead{position:sticky;top:0;z-index:3}
+table.log thead th{background:var(--paper2);border-bottom:2px solid var(--rule-dark);font-weight:700;letter-spacing:.05em}
+table.log th.g-mant{background:var(--paper2);font-size:12.5px;letter-spacing:.2em}
+table.log th.g-diff{background:#e9dfc6;font-size:12.5px;letter-spacing:.2em;border-left:2px solid var(--rule-dark)}
+table.log thead th[data-colhead-d]{background:#e9dfc6;width:28px}
+
+/* 首列 AB：sticky 固定 */
+table.log th.stub{position:sticky;left:0;z-index:1;background:var(--paper2);border-right:2px solid var(--rule-dark);font-weight:700;color:var(--ink);width:40px}
+table.log th.corner{position:sticky;left:0;top:0;z-index:4;background:var(--paper2)}
+
+/* 修正值块：灰底 + 左侧双线分隔 */
+table.log td[data-diff]{background:#fdfaf0;font-size:11.5px;width:28px}
+table.log td[data-diff="1"]{border-left:2px solid var(--rule-dark)}
+
+/* 高亮 */
+table.log td{cursor:pointer}
+table.log td.hov{background:rgba(165,42,29,.07)}
+table.log td.hl-row{background:var(--hl-row)}
+table.log td.hl-col{background:var(--hl-col)}
+table.log td.hl-diff{background:var(--hl-diff);font-weight:700;color:#3d1f73;box-shadow:inset 0 0 0 2px #7a4bbf}
+table.log td.hl-cell{background:var(--hl-cell);font-weight:700;color:#7a3d00;box-shadow:inset 0 0 0 2px var(--orange)}
+table.log th.hl-stub{background:var(--hl-stub);color:#14325c}
+table.log th.hl-colhead{background:var(--hl-colhead);color:#1e4d13}
+table.log th.hl-diffhead{background:var(--hl-diff);color:#3d1f73}
+
+/* ---------- 按位着色（数字 ↔ 表格颜色严格对应） ---------- */
+.dg-ch{color:#8b7a55}
+.dg-row{color:var(--blue);font-weight:700}
+.dg-col{color:var(--green);font-weight:700}
+.dg-dpos{color:var(--purple);font-weight:700}
+.dg-base{color:var(--orange);font-weight:700}
+.dg-diff{color:var(--purple);font-weight:700}
+.dg-mix{color:#fff;background:linear-gradient(90deg,var(--orange) 50%,#8a5bbf 50%);border-radius:2px;padding:0 2px}
+
+/* ---------- 页脚（右栏底部） ---------- */
+.foot{color:var(--ink2);font-size:13px;border-top:1px solid var(--rule);padding-top:8px;flex:none}
+.foot p{margin:0}
+
+@media (max-width:1000px){
+  .page{flex-direction:column;height:auto;overflow:visible}
+  .side{width:auto;max-width:none;overflow:visible}
+  .tablecard{min-height:60vh}
+  .tbl-scroll{max-height:65vh}
+  .answer-line{font-size:21px}
+  .answer-line .answer{font-size:24px}
+  .help{margin-left:0}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- 右栏：banner + 输入 + 竖式拆解 + 说明 -->
+  <aside class="side" id="side">
+    <header class="masthead">
+      <div class="mh-row">
+        <h1 class="title">常用对数表</h1>
+        <span class="seal">四位数表</span>
+      </div>
+      <p class="subtitle">底数 10 · 行 AB = 10–99 · 四位尾数 · 一张表</p>
+    </header>
+
+    <!-- 输入 + 答案 + 竖式拆解 -->
+    <section class="card hero" id="hero">
+      <div class="input-row">
+        <input id="numInput" type="text" inputmode="decimal" spellcheck="false" placeholder="输入任意正数，如 235.7" value="235.7">
+        <div class="steppers">
+          <button class="stp" id="x10" type="button" title="×10：首数 +1">×10</button>
+          <button class="stp" id="d10" type="button" title="÷10：首数 −1">÷10</button>
+        </div>
+        <button id="goBtn" type="button">查表</button>
+        <details class="help">
+          <summary>？怎么读</summary>
+          <ul>
+            <li>竖式拆解：输入 → 查表数字，括号线指向 行AB（蓝）/列C（绿）/修正D（紫）；点任意行或数字可单独查看</li>
+            <li>答案颜色：灰=首数 · 橙=主格读出 · 紫=修正加入 · 半橙半紫=两者相加</li>
+            <li>首数 = 整数部分（位数−1）；小于 1 写负，如 <span class="ol">3</span>.3711 = −2.6289</li>
+            <li>表头与首列固定；↑↓←→ 微调 · 点表格格反查 · ×10/÷10 看首数</li>
+          </ul>
+        </details>
+      </div>
+      <div class="examples">试试：<button class="ex" type="button" data-v="9">9</button><button class="ex" type="button" data-v="2">2</button><button class="ex" type="button" data-v="23.5">23.5</button><button class="ex" type="button" data-v="0.00235">0.00235</button><button class="ex" type="button" data-v="31415.9">31415.9</button></div>
+      <p class="err" id="errMsg"></p>
+
+      <div class="answer-line">log₁₀ <b class="rv" id="rv">…</b> = <span class="answer" id="ans">—</span></div>
+      <div class="deriv" id="deriv" aria-live="polite"></div>
+    </section>
+
+    <footer class="foot">
+      <p>精度 4 位有效数字 · ln x ≈ log₁₀x × 2.3026 · log₂x ≈ log₁₀x × 3.3219</p>
+    </footer>
+  </aside>
+
+  <!-- 左栏：对数表（占满剩余高度） -->
+  <section class="card tablecard" id="table">
+    <h2>对数表 <small>行 AB 略去小数点（10–99）· 列 C · 修正值 D（×10⁻⁴）· 尾数格略去 0. · 点任意格反查</small></h2>
+    <div class="tbl-scroll" id="tblScroll">
+      <table class="log" id="logTable"></table>
+    </div>
+  </section>
+
+</div>
+<script>
+(function(){
+'use strict';
+const SUP = '⁰¹²³⁴⁵⁶⁷⁸⁹';
+const sup = s => String(s).split('').map(ch => ch === '-' ? '⁻' : SUP[ch]).join('');
+const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const fmt4 = x => (Math.round(x * 10000) / 10000).toFixed(4);
+const round12 = x => Number(x.toPrecision(12));
+
+/* ---------- 按位着色（颜色与表格高亮严格对应） ---------- */
+// 查表数字 m 恒按 4 位有效数字补齐：蓝=前两位（行）· 绿=第三位（列）· 紫=第四位（修正）
+function coloredNum4(m4){
+  const s = m4.toPrecision(4); // 例 "9.000"、"2.357"
+  return '<span class="dg-row" data-p="row">' + s[0] + '</span><span class="dg-dim">.</span><span class="dg-row" data-p="row">' + s[2] + '</span>'
+       + '<span class="dg-col" data-p="col">' + s[3] + '</span><span class="dg-dpos" data-p="diff">' + s[4] + '</span>';
+}
+// 答案尾数四位按来源着色（带进位）：橙=纯主格 · 紫=纯修正 · 半橙半紫=两者相加
+function mantDigitHtml(baseUnits, diffUnits){
+  const b = String(baseUnits).padStart(4, '0').split('').map(Number);
+  const d = String(diffUnits).padStart(4, '0').split('').map(Number);
+  let carry = 0, out = [];
+  for (let i = 3; i >= 0; i--){
+    const s = b[i] + d[i] + carry;
+    const dig = s % 10; carry = Math.floor(s / 10);
+    let cls;
+    if (d[i] === 0 && carry === 0) cls = 'dg-base';
+    else if (b[i] === 0) cls = 'dg-diff';
+    else cls = 'dg-mix';
+    out[i] = '<span class="' + cls + '">' + dig + '</span>';
+  }
+  return out.join('');
+}
+// 首数（灰色），负数用竖线记法
+function charHtmlOf(char){
+  const digits = String(Math.abs(char)).split('')
+    .map(c => '<span class="dg-ch">' + c + '</span>').join('');
+  return char < 0 ? '<span class="ol">' + digits + '</span>' : digits;
+}
+
+/* ---------- 生成单表 ---------- */
+const ROWS = [];
+for (let i = 10; i <= 99; i++) ROWS.push(String(i)); // "10".."99"（= 1.0..9.9，略去小数点）
+function mant(x){
+  const frac = Math.log10(x) - Math.floor(Math.log10(x));
+  return Math.round(frac * 10000) / 10000;
+}
+function diff(r, d){
+  const b = Number(r) / 10; // r 为两位数行号（如 23 = 2.3）
+  return Math.round((Math.log10(b + d / 1000) - Math.log10(b)) * 10000);
+}
+function buildTable(){
+  let h = '<thead><tr><th class="stub corner" rowspan="2">AB</th>'
+        + '<th colspan="10" class="g-mant">尾数C（第三位有效数字）</th>'
+        + '<th colspan="9" class="g-diff">修正值D（第四位 · 单位 10⁻⁴）</th></tr><tr>';
+  for (let c = 0; c <= 9; c++) h += '<th data-colhead="' + c + '">' + c + '</th>';
+  for (let d = 1; d <= 9; d++) h += '<th data-colhead-d="' + d + '">' + d + '</th>';
+  h += '</tr></thead><tbody>';
+  for (const r of ROWS){
+    h += '<tr><th class="stub" data-stub="' + r + '">' + r + '</th>';
+    for (let c = 0; c <= 9; c++)
+      h += '<td data-row="' + r + '" data-col="' + c + '">' + mant(Number(r) / 10 + c / 100).toFixed(4).slice(2) + '</td>';
+    for (let d = 1; d <= 9; d++)
+      h += '<td data-row="' + r + '" data-diff="' + d + '">' + diff(r, d) + '</td>';
+    h += '</tr>';
+  }
+  return h + '</tbody>';
+}
+const logTable = document.getElementById('logTable');
+const tblScroll = document.getElementById('tblScroll');
+logTable.innerHTML = buildTable();
+
+/* ---------- 交互 ---------- */
+const inputEl = document.getElementById('numInput');
+const errEl   = document.getElementById('errMsg');
+const rvEl    = document.getElementById('rv');
+const ansEl   = document.getElementById('ans');
+const derivEl = document.getElementById('deriv');
+
+let seqTimers = [], lastRow = '', lastCol = 0, lastD4 = 0;
+
+function clearSeq(){
+  seqTimers.forEach(t => clearTimeout(t)); seqTimers = [];
+  document.querySelectorAll('.hl-cell,.hl-diff,.hl-diffhead').forEach(el =>
+    el.classList.remove('hl-cell','hl-diff','hl-diffhead'));
+}
+function clearHL(){
+  clearSeq();
+  document.querySelectorAll('.hl-row,.hl-col,.hl-stub,.hl-colhead,.hl-diffhead,.hov').forEach(el =>
+    el.classList.remove('hl-row','hl-col','hl-stub','hl-colhead','hl-diffhead','hov'));
+  derivEl.querySelectorAll('.on,.cur').forEach(el => el.classList.remove('on','cur'));
+}
+function applyRow(r){
+  document.querySelectorAll('[data-stub="' + r + '"]').forEach(el => el.classList.add('hl-stub'));
+  document.querySelectorAll('[data-row="' + r + '"]').forEach(el => el.classList.add('hl-row'));
+}
+function applyCol(c){
+  document.querySelectorAll('[data-col="' + c + '"]').forEach(el => el.classList.add('hl-col'));
+  document.querySelectorAll('[data-colhead="' + c + '"]').forEach(el => el.classList.add('hl-colhead'));
+}
+function applyCellAll(r, c, d){
+  document.querySelectorAll('[data-row="' + r + '"][data-col="' + c + '"]').forEach(el => el.classList.add('hl-cell'));
+  if (d > 0){
+    document.querySelectorAll('[data-row="' + r + '"][data-diff="' + d + '"]').forEach(el => el.classList.add('hl-diff'));
+    document.querySelectorAll('[data-colhead-d="' + d + '"]').forEach(el => el.classList.add('hl-diffhead'));
+  }
+}
+function applyPart(part){
+  clearHL();
+  if (part === 'row') applyRow(lastRow);
+  else if (part === 'col') applyCol(lastCol);
+  else if (part === 'diff') applyCellAll(lastRow, lastCol, lastD4);
+  else return;
+  if (part === 'diff') scrollTo(lastD4 > 0 ? 'diff' : 'cell');
+  else scrollTo('cell');
+  derivEl.querySelectorAll('[data-part="' + part + '"]').forEach(el => el.classList.add('on', 'cur'));
+}
+function hoverPart(part, on){
+  const add = on ? 'add' : 'remove';
+  if (part === 'row') document.querySelectorAll('[data-row="' + lastRow + '"]').forEach(x => x.classList[add]('hov'));
+  else if (part === 'col') document.querySelectorAll('[data-col="' + lastCol + '"]').forEach(x => x.classList[add]('hov'));
+  else if (part === 'diff' && lastD4 > 0)
+    document.querySelectorAll('[data-row="' + lastRow + '"][data-diff="' + lastD4 + '"]').forEach(x => x.classList[add]('hov'));
+}
+function scrollTo(kind){
+  const q = kind === 'cell'
+    ? '[data-row="' + lastRow + '"][data-col="' + lastCol + '"]'
+    : '[data-row="' + lastRow + '"][data-diff="' + lastD4 + '"]';
+  const el = logTable.querySelector(q);
+  if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
+}
+
+/* ---------- 竖式拆解面板 ---------- */
+function sigDigits(str){
+  return str.replace(/[^0-9]/g, '').replace(/^0+/, ''); // 去掉前导 0
+}
+function colorInput(raw){
+  if (/[eE]/.test(raw)) return raw.split('').map(c => '<span class="dg-dim">' + esc(c) + '</span>').join('');
+  let i = 0, seen = false, out = [];
+  for (const ch of raw){
+    if (/[0-9]/.test(ch)){
+      if (ch === '0' && !seen){ out.push('<span class="dg-dim">0</span>'); continue; }
+      seen = true;
+      const cls = i <= 1 ? 'dg-row' : i === 2 ? 'dg-col' : i === 3 ? 'dg-dpos' : 'dg-dim';
+      const p = i <= 1 ? 'row' : i === 2 ? 'col' : i === 3 ? 'diff' : null;
+      out.push('<span class="' + cls + '"' + (p ? ' data-p="' + p + '"' : '') + '>' + ch + '</span>');
+      i++;
+    } else if (ch === '.') out.push('<span class="dg-dim">.</span>');
+    else out.push('<span class="dg-dim">' + esc(ch) + '</span>');
+  }
+  return out.join('');
+}
+function buildDeriv(o){
+  const p = ' '.repeat(2); // “→ ” 之后的固定缩进（不再依赖输入长度）
+  let h = '<div class="d-in">' + o.inputHtml + '</div>';
+  h += '<div class="d-arrow"><span class="arr">→ </span>' + o.m4Html + '</div>';
+  h += '<div class="d-stems">' + p + '│ │││</div>';
+  h += '<button type="button" class="deriv-btn db-diff" data-part="diff" data-step="4">' + p + '│ ││└──── <span class="lab">D = ' + o.dLab + '</span>' + (o.rounding ? ' <span class="dg-dim">（四舍五入）</span>' : '') + ' → 修正 ' + o.dEff + '</button>';
+  h += '<button type="button" class="deriv-btn db-col" data-part="col" data-step="3">' + p + '│ │└────── <span class="lab">C = ' + o.cLab + '</span> → 列 ' + o.col + '</button>';
+  h += '<button type="button" class="deriv-btn db-row" data-part="row" data-step="2">' + p + '└─┴─────── <span class="lab">AB = ' + o.abLab + '</span> → 行 ' + o.rowStr + '</button>';
+  h += '<div class="d-char" data-part="char" data-step="1">' + p + '首数 c = <span class="dg-ch">' + o.charDisp + '</span> → ×10' + o.charSup + '</div>';
+  h += '<div class="d-sum" data-part="sum" data-step="5">' + p + '尾数 = <span class="tx-mant">' + o.baseDigits + '</span> + <span class="tx-diff">' + o.diffVal + '</span> = '
+     + (o.carried ? '<b>' + o.sumUnits + '</b>（进位 1）' : o.mDigits) + '（×10⁻⁴）</div>';
+  h += '<div class="d-sum" data-part="sum" data-step="5">' + p + '真值 ≈ ' + o.trueStr + ' ' + o.cmp + '</div>';
+  return h;
+}
+function derivState(k){
+  derivEl.querySelectorAll('[data-step]').forEach(r => {
+    const s = Number(r.dataset.step);
+    r.classList.toggle('on', s <= k);
+    r.classList.toggle('cur', s === k);
+  });
+}
+function runSeq(){
+  derivState(0);
+  seqTimers.push(setTimeout(() => derivState(1), 450));
+  seqTimers.push(setTimeout(() => { derivState(2); applyRow(lastRow); }, 900));
+  seqTimers.push(setTimeout(() => { derivState(3); applyCol(lastCol); scrollTo('cell'); }, 1350));
+  seqTimers.push(setTimeout(() => { derivState(4); applyCellAll(lastRow, lastCol, lastD4); scrollTo(lastD4 > 0 ? 'diff' : 'cell'); }, 1800));
+  seqTimers.push(setTimeout(() => { derivState(5); ansEl.classList.add('pop'); setTimeout(() => ansEl.classList.remove('pop'), 900); }, 2300));
+}
+
+function update(seq){
+  clearHL();
+  const raw = inputEl.value, nDisp = raw.trim(), cleaned = nDisp.replace(/[\s,]/g, '');
+  errEl.textContent = '';
+  rvEl.textContent = '…';
+  ansEl.innerHTML = '—';
+  derivEl.innerHTML = '';
+  if (cleaned === '') return;
+
+  const n = Number(cleaned);
+  if (!isFinite(n) || isNaN(n)){ errEl.textContent = '无法识别：「' + nDisp + '」（支持 235.7 / 0.00235 / 1e-3）'; return; }
+  if (n <= 0){ errEl.textContent = '对数表只适用于正数 x > 0'; return; }
+
+  let char = Math.floor(Math.log10(n));
+  let m = n / Math.pow(10, char);
+  let m4 = Number(m.toPrecision(4));
+  if (m4 >= 10){ m4 = 1; char += 1; }
+  const rowStr = String(Math.floor(m4 * 10)).padStart(2, '0'); // "23"（行 1.0–9.9 略去小数点）
+  const col = Math.floor(m4 * 100) % 10;
+  const d4  = Math.floor(m4 * 1000) % 10;
+  lastRow = rowStr; lastCol = col; lastD4 = d4;
+
+  const baseMant = mant(Number(rowStr) / 10 + col / 100);
+  const diffVal = d4 > 0 ? diff(rowStr, d4) : 0;
+  let mantSum = baseMant + diffVal / 10000;
+  if (Math.round(mantSum * 10000) >= 10000){ mantSum -= 1; char += 1; } // 尾数进位（如 9.999）
+  const approx = char + mantSum;
+  const trueVal = Math.log10(n);
+  const mantStr = fmt4(mantSum), approxStr = fmt4(approx), trueStr = trueVal.toFixed(4);
+  const err = Math.abs(approx - trueVal);
+  const ok = err <= 0.00015;
+  const cmp = ok ? '<span class="ok">✓ 一致</span>' : '误差 ' + err.toFixed(4);
+  const charDisp = char >= 0 ? String(char) : '−' + (-char);
+  const charSup = sup(char);
+  const baseUnits = Math.round(baseMant * 10000);
+  const diffUnits = diffVal;
+  const baseDigits = String(baseUnits).padStart(4, '0'); // "3711"，单位 10⁻⁴
+  const sumUnits = baseUnits + diffUnits;                // 3724 或 10000（进位）
+  const carried = sumUnits >= 10000;
+  const mDigits = mantDigitHtml(baseUnits, diffUnits);
+  const charHtml = charHtmlOf(char);
+  const ansHtml = charHtml + '.' + mDigits
+    + (char < 0 ? ' <span class="neg">（即 ' + approxStr + '）</span>' : '');
+
+  /* 竖式拆解：ABCD → 行/列/修正 */
+  const m4str = m4.toPrecision(4);                       // "2.357"、"9.000"
+  const sig = /[eE]/.test(cleaned) ? null : sigDigits(cleaned);
+  const dEff = m4str[4];
+  const rounding = !!sig && sig.length >= 4 && sig[3] !== dEff;
+  const dLab = rounding ? sig[3] + '→' + dEff : dEff;
+  const inputHtml = colorInput(cleaned);
+
+  rvEl.textContent = nDisp;
+  ansEl.innerHTML = ansHtml;
+  derivEl.innerHTML = buildDeriv({
+    inputHtml, m4Html: coloredNum4(m4),
+    rowStr, col, abLab: m4str[0] + m4str[2], cLab: m4str[3], dLab, dEff, rounding,
+    charDisp, charSup, baseDigits, diffVal, mDigits, carried, sumUnits, trueStr, cmp
+  });
+  if (seq) runSeq();
+  else { applyRow(rowStr); applyCol(col); applyCellAll(rowStr, col, d4); derivState(5); }
+}
+
+/* ---------- 联动 ---------- */
+inputEl.addEventListener('input', () => update(false));
+inputEl.addEventListener('keydown', e => {
+  const k = e.key;
+  if (k === 'Enter'){ update(true); return; }
+  if (k !== 'ArrowUp' && k !== 'ArrowDown' && k !== 'ArrowLeft' && k !== 'ArrowRight') return;
+  const cur = Number(inputEl.value.replace(/[\s,]/g, ''));
+  if (!isFinite(cur) || cur <= 0) return;
+  let char = Math.floor(Math.log10(cur)), m = cur / Math.pow(10, char);
+  let m4 = Number(m.toPrecision(4));
+  if (m4 >= 10){ m4 = 1; char += 1; }
+  let row = Math.floor(m4 * 10) / 10, col = Math.floor(m4 * 100) % 10, d4 = Math.floor(m4 * 1000) % 10;
+  if (k === 'ArrowUp')   row = Math.min(9.9, row + 0.1);
+  if (k === 'ArrowDown') row = Math.max(1.0, row - 0.1);
+  if (k === 'ArrowRight') col = (col + 1) % 10;
+  if (k === 'ArrowLeft')  col = (col + 9) % 10;
+  const nm4 = Math.round((row + col / 100 + d4 / 1000) * 1000) / 1000;
+  inputEl.value = String(round12(nm4 * Math.pow(10, char)));
+  e.preventDefault();
+  update(true);
+});
+document.getElementById('goBtn').addEventListener('click', () => update(true));
+const scale = f => {
+  const cur = Number(inputEl.value.replace(/[\s,]/g, ''));
+  if (!isFinite(cur) || cur <= 0) return;
+  inputEl.value = String(round12(cur * f));
+  update(true);
+};
+document.getElementById('x10').addEventListener('click', () => scale(10));
+document.getElementById('d10').addEventListener('click', () => scale(0.1));
+document.querySelectorAll('.ex').forEach(b =>
+  b.addEventListener('click', () => { inputEl.value = b.dataset.v; update(true); }));
+
+/* 表格联动：hover 亮行/列 · 点击反查 */
+logTable.addEventListener('mouseover', e => {
+  const td = e.target.closest('td');
+  if (!td || td.dataset.row === undefined) return;
+  logTable.querySelectorAll('[data-row="' + td.dataset.row + '"]').forEach(x => x.classList.add('hov'));
+  if (td.dataset.col !== undefined)
+    logTable.querySelectorAll('[data-col="' + td.dataset.col + '"]').forEach(x => x.classList.add('hov'));
+  if (td.dataset.diff !== undefined)
+    logTable.querySelectorAll('[data-diff="' + td.dataset.diff + '"]').forEach(x => x.classList.add('hov'));
+});
+logTable.addEventListener('mouseout', () => logTable.querySelectorAll('.hov').forEach(x => x.classList.remove('hov')));
+logTable.addEventListener('click', e => {
+  const td = e.target.closest('td');
+  if (!td || td.dataset.row === undefined) return;
+  let v;
+  if (td.dataset.col !== undefined) v = Number(td.dataset.row) / 10 + Number(td.dataset.col) / 100;
+  else if (td.dataset.diff !== undefined) v = Number(td.dataset.row) / 10 + Number(td.dataset.diff) / 1000;
+  else return;
+  inputEl.value = String(round12(v));
+  update(true);
+});
+
+/* 竖式拆解联动：点击/悬停行或数字 → 表格对应高亮 */
+derivEl.addEventListener('click', e => {
+  const btn = e.target.closest('.deriv-btn');
+  const dig = e.target.closest('[data-p]');
+  if (btn) applyPart(btn.dataset.part);
+  else if (dig) applyPart(dig.dataset.p);
+});
+derivEl.addEventListener('mouseover', e => {
+  const el = e.target.closest('.deriv-btn,[data-p]');
+  logTable.querySelectorAll('.hov').forEach(x => x.classList.remove('hov'));
+  if (el) hoverPart(el.dataset.part || el.dataset.p, true);
+});
+derivEl.addEventListener('mouseleave', () =>
+  logTable.querySelectorAll('.hov').forEach(x => x.classList.remove('hov')));
+
+update(true); // 初始演示：235.7
+})();
+</script>
+</body>
+</html>
