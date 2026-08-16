@@ -50,3 +50,4 @@ py3-tls/_ssl.
 suexec/suexec
 py3-tls/_ssl.c
 audio-editor
+.mimocode
