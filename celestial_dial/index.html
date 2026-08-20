@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Celestial Dial — 地心说</title>
+<title>Celestial Dial</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%AA%90%3C/text%3E%3C/svg%3E">
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=JetBrains+Mono:wght@400&family=Noto+Serif+SC:wght@300;600&display=swap');
   *{margin:0;padding:0;box-sizing:border-box}
   :root{
     --bg:#060916;
@@ -22,7 +22,7 @@
                radial-gradient(900px 600px at 85% 85%, #1a1240 0%, transparent 55%),
                linear-gradient(180deg, #050818 0%, #060916 60%, #070b1f 100%);
     color:var(--ink);
-    font-family:"Noto Serif SC","Cormorant Garamond",serif;
+    font-family:"Songti SC","Noto Serif SC","Source Han Serif SC","Hiragino Mincho ProN","Yu Mincho",Georgia,serif;
   }
   #bg{
     position:fixed;inset:0;width:100%;height:100%;z-index:0;
@@ -38,7 +38,7 @@
     pointer-events:none;
   }
   .brand{
-    font-family:"Cormorant Garamond",serif;
+    font-family:"Songti SC","Noto Serif SC","Source Han Serif SC","Hiragino Mincho ProN","Yu Mincho",Georgia,serif;
     letter-spacing:.18em;font-size:13px;color:var(--gold);
     display:flex;gap:14px;align-items:center;
   }
@@ -72,12 +72,12 @@
     pointer-events:auto;
   }
   .era{
-    font-family:"JetBrains Mono",monospace;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
     font-size:11px;letter-spacing:.32em;color:var(--gold);
     opacity:.9;margin-bottom:14px;
   }
   .date-big{
-    font-family:"Cormorant Garamond",serif;
+    font-family:"Songti SC","Noto Serif SC","Source Han Serif SC","Hiragino Mincho ProN","Yu Mincho",Georgia,serif;
     font-weight:300;
     font-size:clamp(44px, 9vw, 92px);
     line-height:1;
@@ -89,7 +89,7 @@
   .date-sub{
     margin-top:12px;
     font-size:15px;letter-spacing:.18em;color:var(--muted);
-    font-family:"Noto Serif SC",serif;
+    font-family:"Songti SC","Noto Serif SC","Source Han Serif SC","Hiragino Mincho ProN","Yu Mincho",Georgia,serif;
   }
   .date-sub em{font-style:normal;color:var(--gold);letter-spacing:.12em}
   .divider{
@@ -114,10 +114,10 @@
   }
   .event-card h3 i{font-style:normal;font-size:11px;letter-spacing:.14em;color:var(--gold);border:1px solid rgba(245,208,106,.3);padding:2px 7px;border-radius:999px}
   .event-card p{margin-top:6px;font-size:13px;line-height:1.6;color:#cbd1e8;opacity:.95}
-  .event-card .meta{margin-top:8px;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.08em}
+  .event-card .meta{margin-top:8px;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--muted);letter-spacing:.08em}
   .hint{
     margin-top:14px;font-size:11px;letter-spacing:.16em;color:rgba(232,230,220,.55);
-    font-family:"JetBrains Mono",monospace;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
   }
   .scrub{
     margin-top:16px;
@@ -129,7 +129,7 @@
   .scrub input[type="range"]::-webkit-slider-thumb{
     appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold-glow);cursor:pointer;border:2px solid #1a1400;
   }
-  .scrub span{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.08em}
+  .scrub span{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;color:var(--muted);letter-spacing:.08em}
   /* dial */
   .dial-wrap{
     position:fixed;right:22px;bottom:22px;z-index:5;
@@ -150,14 +150,14 @@
   .dial-svg{position:relative;width:100%;height:100%;display:block}
   .dial-label{
     position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);
-    font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.34em;color:var(--gold-dim);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:9px;letter-spacing:.34em;color:var(--gold-dim);
     white-space:nowrap;
     text-shadow:0 0 10px rgba(245,208,106,.25);
   }
   .dial-legend{
     position:absolute;top:10px;left:50%;transform:translateX(-50%);
     display:flex;gap:10px;align-items:center;
-    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.08em;color:var(--muted);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:10px;letter-spacing:.08em;color:var(--muted);
     background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);padding:5px 10px;border-radius:999px;
     backdrop-filter:blur(8px);
   }
@@ -166,7 +166,7 @@
   .tip{
     position:fixed;z-index:20;pointer-events:none;
     background:rgba(12,14,30,.92);border:1px solid rgba(245,208,106,.22);color:var(--ink);
-    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;letter-spacing:.06em;
     padding:7px 10px;border-radius:10px;backdrop-filter:blur(10px);
     transform:translate(-50%, -120%);opacity:0;transition:.15s;
     white-space:nowrap;
@@ -415,7 +415,7 @@ function buildDial(){
     const r0 = R.sun - 8, r1 = R.sun + 5;
     dial.appendChild(el("line",{x1:CX+r0*Math.cos(rad), y1:CY+r0*Math.sin(rad), x2:CX+r1*Math.cos(rad), y2:CY+r1*Math.sin(rad), stroke:"rgba(245,208,106,.85)", "stroke-width":1.4}));
     const tx = CX + (R.sun+16)*Math.cos(rad), ty = CY + (R.sun+16)*Math.sin(rad);
-    const t = el("text",{x:tx, y:ty, "text-anchor":"middle", "dominant-baseline":"middle", fill:"rgba(245,208,106,.9)", "font-size":9, "font-family":"JetBrains Mono", "letter-spacing":".04em"});
+    const t = el("text",{x:tx, y:ty, "text-anchor":"middle", "dominant-baseline":"middle", fill:"rgba(245,208,106,.9)", "font-size":9, "font-family":"ui-monospace", "letter-spacing":".04em"});
     t.textContent = String(i+1);
     dial.appendChild(t);
   }
@@ -437,7 +437,7 @@ function buildDial(){
   const earthText = el("text",{x:CX, y:CY+1, "text-anchor":"middle", "dominant-baseline":"middle", "font-size":16});
   earthText.textContent = "🌍";
   dial.appendChild(earthText);
-  const earthLabel = el("text",{x:CX, y:CY+34, "text-anchor":"middle", fill:"rgba(232,230,220,.72)", "font-size":8, "font-family":"JetBrains Mono", "letter-spacing":".14em"});
+  const earthLabel = el("text",{x:CX, y:CY+34, "text-anchor":"middle", fill:"rgba(232,230,220,.72)", "font-size":8, "font-family":"ui-monospace", "letter-spacing":".14em"});
   earthLabel.textContent = "EARTH · 地";
   dial.appendChild(earthLabel);
   // handles groups
@@ -453,7 +453,7 @@ function buildDial(){
     g.appendChild(txt);
     const labBg = el("rect",{id:`labbg-${k}`, rx:6, ry:6, fill: k==="jupiter" ? "rgba(42,56,150,.98)" : k==="sun" ? "rgba(60,46,0,.92)" : "rgba(30,36,58,.92)", stroke: k==="jupiter" ? "rgba(168,184,255,.55)" : k==="sun" ? "rgba(245,208,106,.38)" : "rgba(255,255,255,.14)", "stroke-width":0.9});
     g.appendChild(labBg);
-    const lab = el("text",{x:CX, y:CY, "text-anchor":"middle", fill: k==="jupiter" ? "#ffffff" : k==="sun" ? "#f5d06a" : "#e8e6dc", "font-size":7, "font-family":"JetBrains Mono", "letter-spacing":".10em", id:`lab-${k}`});
+    const lab = el("text",{x:CX, y:CY, "text-anchor":"middle", fill: k==="jupiter" ? "#ffffff" : k==="sun" ? "#f5d06a" : "#e8e6dc", "font-size":7, "font-family":"ui-monospace", "letter-spacing":".10em", id:`lab-${k}`});
     lab.textContent = k==="moon" ? "MOON" : k==="sun" ? "SUN" : "JUPITER";
     g.appendChild(lab);
     dial.appendChild(g);
@@ -624,7 +624,7 @@ function drawBG(){
   ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2); ctx.fill();
   ctx.shadowBlur = 0;
   ctx.fillStyle = "rgba(245,208,106,.9)";
-  ctx.font = "11px JetBrains Mono";
+  ctx.font = "11px ui-monospace";
   ctx.textAlign = "center";
   ctx.fillText("☉ 日", cx, cy+32);
   // orbits
@@ -649,13 +649,13 @@ function drawBG(){
     }
     // label
     ctx.fillStyle = "rgba(232,230,220,.82)";
-    ctx.font = "11px JetBrains Mono";
+    ctx.font = "11px ui-monospace";
     ctx.textAlign = "center";
     ctx.fillText(p.sym+" "+p.name, x, y - p.r - 10);
     // AU label for jupiter/saturn
     if(p.a>=5){
       ctx.fillStyle = "rgba(154,160,184,.55)";
-      ctx.font = "9px JetBrains Mono";
+      ctx.font = "9px ui-monospace";
       ctx.fillText(p.a.toFixed(2)+" AU", x, y + p.r + 12);
     }
   }
