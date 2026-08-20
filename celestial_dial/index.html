@@ -58,12 +58,17 @@
   .stage{
     position:fixed;inset:0;z-index:2;
     display:grid;place-items:center;
-    padding:60px 20px 40px;
+    padding:60px 20px 140px;
     pointer-events:none;
   }
   .center{
     text-align:center;
     max-width:720px;
+    pointer-events:auto;
+  }
+  .bottom-dock{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
+    z-index:4;width:min(680px, calc(100vw - 24px));
     pointer-events:auto;
   }
   .era{
@@ -194,11 +199,6 @@
     <div class="date-big" id="dateBig">—</div>
     <div class="date-sub" id="dateSub">—</div>
     <div class="divider"></div>
-    <div class="event-card" id="eventCard">
-      <h3>— <i>—</i></h3>
-      <p>拖动右下角圆盘，月亮走一圈≈一月，太阳一圈≈一年，岁星一圈≈十二年。</p>
-      <div class="meta">TIP · 滚轮缩放轨道 · 方向键微调 · 双指拖拽更顺滑</div>
-    </div>
     <div class="scrub">
       <span id="zoomLabel">轨道 100%</span>
       <input type="range" id="zoom" min="55" max="145" value="100">
@@ -207,6 +207,13 @@
     <div class="hint">🌙 朔望月 &nbsp;·&nbsp; ☀️ 回归年 &nbsp;·&nbsp; ♃ 岁星纪年 — 尽可能贴近天文常数</div>
   </div>
 </main>
+<div class="bottom-dock">
+  <div class="event-card" id="eventCard">
+    <h3>— <i>—</i></h3>
+    <p>拖动右下角圆盘，月亮走一圈≈一月，太阳一圈≈一年，岁星一圈≈十二年。</p>
+    <div class="meta">TIP · 滚轮缩放轨道 · 方向键微调 · 双指拖拽更顺滑</div>
+  </div>
+</div>
 
 <div class="dial-wrap" id="dialWrap" aria-label="地心说圆盘">
   <div class="dial-bg"></div>
@@ -437,13 +444,16 @@ function buildDial(){
   for(const k of ["moon","sun","jupiter"]){
     const g = el("g",{id:`h-${k}`, class:"handle", style:"cursor:grab"});
     g.appendChild(el("line",{x1:CX, y1:CY, x2:CX, y2:CY, stroke: k==="sun" ? "rgba(245,208,106,.85)" : k==="moon" ? "rgba(255,255,255,.7)" : "rgba(142,200,255,.85)", "stroke-width": k==="sun"?2.2:1.6, "stroke-linecap":"round", id:`line-${k}`}));
-    const halo = el("circle",{cx:CX, cy:CY, r:18, fill: k==="sun" ? "rgba(245,208,106,.14)" : k==="moon" ? "rgba(255,255,255,.10)" : "rgba(142,200,255,.14)", stroke: k==="sun" ? "rgba(245,208,106,.55)" : k==="moon" ? "rgba(255,255,255,.35)" : "rgba(142,200,255,.5)", "stroke-width":1.2});
+    const halo = el("circle",{cx:CX, cy:CY, r:18, fill: k==="jupiter" ? "rgba(88,112,255,.95)" : k==="sun" ? "rgba(245,208,106,.14)" : "rgba(255,255,255,.10)", stroke: k==="jupiter" ? "rgba(168,184,255,.95)" : k==="sun" ? "rgba(245,208,106,.55)" : "rgba(255,255,255,.35)", "stroke-width":1.2});
     halo.setAttribute("id", `halo-${k}`);
     g.appendChild(halo);
     const txt = el("text",{x:CX, y:CY, "text-anchor":"middle", "dominant-baseline":"middle", "font-size": k==="sun"?18:16, id:`emo-${k}`});
     txt.textContent = k==="moon" ? "🌙" : k==="sun" ? "☀️" : "♃";
+    txt.setAttribute("fill", k==="jupiter" ? "#ffffff" : "#e8e6dc");
     g.appendChild(txt);
-    const lab = el("text",{x:CX, y:CY, "text-anchor":"middle", fill: k==="sun" ? "#f5d06a" : k==="moon" ? "#e8e6dc" : "#8ec8ff", "font-size":7, "font-family":"JetBrains Mono", "letter-spacing":".10em", id:`lab-${k}`});
+    const labBg = el("rect",{id:`labbg-${k}`, rx:6, ry:6, fill: k==="jupiter" ? "rgba(42,56,150,.98)" : k==="sun" ? "rgba(60,46,0,.92)" : "rgba(30,36,58,.92)", stroke: k==="jupiter" ? "rgba(168,184,255,.55)" : k==="sun" ? "rgba(245,208,106,.38)" : "rgba(255,255,255,.14)", "stroke-width":0.9});
+    g.appendChild(labBg);
+    const lab = el("text",{x:CX, y:CY, "text-anchor":"middle", fill: k==="jupiter" ? "#ffffff" : k==="sun" ? "#f5d06a" : "#e8e6dc", "font-size":7, "font-family":"JetBrains Mono", "letter-spacing":".10em", id:`lab-${k}`});
     lab.textContent = k==="moon" ? "MOON" : k==="sun" ? "SUN" : "JUPITER";
     g.appendChild(lab);
     dial.appendChild(g);
@@ -469,10 +479,24 @@ function setHandlePos(k, angleDeg){
   const halo = document.getElementById(`halo-${k}`);
   const emo = document.getElementById(`emo-${k}`);
   const lab = document.getElementById(`lab-${k}`);
-  if(line){ line.setAttribute("x2", x); line.setAttribute("y2", y); }
+  const labBg = document.getElementById(`labbg-${k}`);
+  const innerR = 26;
+  const haloR = 18;
+  const ux = Math.cos(rad), uy = Math.sin(rad);
+  const x1 = CX + innerR*ux, y1 = CY + innerR*uy;
+  const x2 = CX + (r - haloR - 1)*ux, y2 = CY + (r - haloR - 1)*uy;
+  if(line){ line.setAttribute("x1", x1); line.setAttribute("y1", y1); line.setAttribute("x2", x2); line.setAttribute("y2", y2); }
   if(halo){ halo.setAttribute("cx", x); halo.setAttribute("cy", y); }
   if(emo){ emo.setAttribute("x", x); emo.setAttribute("y", y - 1); }
   if(lab){ lab.setAttribute("x", x); lab.setAttribute("y", y + 22); }
+  if(labBg){
+    const w = k==="jupiter" ? 52 : k==="sun" ? 30 : 34;
+    const h = 12;
+    labBg.setAttribute("x", x - w/2);
+    labBg.setAttribute("y", y + 22 - 6);
+    labBg.setAttribute("width", w);
+    labBg.setAttribute("height", h);
+  }
 }
 
 /* ---------- render center ---------- */
@@ -508,10 +532,15 @@ function renderCenter(){
     if(d < bestDist){ bestDist = d; best = e; }
   }
   if(best){
-    const distDays = Math.round(best.jd - currentJDN);
-    const when = distDays===0 ? "今日正值" : distDays>0 ? `${Math.abs(distDays)} 天后` : `${Math.abs(distDays)} 天前`;
+    const distEventDial = Math.round(best.jd - currentJDN);
+    const when = distEventDial===0 ? "就是今天" : distEventDial<0 ? `已过去 ${Math.abs(distEventDial).toLocaleString()}天` : `还有 ${Math.abs(distEventDial).toLocaleString()}天`;
     const highlight = bestDist < 180 ? " · 近期" : "";
-    elCard.innerHTML = `<h3>${best.title} <i>${best.era} · ${when}${highlight}</i></h3><p>${best.desc}</p><div class="meta">${best.date} · 距今 ${Math.abs(distDays).toLocaleString()} 天 · ${bestDist<1 ? "✦ 正当此时" : bestDist<30 ? "⟡ 本月" : bestDist<365 ? "— 本年" : ""}</div>`;
+    const now = new Date();
+    const todayJDN = gregorianToJDN(now.getFullYear(), now.getMonth()+1, now.getDate());
+    const distDialNow = Math.round(currentJDN - todayJDN);
+    const dialNowText = `距今${Math.abs(distDialNow).toLocaleString()}天`;
+    const nearTag = bestDist<1 ? "✦ 正当此时" : bestDist<30 ? "⟡ 本月" : bestDist<365 ? "— 本年" : "";
+    elCard.innerHTML = `<h3>${best.title} <i>${best.era} · ${when}${highlight}</i></h3><p>${best.desc}</p><div class="meta">${best.date} · ${dialNowText}${nearTag ? " · " + nearTag : ""}</div>`;
     elCard.style.borderColor = bestDist<30 ? "rgba(245,208,106,.45)" : "rgba(245,208,106,.18)";
   }
   // update dial handles
