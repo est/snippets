@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Celestial Dial — 地心说</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=JetBrains+Mono:wght@400&family=Noto+Serif+SC:wght@300;600&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#060916;
+    --bg2:#0a1030;
+    --gold:#f5d06a;
+    --gold-dim:#8a7340;
+    --gold-glow:rgba(245,208,106,.35);
+    --ink:#e8e6dc;
+    --muted:#9aa0b8;
+  }
+  html,body{height:100%;overflow:hidden}
+  body{
+    background:radial-gradient(1200px 800px at 30% 15%, #131a4a 0%, transparent 60%),
+               radial-gradient(900px 600px at 85% 85%, #1a1240 0%, transparent 55%),
+               linear-gradient(180deg, #050818 0%, #060916 60%, #070b1f 100%);
+    color:var(--ink);
+    font-family:"Noto Serif SC","Cormorant Garamond",serif;
+  }
+  #bg{
+    position:fixed;inset:0;width:100%;height:100%;z-index:0;
+  }
+  .vignette{
+    position:fixed;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(120% 120% at 50% 50%, transparent 45%, rgba(0,0,0,.55) 100%);
+  }
+  .topbar{
+    position:fixed;top:0;left:0;right:0;z-index:10;
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 28px;
+    pointer-events:none;
+  }
+  .brand{
+    font-family:"Cormorant Garamond",serif;
+    letter-spacing:.18em;font-size:13px;color:var(--gold);
+    display:flex;gap:14px;align-items:center;
+  }
+  .brand b{font-weight:600}
+  .brand i{font-style:normal;color:var(--muted);letter-spacing:.12em;font-size:11px}
+  .top-actions{pointer-events:auto;display:flex;gap:8px;align-items:center}
+  .pill{
+    appearance:none;border:1px solid rgba(245,208,106,.28);
+    background:rgba(255,255,255,.06);backdrop-filter:blur(8px);
+    color:var(--ink);border-radius:999px;padding:7px 14px;
+    font-size:12px;letter-spacing:.08em;cursor:pointer;
+    transition:.2s;
+  }
+  .pill:hover{border-color:var(--gold);box-shadow:0 0 14px var(--gold-glow);transform:translateY(-1px)}
+  .pill.gold{background:var(--gold);color:#1a1400;border-color:var(--gold);font-weight:600}
+  /* center stage */
+  .stage{
+    position:fixed;inset:0;z-index:2;
+    display:grid;place-items:center;
+    padding:60px 20px 40px;
+    pointer-events:none;
+  }
+  .center{
+    text-align:center;
+    max-width:720px;
+    pointer-events:auto;
+  }
+  .era{
+    font-family:"JetBrains Mono",monospace;
+    font-size:11px;letter-spacing:.32em;color:var(--gold);
+    opacity:.9;margin-bottom:14px;
+  }
+  .date-big{
+    font-family:"Cormorant Garamond",serif;
+    font-weight:300;
+    font-size:clamp(44px, 9vw, 92px);
+    line-height:1;
+    letter-spacing:.04em;
+    text-shadow:0 0 30px rgba(245,208,106,.18), 0 2px 30px rgba(0,0,0,.6);
+    font-variant-numeric:tabular-nums;
+  }
+  .date-big span{font-weight:600;color:var(--gold)}
+  .date-sub{
+    margin-top:12px;
+    font-size:15px;letter-spacing:.18em;color:var(--muted);
+    font-family:"Noto Serif SC",serif;
+  }
+  .date-sub em{font-style:normal;color:var(--gold);letter-spacing:.12em}
+  .divider{
+    width:42px;height:1px;background:linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin:18px auto;opacity:.7;
+  }
+  .event-card{
+    margin:18px auto 0;
+    background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+    border:1px solid rgba(245,208,106,.18);
+    backdrop-filter:blur(12px);
+    border-radius:16px;
+    padding:16px 18px;
+    text-align:left;
+    min-height:78px;
+    box-shadow:0 12px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.08);
+    transition:.3s;
+  }
+  .event-card h3{
+    font-size:15px;font-weight:600;letter-spacing:.06em;color:var(--ink);
+    display:flex;align-items:center;gap:8px;
+  }
+  .event-card h3 i{font-style:normal;font-size:11px;letter-spacing:.14em;color:var(--gold);border:1px solid rgba(245,208,106,.3);padding:2px 7px;border-radius:999px}
+  .event-card p{margin-top:6px;font-size:13px;line-height:1.6;color:#cbd1e8;opacity:.95}
+  .event-card .meta{margin-top:8px;font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.08em}
+  .hint{
+    margin-top:14px;font-size:11px;letter-spacing:.16em;color:rgba(232,230,220,.55);
+    font-family:"JetBrains Mono",monospace;
+  }
+  .scrub{
+    margin-top:16px;
+    display:flex;align-items:center;gap:10px;justify-content:center;
+  }
+  .scrub input[type="range"]{
+    width:min(420px, 56vw);appearance:none;height:2px;background:rgba(245,208,106,.22);border-radius:999px;outline:none;
+  }
+  .scrub input[type="range"]::-webkit-slider-thumb{
+    appearance:none;width:14px;height:14px;border-radius:50%;background:var(--gold);box-shadow:0 0 10px var(--gold-glow);cursor:pointer;border:2px solid #1a1400;
+  }
+  .scrub span{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);letter-spacing:.08em}
+  /* dial */
+  .dial-wrap{
+    position:fixed;right:22px;bottom:22px;z-index:5;
+    width:360px;height:360px;
+    display:grid;place-items:center;
+    filter:drop-shadow(0 18px 40px rgba(0,0,0,.6));
+    user-select:none;touch-action:none;
+  }
+  .dial-bg{
+    position:absolute;inset:0;border-radius:50%;
+    background:radial-gradient(400px 400px at 50% 30%, rgba(245,208,106,.10), transparent 60%),
+               radial-gradient(300px 300px at 50% 50%, rgba(255,255,255,.07), transparent 70%),
+               rgba(10,14,36,.72);
+    backdrop-filter:blur(18px);
+    border:1px solid rgba(245,208,106,.22);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.12), inset 0 0 30px rgba(245,208,106,.08);
+  }
+  .dial-svg{position:relative;width:100%;height:100%;display:block}
+  .dial-label{
+    position:absolute;bottom:-2px;left:50%;transform:translateX(-50%);
+    font-family:"JetBrains Mono",monospace;font-size:9px;letter-spacing:.34em;color:var(--gold-dim);
+    white-space:nowrap;
+    text-shadow:0 0 10px rgba(245,208,106,.25);
+  }
+  .dial-legend{
+    position:absolute;top:10px;left:50%;transform:translateX(-50%);
+    display:flex;gap:10px;align-items:center;
+    font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.08em;color:var(--muted);
+    background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.08);padding:5px 10px;border-radius:999px;
+    backdrop-filter:blur(8px);
+  }
+  .legend-dot{width:7px;height:7px;border-radius:50%;display:inline-block;box-shadow:0 0 8px currentColor}
+  /* tooltip */
+  .tip{
+    position:fixed;z-index:20;pointer-events:none;
+    background:rgba(12,14,30,.92);border:1px solid rgba(245,208,106,.22);color:var(--ink);
+    font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.06em;
+    padding:7px 10px;border-radius:10px;backdrop-filter:blur(10px);
+    transform:translate(-50%, -120%);opacity:0;transition:.15s;
+    white-space:nowrap;
+  }
+  .tip.show{opacity:1}
+  @media (max-width:720px){
+    .dial-wrap{width:280px;height:280px;right:12px;bottom:12px}
+    .topbar{padding:12px 14px}
+    .brand i{display:none}
+    .event-card{padding:14px}
+  }
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<div class="vignette"></div>
+
+<div class="topbar">
+  <div class="brand"><b>LAB·EST</b> — CELESTIAL DIAL <i>地心说 · 时间盘</i></div>
+  <div class="top-actions">
+    <button class="pill" id="btnPlay">▶ 流动</button>
+    <button class="pill" id="btnToday">今天</button>
+    <button class="pill gold" id="btnRandom">随机一天</button>
+  </div>
+</div>
+
+<main class="stage">
+  <div class="center">
+    <div class="era" id="era">GEOCENTRIC · TROPICAL YEAR 365.24219d · SYNODIC 29.53059d · JUPITER 11.862y</div>
+    <div class="date-big" id="dateBig">—</div>
+    <div class="date-sub" id="dateSub">—</div>
+    <div class="divider"></div>
+    <div class="event-card" id="eventCard">
+      <h3>— <i>—</i></h3>
+      <p>拖动右下角圆盘，月亮走一圈≈一月，太阳一圈≈一年，岁星一圈≈十二年。</p>
+      <div class="meta">TIP · 滚轮缩放轨道 · 方向键微调 · 双指拖拽更顺滑</div>
+    </div>
+    <div class="scrub">
+      <span id="zoomLabel">轨道 100%</span>
+      <input type="range" id="zoom" min="55" max="145" value="100">
+      <span id="speedLabel">×1</span>
+    </div>
+    <div class="hint">🌙 朔望月 &nbsp;·&nbsp; ☀️ 回归年 &nbsp;·&nbsp; ♃ 岁星纪年 — 尽可能贴近天文常数</div>
+  </div>
+</main>
+
+<div class="dial-wrap" id="dialWrap" aria-label="地心说圆盘">
+  <div class="dial-bg"></div>
+  <div class="dial-legend">
+    <span><i class="legend-dot" style="background:#e8e6dc;color:#e8e6dc"></i> 月</span>
+    <span><i class="legend-dot" style="background:#f5d06a;color:#f5d06a"></i> 日</span>
+    <span><i class="legend-dot" style="background:#8ec8ff;color:#8ec8ff"></i> 岁星</span>
+  </div>
+  <svg class="dial-svg" id="dial" viewBox="0 0 320 320" width="320" height="320">
+    <!-- will be populated by JS -->
+  </svg>
+  <div class="dial-label">DRAG · MOON 29.53d &nbsp;·&nbsp; SUN 365.24d &nbsp;·&nbsp; JUPITER 11.86y</div>
+</div>
+
+<div class="tip" id="tip"></div>
+
+<script>
+(() => {
+/* ---------- time core: JDN ---------- */
+function gregorianToJDN(y,m,d){
+  // Meeus valid for all y including BCE astronomical year ( ... 0 = 1 BC)
+  if(m<=2){ y-=1; m+=12; }
+  const A = Math.floor(y/100);
+  const B = 2 - A + Math.floor(A/4);
+  return Math.floor(365.25*(y+4716)) + Math.floor(30.6001*(m+1)) + d + B - 1524.5;
+}
+function jdnToGregorian(jd){
+  let Z = Math.floor(jd + 0.5);
+  let F = (jd + 0.5) - Z;
+  let A = Z;
+  if(Z >= 2299161){
+    const alpha = Math.floor((Z - 1867216.25)/36524.25);
+    A = Z + 1 + alpha - Math.floor(alpha/4);
+  }
+  const B = A + 1524;
+  const C = Math.floor((B - 122.1)/365.25);
+  const D = Math.floor(365.25*C);
+  const E = Math.floor((B - D)/30.6001);
+  let day = B - D - Math.floor(30.6001*E) + F;
+  let month = E < 14 ? E - 1 : E - 13;
+  let year = month > 2 ? C - 4716 : C - 4715;
+  const d = Math.floor(day);
+  const frac = day - d;
+  return { y: year, m: month, d: d, frac };
+}
+function toAstronomicalYear(y, isBC){
+  // input y positive, isBC bool -> astronomical (0 = 1BC)
+  return isBC ? 1 - y : y;
+}
+function formatGregorian(jd){
+  const g = jdnToGregorian(jd);
+  let y = g.y;
+  let era = y>0 ? `公元 ${y}` : `公元前 ${1 - y}`;
+  const mm = String(g.m).padStart(2,'0');
+  const dd = String(g.d).padStart(2,'0');
+  const yPad = String(Math.abs(y)).padStart(4,'0');
+  const yStr = y>0 ? yPad : `-${yPad}`;
+  return { g, era, yStr, mm, dd };
+}
+// ganzhi
+const stems = ["甲","乙","丙","丁","戊","己","庚","辛","壬","癸"];
+const branches = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+const zodiacs = ["鼠","牛","虎","兔","龙","蛇","马","羊","猴","鸡","狗","猪"];
+function ganzhiYear(y){
+  // 1984 = 甲子
+  const idx = ((y - 1984) % 60 + 60) % 60;
+  const stem = stems[idx % 10];
+  const branch = branches[idx % 12];
+  const animal = zodiacs[idx % 12];
+  return `${stem}${branch}（${animal}）`;
+}
+function solarTermHint(m,d){
+  // very rough: just month name
+  const names = ["","睦月","如月","弥生","卯月","皐月","水無月","文月","葉月","長月","神無月","霜月","師走"];
+  return names[m] || "";
+}
+
+/* ---------- constants ---------- */
+const PERIOD = { moon: 29.53058867, sun: 365.24219, jupiter: 4332.589 };
+const NEW_MOON_EPOCH = 2451550.26; // 2000-01-06 18:14 UTC
+const J2000 = 2451545.0;
+const moonEmojis = [
+  { t:0.00, e:"🌑", n:"朔" },
+  { t:0.06, e:"🌒", n:"峨眉月" },
+  { t:0.19, e:"🌓", n:"上弦" },
+  { t:0.31, e:"🌔", n:"盈凸" },
+  { t:0.44, e:"🌕", n:"望" },
+  { t:0.56, e:"🌖", n:"亏凸" },
+  { t:0.69, e:"🌗", n:"下弦" },
+  { t:0.81, e:"🌘", n:"残月" },
+];
+function moonPhase(jd){
+  let p = ((jd - NEW_MOON_EPOCH) % PERIOD.moon + PERIOD.moon) % PERIOD.moon / PERIOD.moon;
+  // find nearest
+  let best = moonEmojis[0];
+  for(let i=0;i<moonEmojis.length;i++){
+    const cur = moonEmojis[i];
+    const nxt = moonEmojis[(i+1)%moonEmojis.length];
+    let a = cur.t, b = nxt.t;
+    // handle wrap
+    if(b <= a) b += 1;
+    let pp = p; if(pp < a) pp += 1;
+    if(pp >= a && pp < b){ best = cur; break; }
+  }
+  return { phase: p, emoji: best.e, name: best.n };
+}
+
+/* ---------- events demo ---------- */
+const EVENTS = [
+  { date:"-221-01-01", title:"秦始皇统一六国", desc:"秦王政二十六年，秦灭齐，置郡县，中国首次大一统。", era:"先秦" },
+  { date:"-206-02-28", title:"汉高祖立汉", desc:"刘邦称帝，定都长安，汉祚四百年自此始。", era:"秦汉" },
+  { date:"105-01-01", title:"蔡伦改进造纸术", desc:"东汉宦官蔡伦献纸，后世称其为造纸术的集大成者。", era:"汉" },
+  { date:"618-06-18", title:"唐朝建立", desc:"李渊受禅于隋恭帝，唐立，长安遂为世界之都。", era:"隋唐" },
+  { date:"960-02-04", title:"陈桥兵变 · 宋立", desc:"赵匡胤黄袍加身，北宋开国，杯酒释兵权。", era:"宋" },
+  { date:"1271-12-18", title:"元世祖定国号为大元", desc:"忽必烈取《易经》大哉乾元之义，定名大元。", era:"元" },
+  { date:"1368-01-23", title:"明太祖即位", desc:"朱元璋在应天称帝，国号大明，驱逐胡虏恢复中华。", era:"明" },
+  { date:"1405-07-11", title:"郑和首下西洋", desc:"永乐三年，郑和率宝船自苏州刘家港出洋，凡七下西洋。", era:"明" },
+  { date:"1440-02-23", title:"古登堡活字印刷", desc:"德意志工匠古登堡试制铅活字，开启西方印刷时代。", era:"世界" },
+  { date:"1600-01-01", title:"利玛窦抵京师", desc:"意大利耶稣会士利玛窦进献自鸣钟与坤舆万国图。", era:"明末" },
+  { date:"1687-07-05", title:"《自然哲学的数学原理》", desc:"牛顿在伦敦出版《原理》，万有引力与三大定律问世。", era:"科学" },
+  { date:"1776-07-04", title:"美利坚独立宣言", desc:"费城大陆会议通过独立宣言，美利坚合众国诞生。", era:"世界" },
+  { date:"1789-07-14", title:"攻占巴士底狱", desc:"巴黎民众攻陷巴士底狱，法兰西大革命爆发。", era:"世界" },
+  { date:"1868-01-25", title:"明治维新诏书", desc:"日本明治天皇布告王政复古，废藩置县走向近代。", era:"东亚" },
+  { date:"1905-09-05", title:"中国同盟会成立", desc:"孙中山在东京联络兴中会、华兴会等成立同盟会。", era:"近代" },
+  { date:"1911-10-10", title:"武昌起义", desc:"湖北新军发难，清廷瓦解，共和肇始。", era:"近代" },
+  { date:"1919-05-04", title:"五四运动", desc:"北京学生为山东问题游行，激起新文化运动高潮。", era:"近代" },
+  { date:"1945-08-15", title:"日本投降", desc:"裕仁天皇播送终战诏书，第二次世界大战结束。", era:"现代" },
+  { date:"1957-10-04", title:"斯普特尼克一号", desc:"苏联发射首颗人造卫星，人类进入太空时代。", era:"太空" },
+  { date:"1969-07-20", title:"阿波罗 11 号登月", desc:"阿姆斯特朗在月面留下第一行足印：这是个人的一小步。", era:"太空" },
+  { date:"1989-11-09", title:"柏林墙倒塌", desc:"东德宣布开放边境，柏林墙被民众推倒，冷战终结前夜。", era:"现代" },
+  { date:"1997-07-01", title:"香港回归", desc:"中英两国政府在香港会展中心举行政权交接仪式。", era:"当代" },
+  { date:"2007-06-29", title:"iPhone 初代发布", desc:"乔布斯在旧金山发布 iPhone，智能手机纪元开启。", era:"当代" },
+  { date:"2020-01-01", title:"人类基因组与 mRNA 时代", desc:"新冠疫情促使 mRNA 疫苗以前所未有的速度问世。", era:"当代" },
+  { date:"2024-06-01", title:"嫦娥六号月背采样", desc:"中国探测器在月球背面南极-艾特肯盆地完成采样并起飞。", era:"太空" },
+];
+function parseEventDate(s){
+  const m = s.match(/^(-?)(\d+)-(\d+)-(\d+)$/);
+  if(!m) return null;
+  const neg = m[1]==="-";
+  const y = parseInt(m[2],10);
+  const mo = parseInt(m[3],10);
+  const d = parseInt(m[4],10);
+  const ay = neg ? 1 - y : y;
+  return gregorianToJDN(ay, mo, d);
+}
+EVENTS.forEach(e => e.jd = parseEventDate(e.date));
+EVENTS.sort((a,b)=>a.jd-b.jd);
+
+/* ---------- state ---------- */
+let currentJDN = gregorianToJDN(new Date().getFullYear(), new Date().getMonth()+1, new Date().getDate()) + 0.0;
+let zoom = 100;
+let playing = false;
+let playSpeed = 1; // 1 = 1 day per frame approx
+let animId = 0;
+
+/* ---------- DOM ---------- */
+const elDateBig = document.getElementById('dateBig');
+const elDateSub = document.getElementById('dateSub');
+const elEra = document.getElementById('era');
+const elCard = document.getElementById('eventCard');
+const elZoom = document.getElementById('zoom');
+const elZoomLabel = document.getElementById('zoomLabel');
+const elSpeedLabel = document.getElementById('speedLabel');
+const tip = document.getElementById('tip');
+const dial = document.getElementById('dial');
+const dialWrap = document.getElementById('dialWrap');
+
+/* ---------- dial SVG build ---------- */
+const CX = 160, CY = 160;
+const R = { moon: 58, sun: 102, jupiter: 142 };
+const SVG_NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs){
+  const n = document.createElementNS(SVG_NS, tag);
+  for(const k in attrs) n.setAttribute(k, attrs[k]);
+  return n;
+}
+function buildDial(){
+  dial.innerHTML = "";
+  // subtle outer glow ring
+  dial.appendChild(el("circle",{cx:CX, cy:CY, r:152, fill:"none", stroke:"rgba(245,208,106,.08)", "stroke-width":1}));
+  // rings
+  for(const k of ["jupiter","sun","moon"]){
+    const r = R[k];
+    dial.appendChild(el("circle",{cx:CX, cy:CY, r, fill:"none", stroke: k==="sun" ? "rgba(245,208,106,.22)" : k==="moon" ? "rgba(255,255,255,.14)" : "rgba(142,200,255,.22)", "stroke-width": k==="sun"?1.4:1, "stroke-dasharray": k==="jupiter" ? "2 6" : "none"}));
+  }
+  // ticks
+  // moon 30 ticks (days)
+  for(let i=0;i<30;i++){
+    const a = i/30*360 - 90;
+    const rad = a*Math.PI/180;
+    const r0 = R.moon - (i%5===0?7:3);
+    const r1 = R.moon + 3;
+    dial.appendChild(el("line",{x1: CX + r0*Math.cos(rad), y1: CY + r0*Math.sin(rad), x2: CX + r1*Math.cos(rad), y2: CY + r1*Math.sin(rad), stroke: i%5===0 ? "rgba(255,255,255,.55)" : "rgba(255,255,255,.18)", "stroke-width": i%5===0?1.2:0.7}));
+  }
+  // sun 12 ticks (months) + 365 tiny?
+  for(let i=0;i<12;i++){
+    const a = i/12*360 - 90;
+    const rad = a*Math.PI/180;
+    const r0 = R.sun - 8, r1 = R.sun + 5;
+    dial.appendChild(el("line",{x1:CX+r0*Math.cos(rad), y1:CY+r0*Math.sin(rad), x2:CX+r1*Math.cos(rad), y2:CY+r1*Math.sin(rad), stroke:"rgba(245,208,106,.85)", "stroke-width":1.4}));
+    const tx = CX + (R.sun+16)*Math.cos(rad), ty = CY + (R.sun+16)*Math.sin(rad);
+    const t = el("text",{x:tx, y:ty, "text-anchor":"middle", "dominant-baseline":"middle", fill:"rgba(245,208,106,.9)", "font-size":9, "font-family":"JetBrains Mono", "letter-spacing":".04em"});
+    t.textContent = String(i+1);
+    dial.appendChild(t);
+  }
+  // jupiter 12 ticks (earthly branches)
+  const branchesShort = ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+  for(let i=0;i<12;i++){
+    const a = i/12*360 - 90;
+    const rad = a*Math.PI/180;
+    const r0 = R.jupiter - 6, r1 = R.jupiter + 4;
+    dial.appendChild(el("line",{x1:CX+r0*Math.cos(rad), y1:CY+r0*Math.sin(rad), x2:CX+r1*Math.cos(rad), y2:CY+r1*Math.sin(rad), stroke:"rgba(142,200,255,.65)", "stroke-width":1.1}));
+    const tx = CX + (R.jupiter+14)*Math.cos(rad), ty = CY + (R.jupiter+14)*Math.sin(rad);
+    const t = el("text",{x:tx, y:ty, "text-anchor":"middle", "dominant-baseline":"middle", fill:"rgba(142,200,255,.95)", "font-size":11});
+    t.textContent = branchesShort[i];
+    dial.appendChild(t);
+  }
+  // center earth glow
+  dial.appendChild(el("circle",{cx:CX, cy:CY, r:22, fill:"rgba(110,160,255,.18)", stroke:"rgba(110,160,255,.35)", "stroke-width":1}));
+  dial.appendChild(el("circle",{cx:CX, cy:CY, r:13, fill:"#0b1a3a", stroke:"rgba(245,208,106,.35)", "stroke-width":1}));
+  const earthText = el("text",{x:CX, y:CY+1, "text-anchor":"middle", "dominant-baseline":"middle", "font-size":16});
+  earthText.textContent = "🌍";
+  dial.appendChild(earthText);
+  const earthLabel = el("text",{x:CX, y:CY+34, "text-anchor":"middle", fill:"rgba(232,230,220,.72)", "font-size":8, "font-family":"JetBrains Mono", "letter-spacing":".14em"});
+  earthLabel.textContent = "EARTH · 地";
+  dial.appendChild(earthLabel);
+  // handles groups
+  for(const k of ["moon","sun","jupiter"]){
+    const g = el("g",{id:`h-${k}`, class:"handle", style:"cursor:grab"});
+    g.appendChild(el("line",{x1:CX, y1:CY, x2:CX, y2:CY, stroke: k==="sun" ? "rgba(245,208,106,.85)" : k==="moon" ? "rgba(255,255,255,.7)" : "rgba(142,200,255,.85)", "stroke-width": k==="sun"?2.2:1.6, "stroke-linecap":"round", id:`line-${k}`}));
+    const halo = el("circle",{cx:CX, cy:CY, r:18, fill: k==="sun" ? "rgba(245,208,106,.14)" : k==="moon" ? "rgba(255,255,255,.10)" : "rgba(142,200,255,.14)", stroke: k==="sun" ? "rgba(245,208,106,.55)" : k==="moon" ? "rgba(255,255,255,.35)" : "rgba(142,200,255,.5)", "stroke-width":1.2});
+    halo.setAttribute("id", `halo-${k}`);
+    g.appendChild(halo);
+    const txt = el("text",{x:CX, y:CY, "text-anchor":"middle", "dominant-baseline":"middle", "font-size": k==="sun"?18:16, id:`emo-${k}`});
+    txt.textContent = k==="moon" ? "🌙" : k==="sun" ? "☀️" : "♃";
+    g.appendChild(txt);
+    const lab = el("text",{x:CX, y:CY, "text-anchor":"middle", fill: k==="sun" ? "#f5d06a" : k==="moon" ? "#e8e6dc" : "#8ec8ff", "font-size":7, "font-family":"JetBrains Mono", "letter-spacing":".10em", id:`lab-${k}`});
+    lab.textContent = k==="moon" ? "MOON" : k==="sun" ? "SUN" : "JUPITER";
+    g.appendChild(lab);
+    dial.appendChild(g);
+  }
+}
+buildDial();
+
+function jdnToDialAngles(jd){
+  const moonAn = ((jd - NEW_MOON_EPOCH) % PERIOD.moon + PERIOD.moon) % PERIOD.moon / PERIOD.moon * 360 - 90;
+  const sunAn = (((jd - gregorianToJDN(jdnToGregorian(jd).y,1,1)) / PERIOD.sun) * 360 - 90 + 360) %360 - 0; // offset -90 already
+  // For sun, compute day-of-year fraction using tropical year, simpler use above but ensure 0-360
+  let doy = jd - gregorianToJDN(jdnToGregorian(jd).y,1,1);
+  let sunAngle = doy / PERIOD.sun * 360 - 90;
+  let jupAngle = ((jd - J2000) / PERIOD.jupiter * 360 - 90) % 360;
+  // normalize -180..180 handling via raw
+  return { moon: moonAn, sun: sunAngle, jupiter: jupAngle };
+}
+function setHandlePos(k, angleDeg){
+  const rad = angleDeg * Math.PI/180;
+  const r = R[k];
+  const x = CX + r * Math.cos(rad), y = CY + r * Math.sin(rad);
+  const line = document.getElementById(`line-${k}`);
+  const halo = document.getElementById(`halo-${k}`);
+  const emo = document.getElementById(`emo-${k}`);
+  const lab = document.getElementById(`lab-${k}`);
+  if(line){ line.setAttribute("x2", x); line.setAttribute("y2", y); }
+  if(halo){ halo.setAttribute("cx", x); halo.setAttribute("cy", y); }
+  if(emo){ emo.setAttribute("x", x); emo.setAttribute("y", y - 1); }
+  if(lab){ lab.setAttribute("x", x); lab.setAttribute("y", y + 22); }
+}
+
+/* ---------- render center ---------- */
+function renderCenter(){
+  const mp = moonPhase(currentJDN);
+  const fmt = formatGregorian(currentJDN);
+  const g = fmt.g;
+  // moon emoji dynamic
+  const moonE = mp.emoji;
+  elDateBig.innerHTML = `<span style="font-size:.62em;vertical-align:middle;margin-right:6px">${moonE}</span>${fmt.yStr}<span>·</span>${fmt.mm}<span>·</span>${fmt.dd}`;
+  const ganzhi = ganzhiYear(g.y);
+  const jdNext = currentJDN;
+  // delta to show days since
+  elDateSub.innerHTML = `${fmt.era} · ${ganzhi} · ${mp.name} ${moonE} <em>${(mp.phase*100).toFixed(1)}%</em> · JD ${currentJDN.toFixed(2)}`;
+  // era line
+  const by = g.y;
+  let dyn = "";
+  if(by < -221) dyn = "上古 · 三代";
+  else if(by < 220) dyn = "秦汉";
+  else if(by < 589) dyn = "魏晋南北朝";
+  else if(by < 907) dyn = "隋唐";
+  else if(by < 1271) dyn = "宋元";
+  else if(by < 1368) dyn = "元明之际";
+  else if(by < 1644) dyn = "明";
+  else if(by < 1912) dyn = "清 · 近代";
+  else if(by < 1949) dyn = "民国 · 现代";
+  else dyn = "当代 · 太空时代";
+  elEra.textContent = `${dyn}  ·  TROPICAL ${PERIOD.sun.toFixed(5)}d  ·  SYNODIC ${PERIOD.moon.toFixed(5)}d  ·  JUPITER ${ (PERIOD.jupiter/365.25).toFixed(3)}y`;
+  // event card: nearest event
+  let best = null, bestDist = Infinity;
+  for(const e of EVENTS){
+    const d = Math.abs(e.jd - currentJDN);
+    if(d < bestDist){ bestDist = d; best = e; }
+  }
+  if(best){
+    const distDays = Math.round(best.jd - currentJDN);
+    const when = distDays===0 ? "今日正值" : distDays>0 ? `${Math.abs(distDays)} 天后` : `${Math.abs(distDays)} 天前`;
+    const highlight = bestDist < 180 ? " · 近期" : "";
+    elCard.innerHTML = `<h3>${best.title} <i>${best.era} · ${when}${highlight}</i></h3><p>${best.desc}</p><div class="meta">${best.date} · 距今 ${Math.abs(distDays).toLocaleString()} 天 · ${bestDist<1 ? "✦ 正当此时" : bestDist<30 ? "⟡ 本月" : bestDist<365 ? "— 本年" : ""}</div>`;
+    elCard.style.borderColor = bestDist<30 ? "rgba(245,208,106,.45)" : "rgba(245,208,106,.18)";
+  }
+  // update dial handles
+  const ang = jdnToDialAngles(currentJDN);
+  setHandlePos("moon", ang.moon);
+  setHandlePos("sun", ang.sun);
+  setHandlePos("jupiter", ang.jupiter);
+  // update moon emoji on dial
+  const emoMoon = document.getElementById("emo-moon");
+  if(emoMoon) emoMoon.textContent = mp.emoji;
+}
+
+/* ---------- background canvas: starfield + orbits ---------- */
+const bg = document.getElementById('bg');
+const ctx = bg.getContext('2d');
+let stars = [];
+function resize(){
+  const dpr = Math.min(2, window.devicePixelRatio||1);
+  bg.width = innerWidth * dpr;
+  bg.height = innerHeight * dpr;
+  bg.style.width = innerWidth + "px";
+  bg.style.height = innerHeight + "px";
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  genStars();
+  drawBG();
+}
+function genStars(){
+  stars = [];
+  const n = 260;
+  for(let i=0;i<n;i++){
+    stars.push({
+      x: Math.random()*innerWidth,
+      y: Math.random()*innerHeight,
+      r: Math.random()*1.1 + 0.15,
+      a: Math.random()*0.7+0.2,
+      tw: Math.random()*0.02+0.004
+    });
+  }
+}
+const PLANETS = [
+  { name:"水星", sym:"☿", a:0.39, period:87.97, color:"#c9b8a8", r:2.2 },
+  { name:"金星", sym:"♀", a:0.72, period:224.7, color:"#e8cda3", r:3.0 },
+  { name:"地球", sym:"⊕", a:1.00, period:365.25, color:"#6b93d6", r:3.2 },
+  { name:"火星", sym:"♂", a:1.52, period:686.98, color:"#d04a2a", r:2.6 },
+  { name:"木星", sym:"♃", a:5.20, period:4332.59, color:"#f5d06a", r:6.2 },
+  { name:"土星", sym:"♄", a:9.58, period:10759, color:"#c7b08b", r:5.0, ring:true },
+  { name:"天王", sym:"♅", a:19.18, period:30688, color:"#7fc8d6", r:4.2 },
+  { name:"海王", sym:"♆", a:30.07, period:60195, color:"#3a5bdb", r:4.0 },
+];
+function displayRadius(a){
+  const z = zoom/100;
+  const minA = 0.39, maxA = 30.07;
+  // sqrt mapping + zoom
+  const t = (Math.sqrt(a) - Math.sqrt(minA)) / (Math.sqrt(maxA)-Math.sqrt(minA));
+  const minR = 38, maxR = Math.min(innerWidth, innerHeight)*0.42;
+  return (minR + t*(maxR - minR)) * (0.72 + z*0.28);
+}
+function drawBG(){
+  const w = innerWidth, h = innerHeight;
+  ctx.clearRect(0,0,w,h);
+  // stars
+  const t = Date.now()*0.001;
+  for(const s of stars){
+    const tw = 0.75 + Math.sin(t*s.tw*200 + s.x)*0.35;
+    ctx.globalAlpha = s.a * tw;
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  // center is screen center, but slightly up to avoid dial overlap? keep center
+  const cx = w*0.5, cy = h*0.52;
+  // sun at center glow
+  const grd = ctx.createRadialGradient(cx,cy,0,cx,cy,26);
+  grd.addColorStop(0,"rgba(245,208,106,1)");
+  grd.addColorStop(0.35,"rgba(245,208,106,.55)");
+  grd.addColorStop(1,"rgba(245,208,106,0)");
+  ctx.fillStyle = grd;
+  ctx.beginPath(); ctx.arc(cx,cy,26,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle = "#f5d06a";
+  ctx.shadowColor = "rgba(245,208,106,.9)"; ctx.shadowBlur = 14;
+  ctx.beginPath(); ctx.arc(cx,cy,7,0,Math.PI*2); ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = "rgba(245,208,106,.9)";
+  ctx.font = "11px JetBrains Mono";
+  ctx.textAlign = "center";
+  ctx.fillText("☉ 日", cx, cy+32);
+  // orbits
+  for(const p of PLANETS){
+    const Rr = displayRadius(p.a);
+    ctx.strokeStyle = p.name==="地球" ? "rgba(107,147,214,.32)" : p.name==="木星" ? "rgba(245,208,106,.22)" : "rgba(255,255,255,.09)";
+    ctx.lineWidth = p.name==="木星" || p.name==="地球" ? 1.1 : 0.85;
+    if(p.name==="土星" || p.name==="木星") ctx.setLineDash([2,6]); else ctx.setLineDash([]);
+    ctx.beginPath(); ctx.arc(cx,cy,Rr,0,Math.PI*2); ctx.stroke();
+    ctx.setLineDash([]);
+    // planet pos
+    const ang = ((currentJDN - J2000)/p.period*360 - 90) * Math.PI/180;
+    const x = cx + Rr*Math.cos(ang), y = cy + Rr*Math.sin(ang);
+    // trail glow
+    ctx.fillStyle = p.color;
+    ctx.shadowColor = p.color; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(x,y,p.r,0,Math.PI*2); ctx.fill();
+    ctx.shadowBlur = 0;
+    if(p.ring){
+      ctx.strokeStyle = "rgba(199,176,139,.55)"; ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.ellipse(x,y,p.r+3, p.r*0.55, ang+0.6, 0, Math.PI*2); ctx.stroke();
+    }
+    // label
+    ctx.fillStyle = "rgba(232,230,220,.82)";
+    ctx.font = "11px JetBrains Mono";
+    ctx.textAlign = "center";
+    ctx.fillText(p.sym+" "+p.name, x, y - p.r - 10);
+    // AU label for jupiter/saturn
+    if(p.a>=5){
+      ctx.fillStyle = "rgba(154,160,184,.55)";
+      ctx.font = "9px JetBrains Mono";
+      ctx.fillText(p.a.toFixed(2)+" AU", x, y + p.r + 12);
+    }
+  }
+  // current date marker line to jupiter?
+}
+window.addEventListener('resize', resize);
+resize();
+
+/* ---------- dial interaction ---------- */
+let dragging = null; // "moon"|"sun"|"jupiter"
+let lastAngle = 0;
+let lastPointer = {x:0,y:0};
+
+function pointerAngle(clientX, clientY){
+  const rect = dial.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  const dx = clientX - cx, dy = clientY - cy;
+  return Math.atan2(dy, dx) * 180/Math.PI;
+}
+function distToHandle(clientX, clientY, k){
+  const rect = dial.getBoundingClientRect();
+  const cx = rect.left + rect.width/2;
+  const cy = rect.top + rect.height/2;
+  const ang = jdnToDialAngles(currentJDN)[k] * Math.PI/180;
+  const hx = cx + (R[k] * rect.width/320) * Math.cos(ang);
+  const hy = cy + (R[k] * rect.width/320) * Math.sin(ang);
+  const dx = clientX - hx, dy = clientY - hy;
+  return Math.hypot(dx,dy);
+}
+function pickHandle(clientX, clientY){
+  let best=null, bestD=Infinity;
+  for(const k of ["moon","sun","jupiter"]){
+    const d = distToHandle(clientX,clientY,k);
+    if(d < bestD){ bestD=d; best=k; }
+  }
+  // if very far from any handle but near ring, pick ring
+  if(bestD > 42){
+    const rect = dial.getBoundingClientRect();
+    const cx = rect.left + rect.width/2;
+    const cy = rect.top + rect.height/2;
+    const r = Math.hypot(clientX-cx, clientY-cy) / (rect.width/320);
+    let closest = null, minR = Infinity;
+    for(const k of ["moon","sun","jupiter"]){
+      const d = Math.abs(r - R[k]);
+      if(d < minR){ minR=d; closest=k; }
+    }
+    if(minR < 22) return closest;
+    return null;
+  }
+  return best;
+}
+function showTip(text, x, y){
+  tip.textContent = text;
+  tip.style.left = x+"px";
+  tip.style.top = y+"px";
+  tip.classList.add("show");
+}
+function hideTip(){ tip.classList.remove("show"); }
+
+dial.addEventListener("pointerdown", (e)=>{
+  const k = pickHandle(e.clientX, e.clientY);
+  if(!k) return;
+  dragging = k;
+  lastAngle = pointerAngle(e.clientX, e.clientY);
+  dial.setPointerCapture(e.pointerId);
+  dialWrap.style.cursor = "grabbing";
+  const mp = moonPhase(currentJDN);
+  showTip(k==="moon" ? `🌙 月 · ${mp.emoji} ${mp.name} · 拖动 360° ≈ 29.53 天` : k==="sun" ? `☀️ 日 · 360° ≈ 365.24 天` : `♃ 岁星 · 360° ≈ 11.86 年`, e.clientX, e.clientY);
+  e.preventDefault();
+});
+dial.addEventListener("pointermove", (e)=>{
+  if(!dragging){ // hover hint
+    const k = pickHandle(e.clientX, e.clientY);
+    if(k){
+      const label = k==="moon" ? "🌙 拖拽一圈≈1月（朔望月）" : k==="sun" ? "☀️ 拖拽一圈≈1年（回归年）" : "♃ 拖拽一圈≈12年（岁星一纪）";
+      showTip(label, e.clientX, e.clientY);
+    } else hideTip();
+    return;
+  }
+  const cur = pointerAngle(e.clientX, e.clientY);
+  let delta = cur - lastAngle;
+  // unwrap -180..180
+  if(delta > 180) delta -= 360;
+  if(delta < -180) delta += 360;
+  const days = delta/360 * PERIOD[dragging];
+  currentJDN += days;
+  lastAngle = cur;
+  renderCenter();
+  drawBG();
+  showTip(dragging==="moon" ? `🌙 ${days>0?"+":""}${days.toFixed(2)} 天` : dragging==="sun" ? `☀️ ${days>0?"+":""}${days.toFixed(1)} 天` : `♃ ${days>0?"+":""}${(days/365.25).toFixed(3)} 年`, e.clientX, e.clientY);
+});
+function endDrag(e){
+  if(dragging){
+    hideTip();
+    dragging = null;
+    dialWrap.style.cursor = "";
+    try{ dial.releasePointerCapture(e.pointerId); }catch{}
+  }
+}
+dial.addEventListener("pointerup", endDrag);
+dial.addEventListener("pointercancel", endDrag);
+dial.addEventListener("pointerleave", ()=>{ if(!dragging) hideTip(); });
+
+// wheel zoom
+dialWrap.addEventListener("wheel", (e)=>{
+  e.preventDefault();
+  zoom = Math.max(55, Math.min(145, zoom + (e.deltaY>0?-4:4)));
+  elZoom.value = zoom;
+  elZoomLabel.textContent = `轨道 ${zoom}%`;
+  drawBG();
+},{passive:false});
+document.addEventListener("wheel", (e)=>{
+  if(e.target.closest("#dialWrap")) return;
+  if(Math.abs(e.deltaY) < 2) return;
+  // subtle zoom on page wheel too
+},{passive:true});
+
+/* ---------- controls ---------- */
+elZoom.addEventListener("input", ()=>{
+  zoom = parseInt(elZoom.value,10);
+  elZoomLabel.textContent = `轨道 ${zoom}%`;
+  drawBG();
+});
+document.getElementById("btnToday").addEventListener("click", ()=>{
+  const n = new Date();
+  currentJDN = gregorianToJDN(n.getFullYear(), n.getMonth()+1, n.getDate());
+  renderCenter(); drawBG();
+});
+document.getElementById("btnRandom").addEventListener("click", ()=>{
+  const idx = Math.floor(Math.random()*EVENTS.length);
+  const jitter = (Math.random()-0.5)*60;
+  currentJDN = EVENTS[idx].jd + jitter;
+  renderCenter(); drawBG();
+});
+const btnPlay = document.getElementById("btnPlay");
+btnPlay.addEventListener("click", ()=>{
+  playing = !playing;
+  btnPlay.textContent = playing ? "⏸ 暂停" : "▶ 流动";
+  btnPlay.style.borderColor = playing ? "var(--gold)" : "";
+  if(playing) loop();
+  else cancelAnimationFrame(animId);
+});
+elSpeedLabel.addEventListener("click", ()=>{
+  const speeds = [0.5,1,3,8,20];
+  let i = speeds.indexOf(playSpeed);
+  playSpeed = speeds[(i+1)%speeds.length];
+  elSpeedLabel.textContent = `×${playSpeed}`;
+});
+function loop(){
+  if(!playing) return;
+  currentJDN += 0.18 * playSpeed; // ~ 0.18 day per frame at 60fps = ~10 days/sec at x1
+  renderCenter(); drawBG();
+  animId = requestAnimationFrame(loop);
+}
+// keyboard nudge
+document.addEventListener("keydown", (e)=>{
+  let d = 0;
+  if(e.key==="ArrowRight") d = 1;
+  else if(e.key==="ArrowLeft") d = -1;
+  else if(e.key==="ArrowUp") d = 30;
+  else if(e.key==="ArrowDown") d = -30;
+  else return;
+  if(e.shiftKey) d *= 7;
+  if(e.altKey) d *= 365.24219/30;
+  e.preventDefault();
+  currentJDN += d;
+  renderCenter(); drawBG();
+});
+
+// init
+renderCenter();
+drawBG();
+// subtle intro animation
+let introT = 0;
+(function intro(){
+  introT += 0.04;
+  if(introT < 1){
+    currentJDN += Math.sin(introT*Math.PI)*0.6;
+    renderCenter(); drawBG();
+    requestAnimationFrame(intro);
+  } else { renderCenter(); drawBG(); }
+})();
+
+// expose for debug
+window._dial = { get jd(){return currentJDN}, set jd(v){currentJDN=v; renderCenter(); drawBG();} };
+})();
+</script>
+</body>
+</html>
