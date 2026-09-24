@@ -18,26 +18,49 @@
       --warn: #fb7185;
     }
     * { box-sizing: border-box; }
-    html, body { margin: 0; min-height: 100%; background: var(--bg); color: var(--text); font: 15px/1.5 ui-sans-serif, system-ui, sans-serif; }
-    body { padding: 20px 16px 48px; }
-    h1 { font-size: 1.35rem; font-weight: 650; letter-spacing: -0.02em; margin: 0 0 6px; }
-    .lede { color: var(--muted); max-width: 62rem; margin: 0 0 18px; }
-    .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 12px; }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font: 13px/1.35 ui-sans-serif, system-ui, sans-serif; }
+    body {
+      height: 100dvh;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+    }
+    h1 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.02em; margin: 0; white-space: nowrap; }
+    .head { display: flex; align-items: baseline; gap: 10px; flex-wrap: nowrap; flex-shrink: 0; }
+    .lede { color: var(--muted); margin: 0; flex: 1; min-width: 12rem; font-size: 0.78rem; }
+    .grid { display: grid; gap: 6px; grid-template-columns: repeat(4, 1fr); flex-shrink: 0; }
     .card {
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 12px 14px;
+      border-radius: 8px;
+      padding: 6px 8px 5px;
+      min-width: 0;
     }
-    .card h2 { margin: 0 0 8px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
-    .hz { font-variant-numeric: tabular-nums; font-size: 2rem; font-weight: 700; letter-spacing: -0.04em; }
-    .hz small { font-size: 0.85rem; font-weight: 500; color: var(--muted); }
-    .meta { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .card h2 {
+      margin: 0;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .hzrow { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+    .hz { font-variant-numeric: tabular-nums; font-size: 1.35rem; font-weight: 700; letter-spacing: -0.04em; }
+    .hz small { font-size: 0.7rem; font-weight: 500; color: var(--muted); }
+    .meta {
+      font-size: 0.7rem; color: var(--muted); font-variant-numeric: tabular-nums;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
     .pad {
       position: relative;
-      height: min(52vh, 420px);
-      min-height: 240px;
-      border-radius: 14px;
+      flex: 1 1 0;
+      min-height: 120px;
+      border-radius: 10px;
       border: 1px dashed #3a4356;
       background:
         radial-gradient(circle at 50% 40%, #1a2230 0%, var(--bg) 70%);
@@ -49,68 +72,90 @@
     .pad canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
     .hint {
       position: absolute; inset: 0; display: grid; place-items: center;
-      pointer-events: none; color: var(--muted); text-align: center; padding: 24px;
+      pointer-events: none; color: var(--muted); text-align: center; padding: 12px;
+      font-size: 0.8rem;
     }
     .hint strong { color: var(--text); }
-    .row { display: flex; gap: 8px; flex-wrap: wrap; margin: 12px 0; }
+    .pad .row {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 2;
+    }
+    .row { display: flex; gap: 6px; flex-wrap: nowrap; align-items: center; flex-shrink: 0; }
     button, label.tog {
       background: #1c2330; color: var(--text); border: 1px solid var(--line);
-      border-radius: 8px; padding: 8px 12px; font: inherit; cursor: pointer;
+      border-radius: 6px; padding: 4px 8px; font: inherit; cursor: pointer;
     }
     button:hover, label.tog:hover { border-color: #4b5568; }
-    label.tog { display: inline-flex; align-items: center; gap: 6px; }
-    .notes {
-      margin-top: 16px; color: var(--muted); font-size: 0.88rem; max-width: 62rem;
+    label.tog { display: inline-flex; align-items: center; gap: 5px; }
+    .foot { display: grid; gap: 6px; grid-template-columns: 1.1fr 1fr 1.4fr; flex-shrink: 0; }
+    .notes { color: var(--muted); font-size: 0.72rem; margin: 0; }
+    .notes p { margin: 0; }
+    .foot .notes { font-size: 0.7rem; }
+    .notes code { color: #d1d5db; background: #1c2330; padding: 0 3px; border-radius: 3px; }
+    .dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 5px; vertical-align: 0.05em; }
+    .foot .meta { white-space: normal; line-height: 1.35; max-height: 2.7em; overflow: hidden; }
+    .hist { height: 22px; display: flex; align-items: flex-end; gap: 1px; margin-top: 3px; }
+    .hist i { flex: 1; background: currentColor; opacity: 0.85; min-height: 1px; border-radius: 1px 1px 0 0; }
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .foot { grid-template-columns: 1fr; }
+      body { overflow: auto; height: auto; min-height: 100dvh; }
+      .pad { min-height: 180px; height: 32vh; flex: none; }
     }
-    .notes code { color: #d1d5db; background: #1c2330; padding: 0 4px; border-radius: 4px; }
-    .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-    .hist { height: 72px; display: flex; align-items: flex-end; gap: 2px; margin-top: 8px; }
-    .hist i { flex: 1; background: currentColor; opacity: 0.85; min-height: 1px; border-radius: 2px 2px 0 0; }
   </style>
 </head>
 <body>
-  <h1>JS 能测鼠标轮询率吗？触摸屏刷新呢？</h1>
-  <p class="lede">
-    浏览器<strong>没有</strong>官方 API 直接读 HID polling rate 或触控面板采样率。
-    只能用事件时间戳差分来<strong>估算</strong>：相邻 <code>pointermove</code> / <code>mousemove</code> / <code>touchmove</code>
-    的间隔 → Hz。浏览器常会把多次采样合成一次事件，所以再对比
-    <code>getCoalescedEvents()</code> 和屏幕的 <code>requestAnimationFrame</code>。
-  </p>
+  <div class="head">
+    <h1>输入采样率探测</h1>
+    <p class="lede">
+      没有官方 API 读 HID polling / 触控采样率，只能用 <code>pointermove</code> 间隔估算；
+      对比 <code>getCoalescedEvents()</code> 与 rAF（屏刷）。
+    </p>
+  </div>
 
   <div class="grid">
     <section class="card" id="card-mouse">
-      <h2><span class="dot" style="background:var(--mouse)"></span>Mouse / 指针（非触摸）</h2>
-      <div class="hz" id="mouse-hz">— <small>Hz</small></div>
-      <div class="meta" id="mouse-meta">在下方区域移动鼠标</div>
+      <div class="hzrow">
+        <h2><span class="dot" style="background:var(--mouse)"></span>Mouse</h2>
+        <div class="hz" id="mouse-hz">— <small>Hz</small></div>
+      </div>
+      <div class="meta" id="mouse-meta">移动鼠标</div>
       <div class="hist" id="mouse-hist" style="color:var(--mouse)"></div>
     </section>
     <section class="card" id="card-touch">
-      <h2><span class="dot" style="background:var(--touch)"></span>Touch</h2>
-      <div class="hz" id="touch-hz">— <small>Hz</small></div>
-      <div class="meta" id="touch-meta">用手指在下方滑动</div>
+      <div class="hzrow">
+        <h2><span class="dot" style="background:var(--touch)"></span>Touch</h2>
+        <div class="hz" id="touch-hz">— <small>Hz</small></div>
+      </div>
+      <div class="meta" id="touch-meta">手指滑动</div>
       <div class="hist" id="touch-hist" style="color:var(--touch)"></div>
     </section>
     <section class="card">
-      <h2><span class="dot" style="background:var(--pen)"></span>Pen</h2>
-      <div class="hz" id="pen-hz">— <small>Hz</small></div>
-      <div class="meta" id="pen-meta">手写笔（若有）</div>
+      <div class="hzrow">
+        <h2><span class="dot" style="background:var(--pen)"></span>Pen</h2>
+        <div class="hz" id="pen-hz">— <small>Hz</small></div>
+      </div>
+      <div class="meta" id="pen-meta">手写笔</div>
       <div class="hist" id="pen-hist" style="color:var(--pen)"></div>
     </section>
     <section class="card">
-      <h2><span class="dot" style="background:var(--raf)"></span>Display (rAF)</h2>
-      <div class="hz" id="raf-hz">— <small>Hz</small></div>
-      <div class="meta" id="raf-meta">requestAnimationFrame 间隔</div>
+      <div class="hzrow">
+        <h2><span class="dot" style="background:var(--raf)"></span>Display rAF</h2>
+        <div class="hz" id="raf-hz">— <small>Hz</small></div>
+      </div>
+      <div class="meta" id="raf-meta">屏幕刷新</div>
       <div class="hist" id="raf-hist" style="color:var(--raf)"></div>
     </section>
   </div>
 
-  <div class="row">
-    <button type="button" id="reset">清空样本</button>
-    <label class="tog"><input type="checkbox" id="use-coalesced" checked /> 计入 getCoalescedEvents()</label>
-    <label class="tog"><input type="checkbox" id="use-raw" /> 优先 raw timestamps（event.timeStamp）</label>
-  </div>
-
   <div class="pad" id="pad">
+    <div class="row">
+      <button type="button" id="reset">清空</button>
+      <label class="tog"><input type="checkbox" id="use-coalesced" checked /> getCoalescedEvents()</label>
+      <label class="tog"><input type="checkbox" id="use-raw" /> event.timeStamp</label>
+    </div>
     <canvas id="trail"></canvas>
     <div class="hint" id="hint">
       <div>
@@ -120,25 +165,19 @@
     </div>
   </div>
 
-  <div class="grid" style="margin-top:12px">
+  <div class="foot">
     <section class="card">
-      <h2>环境探测</h2>
+      <h2>环境</h2>
       <div class="meta" id="env"></div>
     </section>
     <section class="card">
       <h2>最近一次事件</h2>
       <div class="meta" id="last"></div>
     </section>
-  </div>
-
-  <div class="notes">
-    <p><strong>怎么读结果</strong></p>
-    <ul>
-      <li><strong>Mouse Hz</strong> ≈ 鼠标回报率的上限，但常被浏览器对齐到显示器刷新（很多桌面 Chrome 上你会看到 ~60 / 120 / 144，而不是 1000）。勾选 coalesced 后，若驱动/浏览器保留了中间采样，数字会往真实 polling 靠。</li>
-      <li><strong>Touch Hz</strong> 是触控采样经浏览器投递后的频率，常见 60–120，部分高刷屏/游戏机可达 240。这<strong>不是</strong> LCD 刷新率本身；右边 rAF 才更接近屏幕刷新。</li>
-      <li><code>screen.refreshRate</code> / Window Management 的 refreshRate 只有少数环境会给。本页会显示有没有。</li>
-      <li>估算取最近窗口的<strong>中位数间隔</strong>的倒数，比瞬时 1/Δt 稳。样本少时不要当真。</li>
-    </ul>
+    <section class="card notes">
+      <h2>怎么读</h2>
+      <p>Mouse 常被对齐到屏刷（60/120/144），coalesced 才可能露出真实 polling。Touch 是触控投递频率，不是 LCD；屏刷看 rAF。取中位间隔的倒数。</p>
+    </section>
   </div>
 
   <script>
@@ -148,6 +187,9 @@
     const hint = document.getElementById("hint");
     const useCoalesced = document.getElementById("use-coalesced");
     const useRaw = document.getElementById("use-raw");
+    const padControls = document.querySelector("#pad .row");
+    padControls.addEventListener("pointerdown", (e) => e.stopPropagation());
+    padControls.addEventListener("pointermove", (e) => e.stopPropagation());
 
     const MAX = 400;
     const buckets = { mouse: [], touch: [], pen: [], raf: [] };
@@ -202,7 +244,7 @@
       const peak = Math.max(1, ...counts);
       for (const c of counts) {
         const i = document.createElement("i");
-        i.style.height = (8 + (c / peak) * 64) + "px";
+        i.style.height = (2 + (c / peak) * 20) + "px";
         el.appendChild(i);
       }
     }
@@ -223,7 +265,7 @@
           const med = median(arr);
           const inst = arr[arr.length - 1];
           document.getElementById(k + "-meta").textContent =
-            `n=${arr.length}  中位间隔 ${med.toFixed(2)} ms  最近 ${inst.toFixed(2)} ms`;
+            `n=${arr.length}  中位 ${med.toFixed(1)}ms  近 ${inst.toFixed(1)}ms`;
         }
         drawHist(document.getElementById(k + "-hist"), arr);
       }
@@ -284,9 +326,8 @@
         ? ev.getCoalescedEvents().length
         : 0;
       document.getElementById("last").innerHTML =
-        `type=${ev.type} pointerType=${ev.pointerType || "?"} id=${ev.pointerId}<br>` +
-        `timeStamp=${ev.timeStamp.toFixed(3)} coalesced=${coalescedN} isPrimary=${ev.isPrimary}<br>` +
-        `pressure=${(ev.pressure ?? 0).toFixed(3)} tilt=(${ev.tiltX ?? "—"}, ${ev.tiltY ?? "—"})`;
+        `${ev.type} · ${ev.pointerType || "?"} #${ev.pointerId} coalesced=${coalescedN}<br>` +
+        `t=${ev.timeStamp.toFixed(1)} p=${(ev.pressure ?? 0).toFixed(2)} tilt=${ev.tiltX ?? "—"}/${ev.tiltY ?? "—"}`;
     }
 
     pad.addEventListener("pointerdown", (ev) => {
@@ -324,23 +365,12 @@
     }
 
     function envText() {
-      const lines = [];
-      lines.push("maxTouchPoints = " + (navigator.maxTouchPoints ?? "n/a"));
-      lines.push("pointer: " + (matchMedia("(pointer:fine)").matches ? "fine" : matchMedia("(pointer:coarse)").matches ? "coarse" : "?") +
-        " / hover: " + (matchMedia("(hover:hover)").matches ? "hover" : "none"));
-      lines.push("devicePixelRatio = " + devicePixelRatio);
-      const rr = screen.refreshRate;
-      lines.push("screen.refreshRate = " + (typeof rr === "number" ? rr + " Hz" : "不支持"));
-      if (window.getScreenDetails) {
-        lines.push("getScreenDetails() 存在（需权限，未自动请求）");
-      } else {
-        lines.push("getScreenDetails() 不存在");
-      }
-      lines.push("PointerEvent.getCoalescedEvents = " +
-        (typeof PointerEvent !== "undefined" && PointerEvent.prototype.getCoalescedEvents ? "yes" : "no"));
-      lines.push("userAgent = " + navigator.userAgent);
-      document.getElementById("env").textContent = lines.join("\n");
-      document.getElementById("env").style.whiteSpace = "pre-wrap";
+      const ptr = matchMedia("(pointer:fine)").matches ? "fine" : matchMedia("(pointer:coarse)").matches ? "coarse" : "?";
+      const rr = typeof screen.refreshRate === "number" ? screen.refreshRate + "Hz" : "n/a";
+      const coal = typeof PointerEvent !== "undefined" && PointerEvent.prototype.getCoalescedEvents ? "yes" : "no";
+      document.getElementById("env").innerHTML =
+        `touchPoints=${navigator.maxTouchPoints ?? "n/a"} · pointer=${ptr} · dpr=${devicePixelRatio}<br>` +
+        `screen.refreshRate=${rr} · getScreenDetails=${window.getScreenDetails ? "yes" : "no"} · coalesced=${coal}`;
     }
 
     document.getElementById("reset").addEventListener("click", () => {
