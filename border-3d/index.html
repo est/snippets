@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04030b">
+<title>BORDER//3D — a trefoil made of CSS triangles</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%2304030b'/%3E%3Cpath d='M6 26 L16 5 L26 26 Z' fill='%23ff2ea6'/%3E%3C/svg%3E">
+<!--
+  BORDER//3D
+  A real-time 3D trefoil rendered with CSS border triangles.
+
+  Technique inspired by "Real-Time 3D in Javascript" by Useless Pickles:
+  https://www.uselesspickles.com/triangles/
+
+  Each projected triangle is split at the foot of its altitude into two
+  right triangles. Each right triangle is just two borders on a 0×0 div
+  (one coloured, one transparent) plus a CSS rotate/scale transform.
+  No canvas, WebGL, SVG or images are used to draw the scene.
+-->
+<style>
+  :root{
+    --bg0:#04030b;
+    --bg1:#0b0620;
+    --ink:#dbe4ff;
+    --dim:#8f9cc7;
+    --magenta:#ff2ea6;
+    --violet:#7a5cff;
+    --cyan:#38e8ff;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ height:100%; margin:0; }
+  body{
+    overflow:hidden;
+    overscroll-behavior:none;
+    background:#020107;
+    color:var(--ink);
+    font-family: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+    font-size:12px;
+    letter-spacing:.08em;
+    cursor:grab;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent;
+  }
+  body.dragging{ cursor:grabbing; }
+
+  #stage{
+    position:fixed; inset:0; overflow:hidden;
+    touch-action:none;
+    background:
+      radial-gradient(130% 95% at 50% 38%, #1a0b3f 0%, #0c0722 34%, #05030f 64%, #020107 100%);
+  }
+
+  /* ---------- sky ---------- */
+  #nebula{
+    position:absolute; inset:-10%;
+    background:
+      radial-gradient(38% 28% at 26% 24%, rgba(96,52,255,.20), transparent 70%),
+      radial-gradient(46% 32% at 76% 30%, rgba(255,42,166,.14), transparent 72%),
+      radial-gradient(60% 40% at 50% 70%, rgba(60,30,140,.18), transparent 75%);
+    filter:blur(8px);
+    mix-blend-mode:screen;
+    animation:nebulaDrift 26s ease-in-out infinite alternate;
+  }
+  @keyframes nebulaDrift{
+    from{ transform:translate3d(-1.2%,-0.8%,0) scale(1.02); }
+    to  { transform:translate3d(1.4%,1.1%,0) scale(1.06); }
+  }
+  .starfield{
+    position:absolute; left:0; top:0; width:2px; height:2px; border-radius:50%;
+    background:transparent; pointer-events:none;
+  }
+  #stars1{ animation:twinkle 5.5s ease-in-out infinite alternate; }
+  #stars2{ animation:twinkle 8.5s ease-in-out infinite alternate-reverse; }
+  @keyframes twinkle{ from{opacity:.45} to{opacity:1} }
+
+  /* ---------- horizon + floor ---------- */
+  #horizonGlow{
+    position:absolute; left:0; width:100%;
+    pointer-events:none;
+    background:
+      radial-gradient(64% 100% at 50% 50%, rgba(255,46,166,.20), rgba(122,92,255,.10) 42%, transparent 74%);
+    filter:blur(10px);
+  }
+  #horizonLine{
+    position:absolute; left:0; width:100%; height:1px; pointer-events:none;
+    background:linear-gradient(90deg, transparent 0%, rgba(255,46,166,.08) 12%, rgba(255,120,220,.75) 50%, rgba(255,46,166,.08) 88%, transparent 100%);
+    box-shadow:0 0 18px 2px rgba(255,46,166,.55), 0 0 60px 8px rgba(122,92,255,.25);
+  }
+  #floor{ position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .hline{
+    position:absolute; left:0; width:100%; height:1px;
+    background:linear-gradient(90deg, transparent 0%, rgba(255,52,182,.85) 22%, rgba(255,120,230,.95) 50%, rgba(255,52,182,.85) 78%, transparent 100%);
+    box-shadow:0 0 7px rgba(255,52,182,.42);
+    opacity:.5;
+  }
+  .rline{
+    position:absolute; transform-origin:0 0; width:1.5px;
+    background:linear-gradient(to bottom, rgba(122,92,255,0) 0%, rgba(158,96,255,.22) 7%, rgba(255,64,190,.55) 44%, rgba(255,64,190,.62) 74%, rgba(255,64,190,0) 100%);
+    box-shadow:0 0 6px rgba(255,64,190,.35);
+  }
+  #floorHaze{
+    position:absolute; left:0; width:100%; pointer-events:none;
+    background:linear-gradient(to bottom, rgba(8,4,22,.72) 0%, rgba(8,4,22,.22) 30%, rgba(8,4,22,0) 70%);
+  }
+
+  /* ---------- object halo ---------- */
+  #aura{
+    position:absolute; left:0; top:0; width:74vmin; height:74vmin;
+    margin-left:-37vmin; margin-top:-37vmin;
+    border-radius:50%;
+    pointer-events:none;
+    background:
+      radial-gradient(circle at 50% 50%, rgba(255,46,166,.24) 0%, rgba(122,92,255,.13) 34%, rgba(56,232,255,.05) 58%, transparent 72%);
+    filter:blur(12px);
+    mix-blend-mode:screen;
+    will-change:transform,opacity;
+  }
+  #floorPool{
+    position:absolute; left:0; top:0; width:70vmin; height:22vmin;
+    margin-left:-35vmin; margin-top:-11vmin;
+    border-radius:50%;
+    pointer-events:none;
+    background:radial-gradient(ellipse at 50% 50%, rgba(255,46,166,.30) 0%, rgba(122,92,255,.14) 42%, transparent 70%);
+    filter:blur(10px);
+    mix-blend-mode:screen;
+    opacity:.8;
+  }
+
+  /* ---------- render layers ---------- */
+  .layer{ position:absolute; inset:0; pointer-events:none; contain:layout style paint; }
+  #glowLayer{
+    filter:blur(11px) saturate(1.35);
+    opacity:.9;
+    mix-blend-mode:screen;
+  }
+  #mainLayer{ filter:saturate(1.06) contrast(1.03); }
+  .tri{
+    position:absolute; left:0; top:0; width:0; height:0;
+    border:0 solid transparent;
+    transform-origin:0 0;
+    pointer-events:none;
+  }
+
+  /* ---------- CRT finish ---------- */
+  #scanlines{
+    position:absolute; inset:0; pointer-events:none;
+    background:repeating-linear-gradient(to bottom, rgba(0,0,0,.14) 0 1px, transparent 1px 3px);
+    opacity:.28;
+    mix-blend-mode:multiply;
+  }
+  #vignette{
+    position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(120% 90% at 50% 44%, transparent 46%, rgba(2,1,8,.42) 74%, rgba(2,1,8,.9) 100%),
+      linear-gradient(to bottom, rgba(2,1,8,.5) 0%, transparent 16%, transparent 82%, rgba(2,1,8,.55) 100%);
+  }
+
+  /* ---------- ui ---------- */
+  #ui{ position:absolute; inset:0; pointer-events:none; }
+  #brand{
+    position:absolute; left:clamp(18px,3vw,42px); top:clamp(18px,3.4vh,40px);
+    line-height:1.5;
+    text-transform:uppercase;
+    animation:fadeIn 1.8s .55s both;
+  }
+  #brand .mark{
+    font-size:clamp(15px,1.7vw,21px);
+    font-weight:700;
+    letter-spacing:.22em;
+    color:#f2f5ff;
+    text-shadow:0 0 18px rgba(255,46,166,.55), 0 0 42px rgba(122,92,255,.35);
+  }
+  #brand .mark em{ font-style:normal; color:var(--magenta); animation:flicker 7s infinite; }
+  @keyframes flicker{
+    0%,95%,100%{ opacity:1 }
+    96%{ opacity:.25 }
+    97%{ opacity:.9 }
+    98%{ opacity:.4 }
+    99%{ opacity:1 }
+  }
+  #brand .sub{
+    margin-top:7px; font-size:10px; letter-spacing:.26em; color:var(--dim); opacity:.85;
+  }
+  #brand .sub b{ color:var(--cyan); font-weight:400; }
+
+  #stats{
+    position:absolute; left:clamp(18px,3vw,42px); bottom:clamp(16px,3vh,36px);
+    font-size:9.5px; letter-spacing:.2em; color:var(--dim); opacity:.75;
+    text-transform:uppercase; line-height:1.9;
+    animation:fadeInDim 1.8s .8s both;
+  }
+  @keyframes fadeInDim{ from{ opacity:0 } to{ opacity:.75 } }
+  #stats span{ color:#e5ecff; }
+
+  #hint{
+    position:absolute; left:50%; bottom:clamp(52px,7vh,70px); transform:translateX(-50%);
+    font-size:9.5px; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--dim); white-space:nowrap;
+    transition:opacity 1.2s ease;
+    text-align:center;
+  }
+  #hint b{ color:#e9eeff; font-weight:400; }
+  #hint i{ color:var(--magenta); font-style:normal; }
+  #hint .nb{ white-space:nowrap; }
+  #hint .hint-mobile{ display:none; }
+  #hint.fade{ opacity:0; }
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
+  #mode{
+    position:absolute; right:clamp(18px,3vw,42px); top:clamp(18px,3.4vh,40px);
+    text-align:right; font-size:9.5px; letter-spacing:.22em; color:var(--dim); opacity:.75;
+    text-transform:uppercase; line-height:1.9;
+    animation:fadeInDim 1.8s .7s both;
+  }
+  @keyframes fadeIn{ from{ opacity:0 } to{ opacity:1 } }
+  #floor,#horizonGlow,#horizonLine{ animation:fadeIn 2.2s .1s both; }
+  #mode .on{ color:var(--cyan); }
+  #mode .off{ color:#5d6685; }
+
+  /* ---------- click ripples ---------- */
+  .ripple{
+    position:absolute; left:0; top:0; width:18px; height:18px; margin:-9px 0 0 -9px;
+    border:2px solid rgba(255,110,220,.95);
+    border-radius:50%;
+    pointer-events:none;
+    box-shadow:0 0 22px rgba(255,46,166,.75), inset 0 0 14px rgba(122,92,255,.55);
+    mix-blend-mode:screen;
+    animation:rippleOut 1.25s cubic-bezier(.16,.66,.3,1) forwards;
+  }
+  @keyframes rippleOut{
+    0%{ transform:scale(.1); opacity:.95; }
+    100%{ transform:scale(17); opacity:0; }
+  }
+
+  @media (max-width:640px){
+    #hint{ font-size:8px; letter-spacing:.14em; bottom:66px; white-space:normal; width:86vw; }
+    #hint .hint-desktop{ display:none; }
+    #hint .hint-mobile{ display:inline; }
+    #stats{ font-size:8px; }
+    #brand .sub{ font-size:8.5px; letter-spacing:.18em; }
+    #mode{ display:none; }
+  }
+  @media (prefers-reduced-motion:reduce){
+    #nebula,#stars1,#stars2{ animation:none; }
+  }
+</style>
+</head>
+<body>
+<p class="sr-only">BORDER//3D: a real-time 3D trefoil knot rendered with CSS border triangles. Drag to orbit, scroll to zoom, click to pulse, press space to pause the spin.</p>
+<div id="stage">
+  <div id="nebula"></div>
+  <div id="stars1" class="starfield"></div>
+  <div id="stars2" class="starfield"></div>
+
+  <div id="horizonGlow"></div>
+  <div id="floor">
+    <div id="rlines"></div>
+    <div id="hlines"></div>
+  </div>
+  <div id="floorHaze"></div>
+  <div id="horizonLine"></div>
+
+  <div id="aura"></div>
+  <div id="floorPool"></div>
+
+  <div id="glowLayer" class="layer"></div>
+  <div id="mainLayer" class="layer"></div>
+  <div id="dustLayer" class="layer"></div>
+
+  <div id="scanlines"></div>
+  <div id="vignette"></div>
+
+  <div id="ui">
+    <div id="brand">
+      <div class="mark">BORDER<em>//</em>3D</div>
+      <div class="sub">trefoil <b>2 : 3</b> · 2 divs per face · zero canvas</div>
+    </div>
+    <div id="mode">
+      <div>spin <span id="spinState" class="on">auto</span></div>
+      <div>render <span id="qualityState" class="on">ultra</span></div>
+    </div>
+    <div id="stats">
+      <div>faces <span id="statFaces">0</span> · divs <span id="statDivs">0</span> · <span id="statFps">0</span> fps</div>
+    </div>
+    <div id="hint"><span class="hint-desktop"><span class="nb"><b>drag</b> to orbit</span> · <span class="nb"><b>scroll</b> to zoom</span> · <span class="nb"><b>click</b> to pulse</span> · <span class="nb"><i>space</i> to freeze</span></span><span class="hint-mobile"><span class="nb"><b>drag</b> to orbit</span> · <span class="nb"><b>tap</b> to pulse</span></span></div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const TAU = Math.PI * 2;
+  const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+  const lerp = (a, b, t) => a + (b - a) * t;
+
+  const stage = document.getElementById('stage');
+  const glowLayerEl = document.getElementById('glowLayer');
+  const mainLayerEl = document.getElementById('mainLayer');
+  const dustLayerEl = document.getElementById('dustLayer');
+  const hlEl = document.getElementById('hlines');
+  const rlEl = document.getElementById('rlines');
+  const auraEl = document.getElementById('aura');
+  const floorPoolEl = document.getElementById('floorPool');
+  const horizonGlowEl = document.getElementById('horizonGlow');
+  const horizonLineEl = document.getElementById('horizonLine');
+  const floorHazeEl = document.getElementById('floorHaze');
+  const hintEl = document.getElementById('hint');
+  const statFaces = document.getElementById('statFaces');
+  const statDivs = document.getElementById('statDivs');
+  const statFps = document.getElementById('statFps');
+  const spinState = document.getElementById('spinState');
+  const qualityState = document.getElementById('qualityState');
+
+  /* =========================================================
+     tiny vector helpers
+     ========================================================= */
+  const v3 = {
+    cross(ax, ay, az, bx, by, bz, out) {
+      out[0] = ay * bz - az * by;
+      out[1] = az * bx - ax * bz;
+      out[2] = ax * by - ay * bx;
+      return out;
+    }
+  };
+
+  /* =========================================================
+     colour
+     ========================================================= */
+  const rgbCache = new Map();
+  function hsl(h, s, l) {
+    h = ((h % 360) + 360) % 360;
+    const key = ((h | 0) << 8) | ((s * 100) | 0);
+    let c = rgbCache.get(key);
+    if (c) return c;
+    const C = (1 - Math.abs(2 * l - 1)) * s;
+    const hp = h / 60;
+    const X = C * (1 - Math.abs((hp % 2) - 1));
+    let r = 0, g = 0, b = 0;
+    if (hp < 1)      { r = C; g = X; }
+    else if (hp < 2) { r = X; g = C; }
+    else if (hp < 3) { g = C; b = X; }
+    else if (hp < 4) { g = X; b = C; }
+    else if (hp < 5) { r = X; b = C; }
+    else             { r = C; b = X; }
+    const m = l - C / 2;
+    c = [ (r + m) * 255, (g + m) * 255, (b + m) * 255 ];
+    rgbCache.set(key, c);
+    return c;
+  }
+  const cssCache = new Map();
+  function rgbCss(r, g, b, a) {
+    r = r < 0 ? 0 : r > 255 ? 255 : r | 0;
+    g = g < 0 ? 0 : g > 255 ? 255 : g | 0;
+    b = b < 0 ? 0 : b > 255 ? 255 : b | 0;
+    if (a === undefined || a >= 1) {
+      const k = (r << 16) | (g << 8) | b;
+      let s = cssCache.get(k);
+      if (s === undefined) { s = 'rgb(' + r + ',' + g + ',' + b + ')'; cssCache.set(k, s); }
+      return s;
+    }
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  }
+
+  /* =========================================================
+     GPU-less triangle layer (border triangles, one div per right triangle)
+     ========================================================= */
+  class TriLayer {
+    constructor(el) { this.el = el; this.pool = []; this.n = 0; }
+    begin() { this.n = 0; }
+    next() {
+      let d = this.pool[this.n];
+      if (d === undefined) {
+        d = document.createElement('div');
+        d.className = 'tri';
+        this.el.appendChild(d);
+        this.pool.push(d);
+      } else if (d.style.display === 'none') {
+        d.style.display = '';
+      }
+      this.n++;
+      return d;
+    }
+    end() {
+      const pool = this.pool;
+      for (let i = this.n; i < pool.length; i++) {
+        if (pool[i].style.display !== 'none') pool[i].style.display = 'none';
+      }
+    }
+    reset() {
+      this.el.textContent = '';
+      this.pool = [];
+      this.n = 0;
+    }
+  }
+
+  const main = new TriLayer(mainLayerEl);
+  const glow = new TriLayer(glowLayerEl);
+  const dust = new TriLayer(dustLayerEl);
+
+  // canonical right triangle: apex at local (0,0), legs +x (w) and +y (h)
+  function emitRight(layer, fx, fy, w, h, theta, sy, color) {
+    const d = layer.next();
+    d.style.cssText =
+      'transform:translate(' + fx.toFixed(2) + 'px,' + fy.toFixed(2) + 'px) rotate(' +
+      theta.toFixed(4) + 'rad) scaleY(' + sy + ');border-top:' + h.toFixed(2) +
+      'px solid ' + color + ';border-right:' + w.toFixed(2) + 'px solid transparent;';
+  }
+
+  /* =========================================================
+     scene state
+     ========================================================= */
+  const state = {
+    w: 0, h: 0,
+    time: 0,
+    yaw: 0.55, pitch: 0.12,
+    targetYaw: 0.55, targetPitch: 0.12,
+    dist: 7.6, targetDist: 7.6,
+    auto: true,
+    dragging: false,
+    introDone: false,
+    quality: 2,
+    qualityLocked: false,
+    pulse: 0,
+    hueShift: 0,
+    momentum: 0,
+    objScale: 1
+  };
+
+  const HORIZON = 0.625;
+  const LIGHT = (() => {
+    const v = [-0.48, 0.62, -0.62];
+    const l = Math.hypot(v[0], v[1], v[2]);
+    return [v[0] / l, v[1] / l, v[2] / l];
+  })();
+  const FILL = (() => {
+    const v = [0.62, -0.28, -0.60];
+    const l = Math.hypot(v[0], v[1], v[2]);
+    return [v[0] / l, v[1] / l, v[2] / l];
+  })();
+
+  /* =========================================================
+     geometry
+     ========================================================= */
+  const KNOT_SCALE = 0.94;
+  const TUBE_R = 0.405;
+
+  function knotPoint(t, out) {
+    const st = Math.sin(t), ct = Math.cos(t);
+    const s2 = Math.sin(2 * t), c2 = Math.cos(2 * t);
+    out[0] = (st + 2 * s2) * KNOT_SCALE;
+    out[1] = (ct - 2 * c2) * KNOT_SCALE;
+    out[2] = -Math.sin(3 * t) * 0.62;
+    return out;
+  }
+
+  function buildMesh(nu, nv) {
+    const centers = [];
+    const tangents = [];
+    const p = [0, 0, 0];
+    for (let i = 0; i < nu; i++) {
+      knotPoint(TAU * i / nu, p);
+      centers.push([p[0], p[1], p[2]]);
+    }
+    for (let i = 0; i < nu; i++) {
+      const a = centers[(i + 1) % nu], b = centers[(i - 1 + nu) % nu];
+      let tx = a[0] - b[0], ty = a[1] - b[1], tz = a[2] - b[2];
+      const tl = Math.hypot(tx, ty, tz) || 1;
+      tangents.push([tx / tl, ty / tl, tz / tl]);
+    }
+
+    // parallel transport frames around the closed curve
+    const Ns = [], Bs = [];
+    let n0 = [0, 1, 0];
+    if (Math.abs(tangents[0][1]) > 0.9) n0 = [1, 0, 0];
+    let nx = n0[0] - tangents[0][0] * (n0[0] * tangents[0][0] + n0[1] * tangents[0][1] + n0[2] * tangents[0][2]);
+    let ny = n0[1] - tangents[0][1] * (n0[0] * tangents[0][0] + n0[1] * tangents[0][1] + n0[2] * tangents[0][2]);
+    let nz = n0[2] - tangents[0][2] * (n0[0] * tangents[0][0] + n0[1] * tangents[0][1] + n0[2] * tangents[0][2]);
+    let nl = Math.hypot(nx, ny, nz) || 1;
+    let N = [nx / nl, ny / nl, nz / nl];
+
+    for (let i = 0; i < nu; i++) {
+      const T = tangents[i];
+      const dot = N[0] * T[0] + N[1] * T[1] + N[2] * T[2];
+      nx = N[0] - T[0] * dot;
+      ny = N[1] - T[1] * dot;
+      nz = N[2] - T[2] * dot;
+      nl = Math.hypot(nx, ny, nz) || 1;
+      N = [nx / nl, ny / nl, nz / nl];
+      Ns.push(N.slice());
+      const C = v3.cross(T[0], T[1], T[2], N[0], N[1], N[2], [0, 0, 0]);
+      const cl = Math.hypot(C[0], C[1], C[2]) || 1;
+      Bs.push([C[0] / cl, C[1] / cl, C[2] / cl]);
+    }
+
+    // holonomy correction so the tube closes without a seam
+    const T0 = tangents[0];
+    const last = Ns[nu - 1];
+    const d0 = last[0] * T0[0] + last[1] * T0[1] + last[2] * T0[2];
+    const transported = [last[0] - T0[0] * d0, last[1] - T0[1] * d0, last[2] - T0[2] * d0];
+    const tl = Math.hypot(transported[0], transported[1], transported[2]) || 1;
+    transported[0] /= tl; transported[1] /= tl; transported[2] /= tl;
+    const dotNN = transported[0] * Ns[0][0] + transported[1] * Ns[0][1] + transported[2] * Ns[0][2];
+    const cr = v3.cross(Ns[0][0], Ns[0][1], Ns[0][2], transported[0], transported[1], transported[2], [0, 0, 0]);
+    const sinA = cr[0] * T0[0] + cr[1] * T0[1] + cr[2] * T0[2];
+    const holonomy = Math.atan2(sinA, dotNN);
+
+    const verts = [];
+    for (let i = 0; i < nu; i++) {
+      const t = TAU * i / nu;
+      const T = tangents[i];
+      const corr = -holonomy * i / nu;
+      const ca = Math.cos(corr), sa = Math.sin(corr);
+      const N0 = Ns[i];
+      // Rodrigues rotation around T
+      const nd = N0[0] * T[0] + N0[1] * T[1] + N0[2] * T[2];
+      const crossTN = v3.cross(T[0], T[1], T[2], N0[0], N0[1], N0[2], [0, 0, 0]);
+      const Nc = [
+        N0[0] * ca + crossTN[0] * sa + T[0] * nd * (1 - ca),
+        N0[1] * ca + crossTN[1] * sa + T[1] * nd * (1 - ca),
+        N0[2] * ca + crossTN[2] * sa + T[2] * nd * (1 - ca)
+      ];
+      const Bc = v3.cross(T[0], T[1], T[2], Nc[0], Nc[1], Nc[2], [0, 0, 0]);
+      const bl = Math.hypot(Bc[0], Bc[1], Bc[2]) || 1;
+      Bc[0] /= bl; Bc[1] /= bl; Bc[2] /= bl;
+
+      for (let j = 0; j < nv; j++) {
+        const a = TAU * j / nv;
+        const ca2 = Math.cos(a), sa2 = Math.sin(a);
+        verts.push({
+          cx: centers[i][0], cy: centers[i][1], cz: centers[i][2],
+          ox: (Nc[0] * ca2 + Bc[0] * sa2) * TUBE_R,
+          oy: (Nc[1] * ca2 + Bc[1] * sa2) * TUBE_R,
+          oz: (Nc[2] * ca2 + Bc[2] * sa2) * TUBE_R,
+          t: t
+        });
+      }
+    }
+
+    const faces = [];
+    const addFace = (ia, ib, ic, ti, tj) => {
+      // orient outward using the centreline centroid of the quad
+      const A = verts[ia], B = verts[ib], C = verts[ic];
+      const ax = A.cx + A.ox, ay = A.cy + A.oy, az = A.cz + A.oz;
+      const bx = B.cx + B.ox, by = B.cy + B.oy, bz = B.cz + B.oz;
+      const cx = C.cx + C.ox, cy = C.cy + C.oy, cz = C.cz + C.oz;
+      const e1x = bx - ax, e1y = by - ay, e1z = bz - az;
+      const e2x = cx - ax, e2y = cy - ay, e2z = cz - az;
+      let nx = e1y * e2z - e1z * e2y;
+      let ny = e1z * e2x - e1x * e2z;
+      let nz = e1x * e2y - e1y * e2x;
+      const mx = (ax + bx + cx) / 3, my = (ay + by + cy) / 3, mz = (az + bz + cz) / 3;
+      const rc = [
+        (A.cx + B.cx + C.cx) / 3,
+        (A.cy + B.cy + C.cy) / 3,
+        (A.cz + B.cz + C.cz) / 3
+      ];
+      const rx = mx - rc[0], ry = my - rc[1], rz = mz - rc[2];
+      if (nx * rx + ny * ry + nz * rz < 0) {
+        faces.push({ a: ia, c: ib, b: ic, t: ti, j: tj });
+      } else {
+        faces.push({ a: ia, b: ib, c: ic, t: ti, j: tj });
+      }
+    };
+
+    for (let i = 0; i < nu; i++) {
+      const i1 = (i + 1) % nu;
+      for (let j = 0; j < nv; j++) {
+        const j1 = (j + 1) % nv;
+        const a = i * nv + j;
+        const b = i1 * nv + j;
+        const c = i1 * nv + j1;
+        const d = i * nv + j1;
+        addFace(a, b, c, TAU * i / nu, j);
+        addFace(a, c, d, TAU * i / nu, j);
+      }
+    }
+
+    return { nu, nv, verts, faces, world: new Float32Array(verts.length * 3) };
+  }
+
+  let mesh = null;
+  let glowMesh = null;
+  let sparks = [];
+
+  function ringScale(t, time, pulse) {
+    return 1 + 0.105 * Math.sin(3 * t + time * 1.45) +
+           0.05 * Math.sin(7 * t - time * 2.15) +
+           pulse * 0.42;
+  }
+
+  function makeSparks(m) {
+    const arr = [];
+    const count = window.innerWidth < 760 ? 14 : 22;
+    for (let i = 0; i < count; i++) {
+      arr.push({
+        ring: Math.random() * m.nu,
+        speed: 2.2 + Math.random() * 4.4,
+        side: (Math.random() * m.nv) | 0,
+        size: 1.5 + Math.random() * 2.4,
+        hue: 185 + Math.random() * 160,
+        off: 1.14 + Math.random() * 0.2,
+        spin: Math.random() * TAU,
+        spinV: (Math.random() - 0.5) * 3.2,
+        trail: 4
+      });
+    }
+    return arr;
+  }
+
+  function rebuild(quality) {
+    state.quality = quality;
+    let nu, nv, gnu, gnv;
+    if (quality >= 2)      { nu = 64; nv = 6;  gnu = 27; gnv = 4; }
+    else if (quality === 1) { nu = 56; nv = 6;  gnu = 24; gnv = 4; }
+    else                    { nu = 48; nv = 5;  gnu = 21; gnv = 4; }
+    mesh = buildMesh(nu, nv);
+    if (gnu) glowMesh = buildMesh(gnu, gnv); else glowMesh = null;
+    sparks = makeSparks(mesh);
+    glowLayerEl.style.display = glowMesh ? '' : 'none';
+    if (qualityState) qualityState.textContent = quality >= 2 ? 'ultra' : quality === 1 ? 'high' : 'eco';
+    if (qualityState) qualityState.className = quality >= 1 ? 'on' : 'off';
+    main.reset();
+    glow.reset();
+    dust.reset();
+  }
+
+  /* =========================================================
+     floor + stars
+     ========================================================= */
+  const HL_COUNT = 30;
+  const RL_COUNT = 19;
+  let hlines = [];
+  let rlines = [];
+  let horizonY = 0;
+
+  function buildStars(el, count, alpha) {
+    const sh = [];
+    const maxY = state.h * HORIZON * 0.94;
+    for (let i = 0; i < count; i++) {
+      const x = Math.random() * state.w;
+      const y = Math.random() * maxY;
+      const a = alpha * (0.25 + Math.random() * 0.75);
+      let s = x.toFixed(0) + 'px ' + y.toFixed(0) + 'px 0 ' + (Math.random() < 0.14 ? 1 : 0) + 'px rgba(190,215,255,' + a.toFixed(2) + ')';
+      if (i % 29 === 0) {
+        s += ', ' + x.toFixed(0) + 'px ' + y.toFixed(0) + 'px 6px 0.5px rgba(150,205,255,' + (a * 0.30).toFixed(2) + ')';
+      }
+      sh.push(s);
+    }
+    el.style.boxShadow = sh.join(',');
+  }
+
+  function buildFloor() {
+    hlEl.textContent = '';
+    rlEl.textContent = '';
+    hlines = [];
+    rlines = [];
+    for (let i = 0; i < HL_COUNT; i++) {
+      const d = document.createElement('div');
+      d.className = 'hline';
+      hlEl.appendChild(d);
+      hlines.push(d);
+    }
+    const cx = state.w * 0.5;
+    for (let i = 0; i < RL_COUNT; i++) {
+      const d = document.createElement('div');
+      d.className = 'rline';
+      const off = (i - (RL_COUNT - 1) / 2) / ((RL_COUNT - 1) / 2);
+      const ang = Math.atan(off * 2.9);
+      d.style.left = cx.toFixed(1) + 'px';
+      d.style.top = horizonY.toFixed(1) + 'px';
+      d.style.height = (state.h * 1.6).toFixed(0) + 'px';
+      d.style.transform = 'rotate(' + ang.toFixed(4) + 'rad)';
+      d.style.opacity = (0.22 + 0.34 * (1 - Math.abs(off))).toFixed(3);
+      rlEl.appendChild(d);
+      rlines.push({ el: d, off });
+    }
+  }
+
+  function layout() {
+    state.w = window.innerWidth;
+    state.h = window.innerHeight;
+    const hy = state.h * HORIZON;
+    horizonY = hy;
+
+    horizonGlowEl.style.top = (hy - state.h * 0.16) + 'px';
+    horizonGlowEl.style.height = (state.h * 0.32) + 'px';
+    horizonLineEl.style.top = hy.toFixed(1) + 'px';
+    floorHazeEl.style.top = hy.toFixed(1) + 'px';
+    floorHazeEl.style.height = (state.h * 0.18) + 'px';
+
+    buildFloor();
+    buildStars(document.getElementById('stars1'), 110, 0.85);
+    buildStars(document.getElementById('stars2'), 55, 0.55);
+    updateFloor(0);
+    auraEl.style.transform = 'translate(' + (state.w * 0.5) + 'px,' + (state.h * 0.44) + 'px)';
+    floorPoolEl.style.transform = 'translate(' + (state.w * 0.5) + 'px,' + (state.h * 0.785) + 'px)';
+  }
+
+  function updateFloor(time) {
+    const hy = horizonY;
+    const K = state.h * 1.16;
+    const zSpan = 42;
+    const zBase = 3.0;
+    const speed = 5.2;
+    for (let i = 0; i < hlines.length; i++) {
+      const z = zBase + ((((i * 1.4 - time * speed) % zSpan) + zSpan) % zSpan);
+      const y = hy + K / z;
+      const el = hlines[i];
+      if (y > state.h + 8) { el.style.opacity = '0'; continue; }
+      const depthFade = clamp(1 - (z - zBase) / zSpan, 0, 1);
+      const a = 0.06 + 0.62 * Math.pow(depthFade, 1.45);
+      el.style.transform = 'translateY(' + y.toFixed(1) + 'px)';
+      el.style.opacity = a.toFixed(3);
+      el.style.height = (z < 7 ? 1.4 : 1) + 'px';
+    }
+    // radial line fade follows a very slow pulse
+    const breathe = 0.92 + 0.08 * Math.sin(time * 0.7);
+    for (let i = 0; i < rlines.length; i++) {
+      const r = rlines[i];
+      r.el.style.opacity = ((0.18 + 0.32 * (1 - Math.abs(r.off))) * breathe).toFixed(3);
+    }
+  }
+
+  /* =========================================================
+     dust / sparks
+     ========================================================= */
+  const DUST_COUNT = 52;
+  const dustP = [];
+  for (let i = 0; i < DUST_COUNT; i++) {
+    dustP.push({
+      x: (Math.random() - 0.5) * 12,
+      y: (Math.random() - 0.5) * 6.5,
+      z: (Math.random() - 0.5) * 12,
+      s: 0.9 + Math.random() * 2.4,
+      spin: Math.random() * TAU,
+      spinV: (Math.random() - 0.5) * 2.6,
+      vy: 0.10 + Math.random() * 0.28,
+      hue: 175 + Math.random() * 170,
+      ph: Math.random() * TAU
+    });
+  }
+
+  /* =========================================================
+     drawing one projected triangle
+     ========================================================= */
+  function drawFaceTriangle(layer, ax, ay, bx, by, cx, cy, color) {
+    // pick the vertex opposite the longest screen edge
+    const ab = (ax - bx) * (ax - bx) + (ay - by) * (ay - by);
+    const bc = (bx - cx) * (bx - cx) + (by - cy) * (by - cy);
+    const ca = (cx - ax) * (cx - ax) + (cy - ay) * (cy - ay);
+    let px, py, q1x, q1y, q2x, q2y;
+    if (ab >= bc && ab >= ca) {
+      // C is opposite AB
+      px = cx; py = cy; q1x = ax; q1y = ay; q2x = bx; q2y = by;
+    } else if (bc >= ca) {
+      // A is opposite BC
+      px = ax; py = ay; q1x = bx; q1y = by; q2x = cx; q2y = cy;
+    } else {
+      // B is opposite CA
+      px = bx; py = by; q1x = cx; q1y = cy; q2x = ax; q2y = ay;
+    }
+
+    const dx = q2x - q1x, dy = q2y - q1y;
+    const len2 = dx * dx + dy * dy;
+    if (len2 < 0.0001) return;
+    let t = ((px - q1x) * dx + (py - q1y) * dy) / len2;
+    t = clamp(t, 0, 1);
+    const fx = q1x + dx * t, fy = q1y + dy * t;
+    const h = Math.hypot(px - fx, py - fy);
+    if (h < 0.15) return;
+
+    // half 1: foot -> q1, altitude toward p
+    emitHalf(layer, fx, fy, q1x, q1y, px, py, color);
+    // half 2: foot -> q2, altitude toward p
+    emitHalf(layer, fx, fy, q2x, q2y, px, py, color);
+  }
+
+  function emitHalf(layer, fx, fy, tx, ty, px, py, color) {
+    const dx = tx - fx, dy = ty - fy;
+    const w = Math.hypot(dx, dy);
+    const h = Math.hypot(px - fx, py - fy);
+    if (w < 0.12 || h < 0.12) return;
+    const theta = Math.atan2(dy, dx);
+    // local +y direction is (-sin, cos)
+    const sy = (dx * (py - fy) - dy * (px - fx)) >= 0 ? 1 : -1;
+    // a hair of overlap hides antialias seams along shared edges
+    emitRight(layer, fx, fy, w + 1.05, h + 1.05, theta, sy, color);
+  }
+
+  /* =========================================================
+     per-frame render
+     ========================================================= */
+  function updateWorld(m, time, pulse, scale) {
+    const verts = m.verts;
+    const world = m.world;
+    for (let i = 0; i < verts.length; i++) {
+      const v = verts[i];
+      const s = ringScale(v.t, time, pulse) * scale;
+      world[i * 3]     = v.cx * scale + v.ox * s;
+      world[i * 3 + 1] = v.cy * scale + v.oy * s;
+      world[i * 3 + 2] = v.cz * scale + v.oz * s;
+    }
+  }
+
+  const proj = { x: 0, y: 0, z: 0, ok: false };
+  function projectVertex(x, y, z, yaw, pitch, dist, focal, cx, cy) {
+    const cyw = Math.cos(yaw), syw = Math.sin(yaw);
+    const x1 = x * cyw + z * syw;
+    const z1 = -x * syw + z * cyw;
+    const cp = Math.cos(pitch), sp = Math.sin(pitch);
+    const y1 = y * cp - z1 * sp;
+    const z2 = y * sp + z1 * cp;
+    const depth = z2 + dist;
+    proj.z = depth;
+    proj.ok = depth > 0.35;
+    if (!proj.ok) { proj.x = 0; proj.y = 0; return proj; }
+    const inv = focal / depth;
+    proj.x = cx + x1 * inv;
+    proj.y = cy - y1 * inv;
+    return proj;
+  }
+
+  const vp = []; // scratch view positions per vertex
+
+  function collectFaces(m, yaw, pitch, dist, focal, cx, cy, objY, ambientMod, out) {
+    const world = m.world;
+    const verts = m.verts;
+    const n = verts.length;
+    if (vp.length < n) {
+      while (vp.length < n) vp.push([0, 0, 0, 0, 0, 0]);
+    }
+    // project vertices once
+    for (let i = 0; i < n; i++) {
+      const x = world[i * 3];
+      const y = world[i * 3 + 1] + objY;
+      const z = world[i * 3 + 2];
+      const cyw = Math.cos(yaw), syw = Math.sin(yaw);
+      const x1 = x * cyw + z * syw;
+      const z1 = -x * syw + z * cyw;
+      const cp = Math.cos(pitch), sp = Math.sin(pitch);
+      const y1 = y * cp - z1 * sp;
+      const z2 = y * sp + z1 * cp;
+      const depth = z2 + dist;
+      const s = vp[i];
+      s[0] = x1; s[1] = y1; s[2] = depth;
+      if (depth > 0.35) {
+        const inv = focal / depth;
+        s[3] = 0;
+        s[4] = cx + x1 * inv;
+        s[5] = cy - y1 * inv;
+      } else {
+        s[3] = 1;
+      }
+    }
+    const faces = m.faces;
+    for (let fi = 0; fi < faces.length; fi++) {
+      const f = faces[fi];
+      const A = f.a, B = f.b, C = f.c;
+      if (vp[A][3] | vp[B][3] | vp[C][3]) continue;
+
+      // world normal
+      const ax = world[A * 3], ay = world[A * 3 + 1], az = world[A * 3 + 2];
+      const bx = world[B * 3], by = world[B * 3 + 1], bz = world[B * 3 + 2];
+      const cxw = world[C * 3], cyw = world[C * 3 + 1], czw = world[C * 3 + 2];
+      const e1x = bx - ax, e1y = by - ay, e1z = bz - az;
+      const e2x = cxw - ax, e2y = cyw - ay, e2z = czw - az;
+      let nx = e1y * e2z - e1z * e2y;
+      let ny = e1z * e2x - e1x * e2z;
+      let nz = e1x * e2y - e1y * e2x;
+      const nl = Math.hypot(nx, ny, nz);
+      if (nl < 1e-6) continue;
+      nx /= nl; ny /= nl; nz /= nl;
+
+      // view-space normal
+      const cyw2 = Math.cos(yaw), syw2 = Math.sin(yaw);
+      const x1 = nx * cyw2 + nz * syw2;
+      const z1 = -nx * syw2 + nz * cyw2;
+      const cp2 = Math.cos(pitch), sp2 = Math.sin(pitch);
+      const nyv = ny * cp2 - z1 * sp2;
+      const nzv = ny * sp2 + z1 * cp2;
+      if (nzv > -0.001) continue; // back-face
+
+      const sa = vp[A], sb = vp[B], sc = vp[C];
+      const depth = (sa[2] + sb[2] + sc[2]) / 3;
+      const sxa = sa[4], sya = sa[5];
+      const sxb = sb[4], syb = sb[5];
+      const sxc = sc[4], syc = sc[5];
+
+      const minX = Math.min(sxa, sxb, sxc), maxX = Math.max(sxa, sxb, sxc);
+      const minY = Math.min(sya, syb, syc), maxY = Math.max(sya, syb, syc);
+      if (maxX < -24 || minX > state.w + 24 || maxY < -24 || minY > state.h + 24) continue;
+      if ((maxX - minX) < 0.6 && (maxY - minY) < 0.6) continue;
+
+      // shading
+      const cxp = (vp[A][0] + vp[B][0] + vp[C][0]) / 3;
+      const cyp = (vp[A][1] + vp[B][1] + vp[C][1]) / 3;
+      const czp = depth;
+      let vx = -cxp, vy = -cyp, vz = -czp;
+      const vlen = Math.hypot(vx, vy, vz) || 1;
+      vx /= vlen; vy /= vlen; vz /= vlen;
+
+      const diff = Math.max(0, nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]);
+      const fill = Math.max(0, nx * FILL[0] + ny * FILL[1] + nz * FILL[2]);
+      const head = Math.max(0, -nzv);
+      // half vector with fixed light (already view space)
+      const hx = LIGHT[0] + vx, hy = LIGHT[1] + vy, hz = LIGHT[2] + vz;
+      const hl = Math.hypot(hx, hy, hz) || 1;
+      const ndh = Math.max(0, (nx * hx + ny * hy + nz * hz) / hl);
+      const spec = Math.pow(ndh, 30) * 0.95;
+      const facing = clamp(-(nx * vx + ny * vy + nz * vz), 0, 1);
+      const rim = Math.pow(1 - facing, 3.2);
+
+      const t01 = f.t / TAU;
+      const hue = (188 + t01 * 138 + state.hueShift) % 360;
+      const base = hsl(hue, 0.92, 0.56);
+      const facet = 0.94 + 0.10 * Math.sin(f.j * 2.3 + f.t * 1.7);
+      const shade = (0.44 + 0.40 * diff + 0.24 * fill +
+                     0.07 * (0.5 + 0.5 * ny) + 0.18 * head) * ambientMod * facet;
+      const fog = clamp((depth - dist * 0.82) * 0.055, 0, 0.38);
+
+      let r = base[0] * shade + spec * 190 + rim * (60 + base[0] * 0.55) + fill * 16 + 15;
+      let g = base[1] * shade + spec * 196 + rim * (60 + base[1] * 0.55) + fill * 21 + 12;
+      let b = base[2] * shade + spec * 220 + rim * (80 + base[2] * 0.55) + fill * 52 + 34;
+
+      r = r * (1 - fog) + 9 * fog;
+      g = g * (1 - fog) + 6 * fog;
+      b = b * (1 - fog) + 25 * fog;
+
+      out.push({
+        x1: sxa, y1: sya, x2: sxb, y2: syb, x3: sxc, y3: syc,
+        depth, color: rgbCss(r, g, b)
+      });
+    }
+    return out;
+  }
+
+  /* =========================================================
+     frame
+     ========================================================= */
+  let frameCount = 0, fpsFrames = 0, fpsWindow = 0, realFps = 60, frameMs = 16.7;
+  let hudTimer = 0;
+  let lastT = performance.now();
+  let statsDivs = 0;
+
+  function frame(now) {
+    const dt = Math.min(0.05, Math.max(0.001, (now - lastT) / 1000));
+    lastT = now;
+    state.time += dt;
+
+    // camera motion
+    if (state.auto && !state.dragging) state.targetYaw += dt * 0.14;
+    if (!state.dragging) {
+      state.targetYaw += state.momentum * dt * 60;
+      state.momentum *= Math.pow(0.9, dt * 60);
+    }
+    const k = 1 - Math.exp(-dt * 9);
+    state.yaw = lerp(state.yaw, state.targetYaw, k);
+    state.pitch = lerp(state.pitch, state.targetPitch, k);
+    state.dist = lerp(state.dist, state.targetDist, 1 - Math.exp(-dt * 7));
+    state.pulse *= Math.pow(0.1, dt);
+    state.hueShift = 11 * Math.sin(state.time * 0.085 + 0.5);
+    state.objScale = 1 + 0.012 * Math.sin(state.time * 0.9);
+
+    const intro = clamp(state.time / 1.8, 0, 1);
+    const introEase = 1 - Math.pow(1 - intro, 3);
+    if (!state.introDone) {
+      const o = introEase.toFixed(3);
+      mainLayerEl.style.opacity = o;
+      glowLayerEl.style.opacity = (0.9 * introEase).toFixed(3);
+      dustLayerEl.style.opacity = o;
+      if (intro >= 1) {
+        state.introDone = true;
+        mainLayerEl.style.opacity = '';
+        glowLayerEl.style.opacity = '';
+        dustLayerEl.style.opacity = '';
+      }
+    }
+
+    const pitchOsc = state.pitch + 0.045 * Math.sin(state.time * 0.33);
+    const objY = 0.13 * Math.sin(state.time * 0.7) + 0.05;
+    const focal = Math.min(state.h * 0.86, state.w * 0.92);
+    const cx = state.w * 0.5;
+    const cy = state.h * 0.455;
+    const dist = state.dist;
+
+    const pulse = state.pulse +
+      0.11 * Math.pow(0.5 + 0.5 * Math.sin(state.time * 1.45 - 1.2), 6);
+    const scale = state.objScale * (0.55 + 0.45 * introEase);
+
+    updateWorld(mesh, state.time, pulse, scale);
+    const faces = [];
+    collectFaces(mesh, state.yaw, pitchOsc, dist, focal, cx, cy, objY, 1, faces);
+    const knotFaceCount = faces.length;
+
+    // sparks travelling along the surface of the knot
+    const nu = mesh.nu, nv = mesh.nv, verts = mesh.verts;
+    for (let si = 0; si < sparks.length; si++) {
+      const sp = sparks[si];
+      for (let k = 0; k < sp.trail; k++) {
+        let pos = (sp.ring + state.time * sp.speed - k * 0.24) % nu;
+        if (pos < 0) pos += nu;
+        const i0 = pos | 0;
+        const i1 = (i0 + 1) % nu;
+        const f = pos - i0;
+        const v0 = verts[i0 * nv + sp.side];
+        const v1 = verts[i1 * nv + sp.side];
+        const s0 = ringScale(v0.t, state.time, pulse);
+        const s1 = ringScale(v1.t, state.time, pulse);
+        const ox = (v0.ox * s0 + (v1.ox * s1 - v0.ox * s0) * f) * sp.off;
+        const oy = (v0.oy * s0 + (v1.oy * s1 - v0.oy * s0) * f) * sp.off;
+        const oz = (v0.oz * s0 + (v1.oz * s1 - v0.oz * s0) * f) * sp.off;
+        const x = (v0.cx + (v1.cx - v0.cx) * f) * scale + ox * scale;
+        const y = (v0.cy + (v1.cy - v0.cy) * f) * scale + oy * scale + objY;
+        const z = (v0.cz + (v1.cz - v0.cz) * f) * scale + oz * scale;
+        const pv = projectVertex(x, y, z, state.yaw, pitchOsc, dist, focal, cx, cy);
+        if (!pv.ok) continue;
+        const sxp = pv.x, syp = pv.y;
+        if (sxp < -20 || sxp > state.w + 20 || syp < -20 || syp > state.h + 20) continue;
+        const sizePx = clamp(focal / pv.z * 0.028 * sp.size, 0.9, 6.0) * (1 - k * 0.18);
+        const c = hsl(sp.hue + state.hueShift * 0.3, 0.82, 0.78);
+        const alpha = (0.88 - k * 0.21).toFixed(2);
+        const ang = sp.spin + state.time * sp.spinV;
+        faces.push({
+          spark: true, x: sxp, y: syp, w: sizePx * 0.5, h: sizePx * 1.65,
+          angle: ang, depth: pv.z, color: rgbCss(c[0], c[1], c[2], alpha)
+        });
+        if (k === 0) {
+          faces.push({
+            spark: true, x: sxp, y: syp, w: sizePx * 1.35, h: sizePx * 0.34,
+            angle: ang + Math.PI / 2, depth: pv.z,
+            color: rgbCss(c[0], c[1], c[2], '0.55')
+          });
+          faces.push({
+            spark: true, x: sxp, y: syp, w: sizePx * 1.7, h: sizePx * 3.6,
+            angle: ang, depth: pv.z, color: rgbCss(c[0], c[1], c[2], '0.09')
+          });
+        }
+      }
+    }
+
+    faces.sort((p, q) => q.depth - p.depth);
+
+    main.begin();
+    for (let i = 0; i < faces.length; i++) {
+      const f = faces[i];
+      if (f.spark) {
+        emitRight(main, f.x, f.y, f.w, f.h, f.angle, 1, f.color);
+      } else {
+        drawFaceTriangle(main, f.x1, f.y1, f.x2, f.y2, f.x3, f.y3, f.color);
+      }
+    }
+    main.end();
+
+    let glowFacesCount = 0;
+    if (glowMesh) {
+      updateWorld(glowMesh, state.time, pulse, scale);
+      const gf = [];
+      collectFaces(glowMesh, state.yaw, pitchOsc, dist, focal, cx, cy, objY, 1, gf);
+      gf.sort((p, q) => q.depth - p.depth);
+      glow.begin();
+      for (let i = 0; i < gf.length; i++) {
+        const f = gf[i];
+        drawFaceTriangle(glow, f.x1, f.y1, f.x2, f.y2, f.x3, f.y3, f.color);
+      }
+      glow.end();
+    }
+
+    // dust
+    dust.begin();
+    const t = state.time;
+    for (let i = 0; i < dustP.length; i++) {
+      const p = dustP[i];
+      const yy = ((p.y + t * p.vy + 3.25) % 6.5) - 3.25;
+      const x = p.x + Math.sin(t * 0.23 + p.ph) * 0.5;
+      const z = p.z + Math.cos(t * 0.19 + p.ph) * 0.5;
+      const pv = projectVertex(x, yy + objY, z, state.yaw, pitchOsc, dist, focal, cx, cy);
+      if (!pv.ok || pv.z < 1.2) continue;
+      const sxp = pv.x, syp = pv.y;
+      if (sxp < -20 || sxp > state.w + 20 || syp < -20 || syp > state.h + 20) continue;
+      const tw = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 1.8 + p.ph * 3));
+      const a = clamp((1.1 - pv.z * 0.06), 0.06, 0.68) * tw;
+      const col = hsl(p.hue, 0.85, 0.68);
+      const size = p.s * (focal / pv.z) * 0.018;
+      const ang = p.spin + t * p.spinV;
+      emitRight(dust, sxp, syp, size * 0.38, size * 1.15, ang, 1, rgbCss(col[0], col[1], col[2], a.toFixed(2)));
+    }
+    dust.end();
+
+    // ambient glow follows the object
+    const auraY = cy - 0.02 * state.h;
+    auraEl.style.transform = 'translate(' + cx.toFixed(1) + 'px,' + auraY.toFixed(1) + 'px)';
+    const auraPulse = 0.75 + 0.25 * Math.sin(state.time * 0.9) + pulse * 0.6;
+    auraEl.style.opacity = clamp(auraPulse, 0, 1.4).toFixed(3);
+    floorPoolEl.style.transform = 'translate(' + cx.toFixed(1) + 'px,' + (state.h * 0.795).toFixed(1) + 'px)';
+    floorPoolEl.style.opacity = (0.55 + pulse * 0.6).toFixed(3);
+
+    updateFloor(state.time);
+
+    // hud
+    frameCount++;
+    fpsFrames++;
+    fpsWindow += dt;
+    frameMs = lerp(frameMs, dt * 1000, 0.08);
+    if (fpsWindow >= 0.5) {
+      realFps = fpsFrames / fpsWindow;
+      fpsFrames = 0;
+      fpsWindow = 0;
+    }
+    hudTimer += dt;
+    if (hudTimer > 0.4) {
+      statFps.textContent = String(Math.round(realFps));
+      statFaces.textContent = String(knotFaceCount);
+      statsDivs = main.n + glow.n + dust.n;
+      statDivs.textContent = String(statsDivs);
+      hudTimer = 0;
+    }
+
+    // adaptive quality: only ever steps down, and only after a sustained slowdown
+    if (!state.qualityLocked && state.time > 3 && state.quality > 0) {
+      if (realFps < 30) slowFor += dt;
+      else if (realFps > 45) slowFor = Math.max(0, slowFor - dt);
+      if (slowFor > 2.5) {
+        state.qualityLocked = true;
+        setTimeout(() => {
+          rebuild(state.quality - 1);
+          state.qualityLocked = false;
+          slowFor = -6;
+        }, 0);
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  let slowFor = 0;
+
+  /* =========================================================
+     interaction
+     ========================================================= */
+  let dragId = null, dragX = 0, dragY = 0, downT = 0, moved = 0;
+
+  function hideHint() { hintEl.classList.add('fade'); }
+  setTimeout(hideHint, 9000);
+
+  stage.addEventListener('pointerdown', (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    dragId = e.pointerId;
+    dragX = e.clientX; dragY = e.clientY;
+    downT = performance.now();
+    moved = 0;
+    state.dragging = true;
+    state.momentum = 0;
+    document.body.classList.add('dragging');
+    try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+    hideHint();
+  });
+
+  stage.addEventListener('pointermove', (e) => {
+    if (dragId === null || e.pointerId !== dragId) return;
+    const dx = e.clientX - dragX;
+    const dy = e.clientY - dragY;
+    dragX = e.clientX; dragY = e.clientY;
+    moved += Math.abs(dx) + Math.abs(dy);
+    state.targetYaw += dx * 0.0062;
+    state.targetPitch = clamp(state.targetPitch + dy * 0.0052, -0.38, 0.58);
+    state.momentum += dx * 0.00055;
+  });
+
+  function endDrag(e) {
+    if (dragId === null) return;
+    dragId = null;
+    state.dragging = false;
+    document.body.classList.remove('dragging');
+    if (e && performance.now() - downT < 420 && moved < 9) {
+      // click = pulse + ripple
+      state.pulse = Math.min(1, state.pulse + 0.85);
+      spawnRipple(e.clientX, e.clientY);
+    }
+  }
+  stage.addEventListener('pointerup', endDrag);
+  stage.addEventListener('pointercancel', endDrag);
+
+  stage.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    state.targetDist = clamp(state.targetDist + e.deltaY * 0.0018, 5.0, 10.8);
+    hideHint();
+  }, { passive: false });
+
+  stage.addEventListener('dblclick', () => {
+    state.targetYaw = 0.55;
+    state.targetPitch = 0.12;
+    state.targetDist = 7.6;
+    state.momentum = 0;
+  });
+
+  function spawnRipple(x, y) {
+    const d = document.createElement('div');
+    d.className = 'ripple';
+    d.style.left = x + 'px';
+    d.style.top = y + 'px';
+    document.getElementById('stage').appendChild(d);
+    setTimeout(() => d.remove(), 1600);
+  }
+
+  window.addEventListener('keydown', (e) => {
+    const k = e.key.toLowerCase();
+    if (k === ' ' || e.code === 'Space') {
+      e.preventDefault();
+      state.auto = !state.auto;
+      spinState.textContent = state.auto ? 'auto' : 'frozen';
+      spinState.className = state.auto ? 'on' : 'off';
+      hideHint();
+    } else if (k === 'r') {
+      state.targetYaw = 0.55;
+      state.targetPitch = 0.12;
+      state.targetDist = 7.6;
+      state.momentum = 0;
+      state.auto = true;
+      spinState.textContent = 'auto';
+      spinState.className = 'on';
+    } else if (k === 'h') {
+      document.getElementById('ui').style.display =
+        document.getElementById('ui').style.display === 'none' ? '' : 'none';
+    }
+  });
+
+  window.addEventListener('resize', () => {
+    clearTimeout(window.__rz);
+    window.__rz = setTimeout(() => { layout(); }, 120);
+  });
+
+  /* =========================================================
+     boot
+     ========================================================= */
+  layout();
+  rebuild(window.innerWidth < 760 ? 1 : 2);
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    state.auto = false;
+    spinState.textContent = 'frozen';
+    spinState.className = 'off';
+  }
+  requestAnimationFrame(frame);
+
+  window.__b3d = {
+    state,
+    main, glow, dust,
+    get fps() { return Math.round(realFps); },
+    get ms() { return frameMs; },
+    frameCount() { return frameCount; }
+  };
+})();
+</script>
+</body>
+</html>
